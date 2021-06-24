@@ -1,0 +1,11 @@
+(fp_lib_table
+  (lib (name MiOrigin)(type KiCad)(uri ${KIPRJMOD}/MiOrigin.pretty)(options "")(descr ""))
+  (lib (name footprints)(type KiCad)(uri ${KIPRJMOD}/lib/SN74LVC125ADBR/KiCAD/2021-06-22_18-51-54/footprints.pretty)(options "")(descr ""))
+  (lib (name SN74LVC125ADBR)(type KiCad)(uri ${KIPRJMOD}/lib/SN74LVC125ADBR/SN74LVC125ADBR.pretty)(options "")(descr ""))
+  (lib (name PTS636SK50SMTRLFS)(type KiCad)(uri ${KIPRJMOD}/lib/PTS636SK50SMTRLFS/PTS636SK50SMTRLFS.pretty)(options "")(descr ""))
+  (lib (name DM3CS-SF)(type KiCad)(uri ${KIPRJMOD}/lib/DM3CS-SF)(options "")(descr ""))
+  (lib (name MAX17048G_T10)(type KiCad)(uri ${KIPRJMOD}/lib/MAX17048G_T10)(options "")(descr ""))
+  (lib (name MAX3232)(type KiCad)(uri ${KIPRJMOD}/lib/SOIC127P1030X265-16N)(options "")(descr ""))
+  (lib (name jst-ph-vertical)(type KiCad)(uri ${KIPRJMOD}/lib/jst-ph-vertical)(options "")(descr ""))
+  (lib (name assets)(type KiCad)(uri ${KIPRJMOD}/assets)(options "")(descr ""))
+)

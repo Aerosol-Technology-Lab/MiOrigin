@@ -1,0 +1,212 @@
+.HEA
+.TIM Tue 22 Jun 2021 05:32:31 PM CDT
+.APP "Eeschema 5.1.10-88a1d61d58~88~ubuntu20.04.1"
+
+.ADD_COM Q1 "MBT3904DW1"
+.ADD_COM R1 "10k"
+.ADD_COM R2 "10k"
+.ADD_COM R3 "10k"
+.ADD_COM C6 "0.1uF"
+.ADD_COM R5 "10k"
+.ADD_COM R4 "10k"
+.ADD_COM R6 "10k"
+.ADD_COM J3 "Micro_SD_Card"
+.ADD_COM U1 "ESP32-WROOM-32U"
+.ADD_COM R12 "10k"
+.ADD_COM S2 "PTS636-SMG25J-SMTR-LFS"
+.ADD_COM S3 "PTS636-SMG25J-SMTR-LFS"
+.ADD_COM C11 "0.1uF"
+.ADD_COM U7 "SN74LVC125ADBR_(Units)"
+.ADD_COM J2 "USB_C_Receptacle"
+.ADD_COM R8 "5.1k"
+.ADD_COM R7 "5.1k"
+.ADD_COM U2 "CH340C"
+.ADD_COM D1 "PMEG6030EP"
+.ADD_COM J1 "USB_A"
+.ADD_COM Q4 "MMBF170"
+.ADD_COM C1 "0.1uF"
+.ADD_COM Q2 "DMG2305UX-13"
+.ADD_COM D3 "PMEG6030EP"
+.ADD_COM R10 "10k"
+.ADD_COM C4 "1uF"
+.ADD_COM U6 "MAX1704X"
+.ADD_COM U3 "MCP73811T-420I-OT"
+.ADD_COM C2 "4.7uF"
+.ADD_COM R9 "2k"
+.ADD_COM C3 "4.7uF"
+.ADD_COM U4 "XC9141"
+.ADD_COM C10 "10uF"
+.ADD_COM R13 "10k"
+.ADD_COM L1 "4.7uH"
+.ADD_COM C9 "10uF"
+.ADD_COM Q3 "MMBF170"
+.ADD_COM J4 "CONN_02JST-PTH-2"
+.ADD_COM S1 "OS102011MA1QN1"
+.ADD_COM C7 "10uF"
+.ADD_COM C5 "1uF"
+.ADD_COM R11 "10k"
+.ADD_COM U5 "AP2112K-3.3"
+.ADD_COM Q5 "DMG2305UX-13"
+.ADD_COM R14 "100k"
+.ADD_COM C8 "0.1uF"
+
+
+.ADD_TER U1.35 "CH340-RX"
+.TER     U2.3
+.ADD_TER Q3.1 "EN_5V_OUT"
+.TER     U1.27
+.ADD_TER U6.7 "SCL"
+.TER     U1.36
+.ADD_TER C4.2 "GND"
+.TER     U6.1
+         U6.4
+         U6.6
+         U6.EP
+         C3.2
+         S1.3
+         U5.2
+         Q3.2
+         C9.2
+         R10.2
+         Q4.2
+         J2.A1
+         C2.2
+         C1.1
+         J2.A12
+         J2.B12
+         R9.2
+         J4.2
+         J3.6
+         C6.2
+         R7.1
+         R8.1
+         U3.2
+         J2.B1
+         U2.1
+         C11.2
+         C8.1
+         U7.7
+         J3.9
+         R12.2
+         C7.2
+         C5.2
+         S2.1
+         S3.1
+.ADD_TER U1.16 "HSPI_MOSI"
+.TER     R12.1
+.ADD_TER Q1.3 "ESP_0-QPWR"
+.TER     U1.25
+         S2.2
+.ADD_TER U5.5 "+3V3"
+.TER     C5.1
+         U1.2
+         U2.16
+         C1.2
+         U2.4
+         R4.2
+         R6.2
+         S1.1
+         R5.2
+         U7.14
+         C7.1
+         C11.1
+         C6.1
+         R3.1
+         J3.4
+.ADD_TER U7.2 "Net-(J3-Pad7)"
+.TER     J3.7
+.ADD_TER U1.28 "SD_CS"
+.TER     R6.1
+         J3.2
+         U7.1
+.ADD_TER Q4.1 "EN_USB_A"
+.TER     U1.11
+.ADD_TER Q1.2 "Net-(Q1-Pad2)"
+.TER     R1.2
+.ADD_TER Q1.5 "Net-(Q1-Pad5)"
+.TER     R2.2
+.ADD_TER U2.2 "CH340-TX"
+.TER     U1.34
+.ADD_TER U6.8 "SDA"
+.TER     U1.33
+.ADD_TER U2.14 "CH340-RTS"
+.TER     R2.1
+         Q1.1
+.ADD_TER S3.2 "~RESET"
+.TER     U1.3
+         R3.2
+         Q1.6
+.ADD_TER R1.1 "CH340-DTR"
+.TER     Q1.4
+         U2.13
+.ADD_TER U1.1 "GND1"
+.TER     U1.39
+         U1.38
+         U1.15
+.ADD_TER R5.1 "Net-(J3-Pad8)"
+.TER     J3.8
+.ADD_TER R4.1 "Net-(J3-Pad1)"
+.TER     J3.1
+.ADD_TER Q2.1 "+VUSB_IN"
+.TER     U3.4
+         J2.A9
+         C2.1
+         J2.A4
+         J2.B9
+         J2.B4
+         D1.2
+         R10.1
+         D3.2
+         C4.1
+.ADD_TER J2.B6 "D+"
+.TER     U2.5
+         J1.3
+         J2.A6
+.ADD_TER Q4.3 "Net-(J1-Pad4)"
+.TER     J1.4
+.ADD_TER J1.1 "Net-(D1-Pad1)"
+.TER     D1.1
+.ADD_TER J2.A7 "D-"
+.TER     J2.B7
+         J1.2
+         U2.6
+.ADD_TER R8.2 "Net-(J2-PadB5)"
+.TER     J2.B5
+.ADD_TER R7.2 "Net-(J2-PadA5)"
+.TER     J2.A5
+.ADD_TER S1.2 "Net-(R14-Pad1)"
+.TER     R14.1
+.ADD_TER Q5.1 "EN_SWITCH"
+.TER     R14.2
+.ADD_TER U4.4 "+VUSB_OUT"
+.TER     C10.1
+.ADD_TER U6.2 "+BATT"
+.TER     U6.3
+         C8.2
+         J4.1
+         C3.1
+         U3.3
+         Q2.3
+.ADD_TER U4.1 "Net-(R13-Pad1)"
+.TER     R13.1
+.ADD_TER C9.1 "VIN"
+.TER     U4.3
+         U5.1
+         Q5.3
+         R11.2
+         R13.2
+         L1.1
+.ADD_TER U4.5 "Net-(L1-Pad2)"
+.TER     L1.2
+.ADD_TER C10.2 "Net-(C10-Pad2)"
+.TER     Q3.3
+         U4.2
+.ADD_TER R11.1 "Net-(R11-Pad1)"
+.TER     U5.3
+.ADD_TER Q5.2 "Net-(D3-Pad1)"
+.TER     Q2.2
+         D3.1
+.ADD_TER R9.1 "Net-(R9-Pad1)"
+.TER     U3.5
+
+.END
