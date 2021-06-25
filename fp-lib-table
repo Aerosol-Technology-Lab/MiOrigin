@@ -8,4 +8,5 @@
   (lib (name MAX3232)(type KiCad)(uri ${KIPRJMOD}/lib/SOIC127P1030X265-16N)(options "")(descr ""))
   (lib (name jst-ph-vertical)(type KiCad)(uri ${KIPRJMOD}/lib/jst-ph-vertical)(options "")(descr ""))
   (lib (name assets)(type KiCad)(uri ${KIPRJMOD}/assets)(options "")(descr ""))
+  (lib (name CP2102)(type KiCad)(uri ${KIPRJMOD}/lib/CP2102)(options "")(descr ""))
 )

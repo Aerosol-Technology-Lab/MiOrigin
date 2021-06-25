@@ -641,6 +641,7 @@ F 0 "U5" H 8445 2792 50  0000 C CNN
 F 1 "AP2112K-3.3" H 8445 2701 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-5" H 8445 2775 50  0001 C CNN
 F 3 "https://www.diodes.com/assets/Datasheets/AP2112.pdf" H 8445 2550 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/diodes-incorporated/AP7365-33WG-7/4249847" H 8445 2450 50  0001 C CNN "DigiKey(Alt)"
 	1    8445 2450
 	1    0    0    -1  
 $EndComp

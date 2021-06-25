@@ -1,4 +1,5 @@
 (sym_lib_table
   (lib (name 2021-06-22_18-51-54)(type Legacy)(uri ${KIPRJMOD}/lib/SN74LVC125ADBR/KiCAD/2021-06-22_18-51-54/2021-06-22_18-51-54.lib)(options "")(descr ""))
   (lib (name MiOrigin-rescue)(type Legacy)(uri ${KIPRJMOD}/MiOrigin-rescue.lib)(options "")(descr ""))
+  (lib (name CP2102)(type Legacy)(uri ${KIPRJMOD}/lib/CP2102/CP2102.lib)(options "")(descr ""))
 )

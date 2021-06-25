@@ -326,11 +326,12 @@ L RF_Module:ESP32-WROOM-32U U1
 U 1 1 60C34232
 P 1800 2350
 F 0 "U1" H 1950 3800 50  0000 C CNN
-F 1 "ESP32-WROOM-32U" H 2300 3700 50  0000 C CNN
+F 1 "ESP32-WROOM-32E" H 2300 3700 50  0000 C CNN
 F 2 "RF_Module:ESP32-WROOM-32" H 1800 850 50  0001 C CNN
 F 3 "https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32d_esp32-wroom-32u_datasheet_en.pdf" H 1500 2400 50  0001 C CNN
-F 4 "https://www.digikey.com/en/products/detail/espressif-systems/ESP32-WROOM-32E-4MB-HIGH-TEMP/12696413" H 1800 2350 50  0001 C CNN "DigiKey"
+F 4 "https://www.digikey.com/en/products/detail/espressif-systems/ESP32-WROOM-32E-16MB/11613144" H 1800 2350 50  0001 C CNN "DigiKey"
 F 5 "ESP32-WROOM-32E (4MB HIGH TEMP)" H 1800 2350 50  0001 C CNN "MPN"
+F 6 "https://www.digikey.com/en/products/detail/espressif-systems/ESP32-WROOM-32E-4MB-HIGH-TEMP/12696413" H 1800 2350 50  0001 C CNN "DigiKey(Alt)"
 	1    1800 2350
 	1    0    0    -1  
 $EndComp
