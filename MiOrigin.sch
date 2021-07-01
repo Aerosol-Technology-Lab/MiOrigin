@@ -172,7 +172,7 @@ Wire Wire Line
 	9230 1980 9330 1980
 Wire Wire Line
 	9230 1780 9330 1780
-Text Notes 9690 1020 0    118  ~ 0
+Text Notes 9730 3685 0    118  ~ 0
 microSD Card
 Wire Notes Line
 	3700 450  3700 7800

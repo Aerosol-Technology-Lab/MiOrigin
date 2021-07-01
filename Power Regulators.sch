@@ -241,19 +241,6 @@ F 3 "" H 1120 5590 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Battery_Management:MCP73811T-420I-OT U?
-U 1 1 60DC1181
-P 6575 5245
-AR Path="/60DC1181" Ref="U?"  Part="1" 
-AR Path="/60D841D7/60DC1181" Ref="U3"  Part="1" 
-F 0 "U3" H 6275 5495 50  0000 L CNN
-F 1 "MCP73811T-420I-OT" H 6325 4495 50  0000 L CNN
-F 2 "Package_TO_SOT_SMD:SOT-23-5" H 6625 4995 50  0001 L CNN
-F 3 "http://ww1.microchip.com/downloads/en/DeviceDoc/22036b.pdf" H 6325 5495 50  0001 C CNN
-	1    6575 5245
-	1    0    0    -1  
-$EndComp
-$Comp
 L Device:C C?
 U 1 1 60DC1187
 P 5675 5195
@@ -267,9 +254,6 @@ F 4 "https://www.digikey.com/en/products/detail/kemet/C0805C475K4RACTU/3317621" 
 	1    5675 5195
 	1    0    0    -1  
 $EndComp
-NoConn ~ 6175 5145
-Wire Wire Line
-	6575 4795 6575 4945
 $Comp
 L power:GND #PWR?
 U 1 1 60DC118F
@@ -286,18 +270,16 @@ $EndComp
 $Comp
 L power:GND #PWR?
 U 1 1 60DC1195
-P 6575 5645
+P 6600 5650
 AR Path="/60DC1195" Ref="#PWR?"  Part="1" 
 AR Path="/60D841D7/60DC1195" Ref="#PWR0125"  Part="1" 
-F 0 "#PWR0125" H 6575 5395 50  0001 C CNN
-F 1 "GND" H 6580 5472 50  0000 C CNN
-F 2 "" H 6575 5645 50  0001 C CNN
-F 3 "" H 6575 5645 50  0001 C CNN
-	1    6575 5645
+F 0 "#PWR0125" H 6600 5400 50  0001 C CNN
+F 1 "GND" H 6605 5477 50  0000 C CNN
+F 2 "" H 6600 5650 50  0001 C CNN
+F 3 "" H 6600 5650 50  0001 C CNN
+	1    6600 5650
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	6575 5645 6575 5545
 Wire Wire Line
 	5675 5345 5675 5445
 Wire Wire Line
@@ -316,8 +298,6 @@ F 4 "https://www.digikey.com/en/products/detail/yageo/RC0603JR-072KL/726726" H 6
 	1    6075 5545
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	6175 5345 6075 5345
 Wire Wire Line
 	6075 5345 6075 5395
 $Comp
@@ -350,8 +330,6 @@ F 3 "" H 7325 4895 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	7325 4895 7325 5145
-Wire Wire Line
-	7325 5145 6975 5145
 $Comp
 L Device:C C?
 U 1 1 60DC11B5
@@ -408,12 +386,12 @@ Lithium Charger w/ BMS
 $Comp
 L MiOrigin:+VUSB_IN #PWR0137
 U 1 1 60DF442D
-P 6575 4795
-F 0 "#PWR0137" H 6575 4645 50  0001 C CNN
-F 1 "+VUSB_IN" H 6590 4968 50  0000 C CNN
-F 2 "" H 6575 4795 50  0001 C CNN
-F 3 "" H 6575 4795 50  0001 C CNN
-	1    6575 4795
+P 6600 4765
+F 0 "#PWR0137" H 6600 4615 50  0001 C CNN
+F 1 "+VUSB_IN" H 6615 4938 50  0000 C CNN
+F 2 "" H 6600 4765 50  0001 C CNN
+F 3 "" H 6600 4765 50  0001 C CNN
+	1    6600 4765
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -669,11 +647,11 @@ F 13 "https://www.digikey.com/en/products/detail/yangzhou-yangjie-electronic-tec
 	0    1    -1   0   
 $EndComp
 Wire Wire Line
-	7020 2350 6770 2350
-Text GLabel 7095 2700 0    50   Input ~ 0
+	7020 2350 6895 2350
+Text GLabel 7145 2700 2    50   Input ~ 0
 EN_SWITCH
 Wire Wire Line
-	7095 2700 7120 2700
+	7145 2700 7120 2700
 Wire Wire Line
 	7120 2700 7120 2650
 $Comp
@@ -688,19 +666,6 @@ F 4 "https://www.digikey.com/en/products/detail/yageo/RC0603JR-10100KL/2345148" 
 	1    5085 7190
 	0    1    1    0   
 $EndComp
-$Comp
-L power:+3.3V #PWR0140
-U 1 1 60DF5E20
-P 5280 7050
-F 0 "#PWR0140" H 5280 6900 50  0001 C CNN
-F 1 "+3.3V" H 5295 7223 50  0000 C CNN
-F 2 "" H 5280 7050 50  0001 C CNN
-F 3 "" H 5280 7050 50  0001 C CNN
-	1    5280 7050
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	5280 7050 5280 7110
 Wire Wire Line
 	5280 7110 5320 7110
 $Comp
@@ -796,4 +761,40 @@ Wire Wire Line
 	7650 5145 7875 5145
 Wire Wire Line
 	5420 1600 5420 2000
+NoConn ~ 7000 5345
+Wire Wire Line
+	6600 5545 6600 5650
+Wire Wire Line
+	6600 4945 6600 4765
+Wire Wire Line
+	7325 5145 7000 5145
+$Comp
+L Battery_Management:MCP73832-2-OT U3
+U 1 1 60D60955
+P 6600 5245
+F 0 "U3" H 6450 5640 50  0000 C CNN
+F 1 "MCP73832-2-OT" H 6225 5555 50  0000 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-23-5" H 6650 4995 50  0001 L CIN
+F 3 "http://ww1.microchip.com/downloads/en/DeviceDoc/20001984g.pdf" H 6450 5195 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/microchip-technology/MCP73832T-2DCI-OT/1223150" H 6600 5245 50  0001 C CNN "DigiKey"
+	1    6600 5245
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6075 5345 6200 5345
+Text GLabel 6870 2775 0    50   Input ~ 0
+V_PREMOS
+Connection ~ 6895 2350
+Wire Wire Line
+	6895 2350 6770 2350
+Text GLabel 5100 6850 0    50   Input ~ 0
+V_PREMOS
+Wire Wire Line
+	5280 6850 5100 6850
+Wire Wire Line
+	5280 6850 5280 7110
+Wire Wire Line
+	6870 2775 6895 2775
+Wire Wire Line
+	6895 2350 6895 2775
 $EndSCHEMATC
