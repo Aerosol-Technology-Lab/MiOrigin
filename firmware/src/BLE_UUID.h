@@ -1,0 +1,7 @@
+#pragma once
+
+#define SERVICE_DEVICE_INFO_UUID                            "9f9ece14-b513-4cdb-b0b8-9e5fa3b9fef2"
+#define CHARACTERISTIC_DEVICE_NAME_UUID                     "0e392145-56bc-47d6-910e-698c46aa8011"
+#define CHARACTERISTIC_DEVICE_OTA_FIRMWARE_VERSION_UUID     "f8974d2e-c906-4d9e-ba03-6417ad31837e"
+#define CHARACTERISTIC_DEVICE_FAC_FIRMWARE_VERSION_UUID     "4b35fc2e-9d12-4bfc-a2a6-b5db5fb18cb6"
+#define CHARACTERISTIC_DEVICE_BOARD_REV_UUID                "7711c929-ffe3-427a-b243-3960eac310e4"
