@@ -18,6 +18,7 @@ extern void loop();
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include "BLE_UUID.h"
+#include "utils.h"
 
 // extract arduino core props
 #if CONFIG_FREERTOS_UNICORE
@@ -66,6 +67,29 @@ struct {
 } BLE_Props;
 
 /**
+ * @brief Parses command from a given string that starts with an exclamation mark
+ * 
+ * @param buffer 
+ * @param buffer_length 
+ * @param command 
+ * @param command_length 
+ * @return size_t 
+ */
+size_t parseCommandFromString(char *buffer, size_t buffer_length, char *command, size_t command_length)
+{
+    if (buffer_length && buffer[0] == '!') {
+        size_t i;
+        for (i = 1; i < buffer_length && i < command_length && buffer[i] != '\0' || buffer[i] != '\r' || buffer[i] != ' '; ++i) {
+            command[i - 1] = buffer[i];
+        }
+
+        return i;
+    }
+
+    return 0;
+}
+
+/**
  * @brief Handles responses to UART from USB-C
  * 
  * @param parameters 
@@ -90,6 +114,35 @@ void handleUSBC(void *parameters = nullptr)
                 else if (messageBuffer[0] == '!') {
                     // command from my helper program
                     // todo
+                    char command[17] = { 0 };
+                    size_t offset = 0;
+                    offset = parseCommandFromString(messageBuffer, sizeof(messageBuffer), command, sizeof(command));
+
+                    if (!strcmp(command, "!sd") || !strcmp(command, "!spiffs")) {
+
+                        // FS &fs = !strcmp(command, "!sd") ? *(dynamic_cast<fs::FS *>)(&SD) : *(dynamic_cast<fs::FS *>)(&SPIFFS);
+                        
+                        offset = nextSubString(messageBuffer, offset, sizeof(messageBuffer), command, sizeof(command));
+                        bool commandError = false;      // true when there is an invalid input to the command
+                        
+                        if (offset) {
+                            if (!strcmp(command, "read")) {
+                                // File f = SD.open()
+                                
+                            }
+                            else if (!strcmp(command, "write")) {
+
+                            }
+                            else {
+                                commandError = true;
+                            }
+                        }
+                        else {
+                            commandError = true;
+                        }
+
+                        utilsPrint("~Invalid '!file' command. Options are: ~file [write | read] [filename] ");
+                    }
                 }
             }
             else {
@@ -178,9 +231,9 @@ void setup()
 
     // check if new factory firmware exists
     File factoryFile = SD.open("/factory.bin", "r");
-    bool isFactoryFileOpen = factoryFile;
+    bool factoryFileExists = factoryFile;
     factoryFile.close();
-    if (isFactoryFileOpen) {
+    if (factoryFileExists) {
         xTaskCreatePinnedToCore(installFactoryFirmware,
                                 "factory_install",
                                 800,
