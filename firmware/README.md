@@ -7,13 +7,14 @@ Firmware for MiOrigin Controller
 
 ## Build and Flashing Firmware
 
-###
-Intro
+### Intro
 The MiOrigin controller requires two firmwares - a "factory" firmware and an "ota" firmware.
 
 The ota firmware is the actual running firmware during normal operation. This firmware contains the functions that controls the bioaerosol collector. The factory firmware is a special bootloader firmware used to update the ota firmware.
 
 In normal operation, the ota firmware will always boot over the factory firmware. If an update is available over BLE or a new ota firmware is present in the root directory of the MicroSD card, the ota firmware reboots to the factory firmware. The factory firmware flashes the new ota firmware, delete the old copy of the ota firmware in the MicroSD card at `/firmware` (if exists), then places a copy of the new firmware into that directory. If successful, the controller reboots to the newly flashed ota firmware.
+
+### Note
 
 ### Flash Factory Firmware
 1. Under PlatformIO Extension on the left sidebar, open Project Tasks
