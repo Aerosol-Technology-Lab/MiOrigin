@@ -17,6 +17,7 @@
 
 #define SD_CS 17
 #define LCD_CS 4
+#define TCH_CS 16
 
 #define LCD_DC 15
 
@@ -31,3 +32,9 @@ void Common_Init();
 void readUntilEnd(char *buffer, Stream &stream);
 
 void Common_USBC_Handler(void *params);
+
+#ifdef DEBUG
+#define debug_println(m) Serial.print("Debug: "); Serial.println(m)
+#else
+#define debug_println(m)
+#endif

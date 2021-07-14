@@ -46,3 +46,18 @@ void utilsPrint(char *buffer, Stream &stream = Serial)
     stream.print(buffer);
     stream.print('\0');
 }
+
+/**
+ * @brief Converts all characters (if possible) in a c_string to lowercase
+ * 
+ * @param buffer c_string
+ * @param size size of c_string. If left empty, funciton will limit number of characters to
+ *             strlen(buffer). If null terminator is reached before the end of the size,
+ *             characters at and after the null terminator will not be lowercased
+ */
+void lower(char *buffer, size_t size = std::numeric_limits<size_t>::max())
+{
+    for (size_t i = 0; i < min(size, strlen(buffer)); ++i) {
+        buffer[i] = toLowerCase(buffer[i]);
+    }
+}

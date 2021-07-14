@@ -118,7 +118,7 @@ void handleUSBC(void *parameters = nullptr)
                     size_t offset = 0;
                     offset = parseCommandFromString(messageBuffer, sizeof(messageBuffer), command, sizeof(command));
 
-                    if (!strcmp(command, "!sd") || !strcmp(command, "!spiffs")) {
+                    if (!strcmp(command, "sd") || !strcmp(command, "spiffs")) {
 
                         // FS &fs = !strcmp(command, "!sd") ? *(dynamic_cast<fs::FS *>)(&SD) : *(dynamic_cast<fs::FS *>)(&SPIFFS);
                         
@@ -142,6 +142,32 @@ void handleUSBC(void *parameters = nullptr)
                         }
 
                         utilsPrint("~Invalid '!file' command. Options are: ~file [write | read] [filename] ");
+                    }
+                    else if (!strcmp(command, "ping")) {
+                        Serial.println("pong!");
+                    }
+                    else if (!strcmp(command, "boot-factory")) {
+                        const esp_partition_t *currentParition = esp_ota_get_running_partition();
+                        const esp_partition_t *factoryPartition = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_FACTORY, nullptr);
+                        esp_ota_set_boot_partition(factoryPartition);
+
+                        const esp_partition_t *newBootParition = esp_ota_get_boot_partition();
+
+                        if (newBootParition == factoryPartition) {
+                            Serial.print("Booting to factory partition in");
+                            for (int i = 3; i > 0; --i) {
+                                Serial.print(" 3...");
+                                delay(1000);
+                            }
+
+                            ESP.restart();
+                        }
+                        else if (newBootParition == currentParition) {
+                            Serial.println("Error: Failed to select factory partition. Next boot will be current partition");
+                        }
+                        else {
+                            Serial.println("Error: Partition is booting to something else! It is neither factory or firmware (ota0)");
+                        }
                     }
                 }
             }
@@ -197,37 +223,76 @@ void installFactoryFirmware(void *params) {
 void setup()
 {
     Serial.begin(9600);
-    Common_Init();
-
-    if(!SD.begin(SD_CS, *vspi, 8000000U))
-    {
-        Serial.println("Error: Cannot open MicroSD card. Check if inserted an mounter corectly");
+    Serial.println("Starting ota firmware v2");
+    
+    if (!SPIFFS.begin(true)) {
+        Serial.println("Error - SPIFFS failed!");
         for(;;);
     }
+    else {
+        Serial.println("SPIFFS mounted!");
+    }
+    
+    
+    pinMode(SD_CS, OUTPUT);
+    
+    digitalWrite(SD_CS, HIGH);
+    
+    delay(1000);
+    
+    Common_Init();
+
+    delay(1000);
+
+    Serial.println("Initializing SD card...");
+    
+    digitalWrite(TCH_CS, LOW);
+    
+    hspi->beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
+
+    {
+        char message[] = "Hello world! This is my sentence!";
+        hspi->transferBytes((uint8_t *) &message, nullptr, sizeof(message));
+    }
+    
+    hspi->endTransaction();
+    
+    if(!SD.begin(SD_CS, *hspi))
+    {
+        for(;;) {
+            Serial.println("Error: Cannot open MicroSD card. Check if inserted and mounted corectly");
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+        };
+    }
+    else {
+        Serial.println("SD card mounted!");
+        File verify = SD.open("/test.txt", "a+");
+        verify.println("Print");
+        verify.close();
+    }
+    digitalWrite(TCH_CS, HIGH);
 
     auto rebootToFactory = []() {
         const esp_partition_t *factoryParition = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_FACTORY, nullptr);
+        // todo what happens if factoryPartition is nullptr?
         esp_ota_set_boot_partition(factoryParition);
         ESP.restart();
     };
 
     // check if required to boot to factory
-    File handOffFile = SPIFFS.open("/handoff", "r");
-    if (!handOffFile) {
+    if (!SPIFFS.exists("/handoff")) {
         // handoff file does not exist, boot to factory
         rebootToFactory();
     }
     
-    handOffFile.close();
-
     // check if new ota firmware exists
-    File firmwareFile = SD.open("/firmware.bin", "r");
-    if (firmwareFile) {
+    if (SD.exists("/firmware.bin")) {
+        File firmwareFile = SD.open("/firmware.bin", "r");
         SPIFFS.remove("/handoff");
         rebootToFactory();
+        firmwareFile.close();
     }
 
-    firmwareFile.close();
 
     // check if new factory firmware exists
     File factoryFile = SD.open("/factory.bin", "r");
