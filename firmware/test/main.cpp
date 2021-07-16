@@ -40,11 +40,34 @@ void testSubstring()
     secondCommand();
 }
 
+void testLowerCase()
+{
+    char *caps[] = {
+        " Hello world! ",
+        "AAAAAAAAAAA",
+        "lower case",
+        "!@#$%^&*()",
+    };
+
+    char *ref[] = {
+        " hello world! ",
+        "aaaaaaaaaaa",
+        "lower case",
+        "!@#$%^&*()",
+    };
+
+    for (int i = 0; i < sizeof(caps) / sizeof(caps[0]); ++i) {
+        lower(caps[i]);
+        TEST_ASSERT_EQUAL(strcmp(caps[i], ref[i]), 0);
+    }
+}
+
 void setup()
 {
     Serial.begin(9600);
     UNITY_BEGIN();
     RUN_TEST(testSubstring);
+    RUN_TEST(testLowerCase);
     UNITY_END();
 }
 

@@ -7,6 +7,7 @@ SPIClass *hspi;
 
 void Common_Init()
 {
+    // todo clean this up
     Serial.println("Running test code");
     vspi = new SPIClass(VSPI);
     hspi = new SPIClass(HSPI);
@@ -44,10 +45,40 @@ void Common_Init()
     // for (;;);
 }
 
-void readUntilEnd(char *buffer, Stream &stream)
+size_t readUntilEnd(char *buffer, size_t bufferSize, Stream &stream)
 {
-    Serial.println("Implement 'readUntil' definition in common.cpp");
-    assert(false);
+    // block until first byte is read
+    Serial.print("@ Stage 1");
+    while (!Serial.available()) {
+        vTaskDelay(100 / portTICK_RATE_MS);
+    }
+
+    
+    size_t bytesRead = 0;
+
+    Serial.print("@ Stage 2");
+    // read minimum two bytes
+    while (bytesRead < 2) {
+        if (Serial.available()) {
+            bytesRead += Serial.readBytesUntil('\n', buffer, bufferSize - bytesRead);
+        }
+        delay(10);
+    }
+
+    Serial.print("@ Stage 3");
+    while (bytesRead < 2 || *((uint16_t *) (buffer + bytesRead - 2)) != LINE_TERMINATION) {
+        if (Serial.available()) {
+            bytesRead += Serial.readBytesUntil('\n', buffer + bytesRead, bufferSize - bytesRead);
+            Serial.println();
+            Common_HEX_print(buffer);
+        }
+        delay(10);
+    }
+
+    Serial.print("@ Stage 4");
+    *((uint16_t *) (buffer + bytesRead - 2)) = 0;
+
+    return bytesRead - 2;
 }
 
 void Common_USBC_Handler(void *params)
@@ -57,7 +88,7 @@ void Common_USBC_Handler(void *params)
     while (true) {
         if (Serial.available()) {
             char buffer[512] ;
-            readUntilEnd(buffer, Serial);
+            readUntilEnd(buffer, sizeof(buffer), Serial);
             
             // process if there's data in the buffer
             if (strlen(buffer)) {
@@ -73,5 +104,13 @@ void Common_USBC_Handler(void *params)
         else {
             vTaskDelay(waitDelay);
         }
+    }
+}
+
+void Common_HEX_print(char *cstr, Stream &stream)
+{
+    while (*cstr != 0) {
+        stream.print(*cstr, HEX);
+        cstr++;
     }
 }

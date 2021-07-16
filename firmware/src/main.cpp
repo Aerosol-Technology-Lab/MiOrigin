@@ -14,6 +14,7 @@ extern void loop();
 #include <SPIFFS.h>
 #include <SD.h>
 #include <esp_ota_ops.h>
+#include <esp_task_wdt.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
@@ -79,7 +80,7 @@ size_t parseCommandFromString(char *buffer, size_t buffer_length, char *command,
 {
     if (buffer_length && buffer[0] == '!') {
         size_t i;
-        for (i = 1; i < buffer_length && i < command_length && buffer[i] != '\0' || buffer[i] != '\r' || buffer[i] != ' '; ++i) {
+        for (i = 1; i < buffer_length && i < command_length && (buffer[i] != '\0' || buffer[i] != '\r' || buffer[i] != ' '); ++i) {
             command[i - 1] = buffer[i];
         }
 
@@ -98,10 +99,18 @@ void handleUSBC(void *parameters = nullptr)
 {
     const TickType_t waitDelay = 1000 / portTICK_PERIOD_MS;
 
+    delay(200);
+    Serial.flush();
+    delay(200);
+    
     while (true) {
+        Serial.println("Loop");
+        
         if (Serial.available()) {
-            char messageBuffer[256];
-            readUntilEnd(messageBuffer, Serial);
+            Serial.println("@ Init stage");
+            char messageBuffer[256] = {0};
+            readUntilEnd(messageBuffer, sizeof(messageBuffer), Serial);
+            Serial.println("Reached");
             size_t messageLen = strlen(messageBuffer);
 
             if (messageLen && messageLen < 256) {
@@ -225,44 +234,40 @@ void setup()
     Serial.begin(9600);
     Serial.println("Starting ota firmware v2");
     
+    Serial.println("-> Mounting SPIFFS...");
     if (!SPIFFS.begin(true)) {
         Serial.println("Error - SPIFFS failed!");
         for(;;);
     }
     else {
-        Serial.println("SPIFFS mounted!");
+        Serial.println("-> SPIFFS mounted.");
     }
     
     
-    pinMode(SD_CS, OUTPUT);
+    // pinMode(SD_CS, OUTPUT);
     
-    digitalWrite(SD_CS, HIGH);
+    // digitalWrite(SD_CS, HIGH);
     
     delay(1000);
     
     Common_Init();
 
-    delay(1000);
+    // digitalWrite(TCH_CS, LOW);
+    
+    // hspi->beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
 
+    // {
+    //     char message[] = "Hello world! This is my sentence!";
+    //     hspi->transferBytes((uint8_t *) &message, nullptr, sizeof(message));
+    // }
+    
+    // hspi->endTransaction();
+    
     Serial.println("Initializing SD card...");
-    
-    digitalWrite(TCH_CS, LOW);
-    
-    hspi->beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
-
+    if(!SD.begin(SD_CS, *hspi, 4000000U))
     {
-        char message[] = "Hello world! This is my sentence!";
-        hspi->transferBytes((uint8_t *) &message, nullptr, sizeof(message));
-    }
-    
-    hspi->endTransaction();
-    
-    if(!SD.begin(SD_CS, *hspi))
-    {
-        for(;;) {
-            Serial.println("Error: Cannot open MicroSD card. Check if inserted and mounted corectly");
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-        };
+        Serial.println("Error: Cannot open MicroSD card. Check if inserted an mounter corectly");
+        for(;;);
     }
     else {
         Serial.println("SD card mounted!");
@@ -275,13 +280,14 @@ void setup()
     auto rebootToFactory = []() {
         const esp_partition_t *factoryParition = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_FACTORY, nullptr);
         // todo what happens if factoryPartition is nullptr?
-        esp_ota_set_boot_partition(factoryParition);
+        ESP_ERROR_CHECK(esp_ota_set_boot_partition(factoryParition));
         ESP.restart();
     };
 
     // check if required to boot to factory
-    if (!SPIFFS.exists("/handoff")) {
+    if (SPIFFS.exists("/handoff")) {
         // handoff file does not exist, boot to factory
+        Serial.println("-> Handoff file in SPIFFS found. Rebooting to factory firmware...");
         rebootToFactory();
     }
     
@@ -294,11 +300,11 @@ void setup()
     }
 
 
+    // enables watchdog timer
+    // esp_task_wdt_init();
+
     // check if new factory firmware exists
-    File factoryFile = SD.open("/factory.bin", "r");
-    bool factoryFileExists = factoryFile;
-    factoryFile.close();
-    if (factoryFileExists) {
+    if (SD.exists("/factory.bin")) {
         xTaskCreatePinnedToCore(installFactoryFirmware,
                                 "factory_install",
                                 800,
@@ -313,7 +319,7 @@ void setup()
                             "usbc_handler",
                             1000,
                             nullptr,
-                            3,
+                            1,
                             &usbcHandler,
                             !ARDUINO_RUNNING_CORE);
         
@@ -321,20 +327,21 @@ void setup()
     Serial2.begin(9600);
 
     // Start Bluetooth
-    BLEDevice::init("MiOrigin_000");
-    BLE_Props.pServer = BLEDevice::createServer();
-    BLE_Props.device.pService = BLE_Props.pServer->createService(SERVICE_DEVICE_INFO_UUID);
-    BLE_Props.device.pDeviceName = BLE_Props.device.pService->createCharacteristic(CHARACTERISTIC_DEVICE_NAME_UUID,
-                                                                                   BLECharacteristic::PROPERTY_READ);
-    BLE_Props.device.pDeviceName->setValue("Test");
+    // BLEDevice::init("MiOrigin_000");
+    // BLE_Props.pServer = BLEDevice::createServer();
+    // BLE_Props.device.pService = BLE_Props.pServer->createService(SERVICE_DEVICE_INFO_UUID);
+    // BLE_Props.device.pDeviceName = BLE_Props.device.pService->createCharacteristic(CHARACTERISTIC_DEVICE_NAME_UUID,
+    //                                                                                BLECharacteristic::PROPERTY_READ);
+    // BLE_Props.device.pDeviceName->setValue("Test");
 
-    BLE_Props.pServer->getAdvertising()->stop();
+    // BLE_Props.pServer->getAdvertising()->stop();
 
     
 }
 
 void loop()
 {
+    vTaskDelay(10000 / portTICK_RATE_MS);
     // do nothing
 }
 

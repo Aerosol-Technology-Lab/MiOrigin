@@ -59,7 +59,7 @@ void setup() {
 
     if(!SD.begin(SD_CS, *hspi, 4000000U))
     {
-        Serial.println("Error: Cannot open MicroSD card. Check if inserted an mounter corectly");
+        Serial.println("Error: Cannot open MicroSD card. Check if inserted and mounted corectly");
         for(;;);
     }
     else {
@@ -69,7 +69,7 @@ void setup() {
     }
 
     if (SD.exists("/firmware.bin")) {
-        Serial.println("Firmware file is found. Performing checks");
+        Serial.println("-> Firmware file is found. Performing checks...");
         File newFirmware = SD.open("/firmware.bin", "r");
         if (!newFirmware.isDirectory()) {
 
@@ -87,7 +87,9 @@ void setup() {
 
             size_t firmwareSize = newFirmware.size();
 
+            Serial.println("-> Starting to update main firmware...");
             Update.begin(firmwareSize);
+            Serial.println("-> Done installing. Validating...");
             size_t bytesRead = Update.writeStream(newFirmware);
             
             bool restartToFactory = false;
@@ -131,8 +133,8 @@ void setup() {
             else {
                 // write to flash that firmware is successful. This lets ota0 to understand that it was booted from factory and is
                 // handing control to ota0
-                Serial.println("Flashed firmware sucessfully!");
-                handOff();
+                Serial.println("-> Update completed! Restarting to updated application...");
+                // handOff();
             }
             
             ESP.restart();
@@ -143,11 +145,28 @@ void setup() {
             SD.remove("/firmware.bin");
         }
     }
+    else if (SD.exists("/device/handoff")) {
+        Serial.println("-> Found request in MicroSD card to boot to main firmware");
+
+        File f =  SD.open("/device/handoff");
+        
+        uint32_t response;
+        f.readBytes(reinterpret_cast<char *>(&response), 4);
+        f.close();
+
+        // file does not contain keep, delete the file
+        if (response != (uint16_t)0x6b656570) {     // The word "keep" in hexidecimal ASCII
+            SD.remove("/device/handoff");
+        }
+
+        handOff();
+    }
 
     firmware_flash_abort:
     
     // handOff();
     Serial.println("End of factory app, restarting in 2 seconds");
+
     ESP.restart();
     // check if firmware file exists in filesytem
   // put your setup code here, to run once:
