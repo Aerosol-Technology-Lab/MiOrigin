@@ -1,9 +1,23 @@
 #include "common.h"
 #include <Arduino.h>
 #include <assert.h>
+#include <esp_int_wdt.h>
+#include <esp_task_wdt.h>
 
 SPIClass *vspi;
 SPIClass *hspi;
+
+/**
+ * @brief Forces the ESP32 to perform a hard reset by triggering
+ *        the panic handler
+ * 
+ */
+void hardReset()
+{
+    esp_task_wdt_init(1, true);
+    esp_task_wdt_add(NULL);
+    while(true);
+}
 
 void Common_Init()
 {

@@ -30,6 +30,8 @@
 extern SPIClass *vspi;
 extern SPIClass *hspi;
 
+void hardReset();
+
 void Common_Init();
 
 /**
