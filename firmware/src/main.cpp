@@ -18,6 +18,7 @@ extern void loop();
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
+#include <ArduinoJson.h>
 #include "BLE_UUID.h"
 #include "utils.h"
 
@@ -29,6 +30,18 @@ extern void loop();
 #endif
 
 TaskHandle_t usbcHandler = nullptr;
+
+/**
+ * @brief Struct containing device info. Contents
+ *        will be populated during setup
+ * 
+ */
+struct {
+    char deviceName[17] = "NONE";
+    uint16_t id = (uint16_t) 0xFFFF;
+    char pcbRev[17] = "NULL";
+    
+} DevinceInfo;
 
 struct {
 
@@ -210,6 +223,9 @@ void handleUSBC(void *parameters = nullptr)
                             Serial.println("Error: Partition is booting to something else! It is neither factory or firmware (ota0)");
                         }
                     }
+                    else if (!strcmp(command, "device-name")) {
+                        // todo
+                    }
                 }
             }
             else {
@@ -331,6 +347,45 @@ void setup()
     }
     digitalWrite(TCH_CS, HIGH);
 
+    /* Acquire device information */
+    if (SPIFFS.exists("/device_info")) {
+        StaticJsonDocument<512> deviceJSON;
+        File f = SPIFFS.open("/device_info", "r");
+        deserializeJson(deviceJSON, f);
+
+        // checks for values
+        if (deviceJSON.containsKey("name")) {
+            std::string data = deviceJSON["name"].as<std::string>();
+            if (data.size() > sizeof(DevinceInfo.deviceName) / sizeof(DevinceInfo.deviceName[0])) {
+                // deletes extra characters
+                data.erase(data.begin() + (sizeof(DevinceInfo.deviceName) / sizeof(DevinceInfo.deviceName[0])),
+                           data.end());
+            }
+            
+            strcpy(DevinceInfo.deviceName, data.c_str());
+        }
+        if (deviceJSON.containsKey("pcbRev")) {
+            std::string data = deviceJSON["pcbRev"].as<std::string>();
+            if (data.size() > sizeof(DevinceInfo.pcbRev) / sizeof(DevinceInfo.pcbRev[0])) {
+                // deletes extra characters
+                data.erase(data.begin() + (sizeof(DevinceInfo.pcbRev) / sizeof(DevinceInfo.pcbRev[0])),
+                           data.end());
+            }
+            
+            strcpy(DevinceInfo.pcbRev, data.c_str());
+        }
+        if (deviceJSON.containsKey("id")) {
+            uint16_t data = deviceJSON["pcbRev"].as<uint16_t>();
+            DevinceInfo.id = data;
+        }
+
+    }
+    else {
+        Serial.println("Error: File \"/device_info\" does not exist in SPIFFS");
+        while (true);
+    }
+
+
     auto rebootToFactory = []() {
         const esp_partition_t *factoryParition = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_FACTORY, nullptr);
         // todo what happens if factoryPartition is nullptr?
@@ -352,6 +407,8 @@ void setup()
         rebootToFactory();
         firmwareFile.close();
     }
+
+    /* Loads vars from SPIFFS */
 
 
     // enables watchdog timer
@@ -388,7 +445,6 @@ void setup()
     //                                                                                BLECharacteristic::PROPERTY_READ);
     // BLE_Props.device.pDeviceName->setValue("Test");
 
-    // BLE_Props.pServer->getAdvertising()->stop();
 
     // todo setup Bluetooth Serial
 }
