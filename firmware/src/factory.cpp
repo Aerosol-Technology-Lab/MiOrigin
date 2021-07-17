@@ -167,13 +167,20 @@ void setup() {
     // handOff();
     Serial.println("End of factory app, restarting in 2 seconds");
 
-    ESP.restart();
     // check if firmware file exists in filesytem
   // put your setup code here, to run once:
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+    if (Serial.available()) {
+        String message = Serial.readStringUntil('\n');
+
+        if (message == "!boot-firmware") {
+            const esp_partition_t *firmwarePartition = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_0, nullptr);
+            ESP_ERROR_CHECK(esp_ota_set_boot_partition(firmwarePartition));
+            ESP.restart();
+        }
+    }
 }
 
 #endif
