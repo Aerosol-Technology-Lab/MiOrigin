@@ -438,12 +438,12 @@ void setup()
     Serial2.begin(9600);
 
     // Start Bluetooth
-    // BLEDevice::init("MiOrigin_000");
-    // BLE_Props.pServer = BLEDevice::createServer();
-    // BLE_Props.device.pService = BLE_Props.pServer->createService(SERVICE_DEVICE_INFO_UUID);
-    // BLE_Props.device.pDeviceName = BLE_Props.device.pService->createCharacteristic(CHARACTERISTIC_DEVICE_NAME_UUID,
-    //                                                                                BLECharacteristic::PROPERTY_READ);
-    // BLE_Props.device.pDeviceName->setValue("Test");
+    BLEDevice::init(DevinceInfo.deviceName);
+    BLE_Props.pServer = BLEDevice::createServer();
+    BLE_Props.device.pService = BLE_Props.pServer->createService(SERVICE_DEVICE_INFO_UUID);
+    BLE_Props.device.pDeviceName = BLE_Props.device.pService->createCharacteristic(CHARACTERISTIC_DEVICE_NAME_UUID,
+                                                                                   BLECharacteristic::PROPERTY_READ);
+    BLE_Props.device.pDeviceName->setValue("Test");
 
 
     // todo setup Bluetooth Serial
