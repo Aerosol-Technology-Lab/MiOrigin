@@ -103,29 +103,58 @@ void handleUSBC(void *parameters = nullptr)
     Serial.flush();
     delay(200);
     
+    String tmpStringClass;
+    tmpStringClass.reserve(256);
+    
     while (true) {
         Serial.println("Loop");
         
         if (Serial.available()) {
             Serial.println("@ Init stage");
             char messageBuffer[256] = {0};
-            readUntilEnd(messageBuffer, sizeof(messageBuffer), Serial);
+            {
+                tmpStringClass = Serial.readStringUntil('\n');
+                strcpy(messageBuffer, tmpStringClass.c_str());
+            }
+            
+            #ifdef DEV_DEBUG
+            {
+                Serial.print("\nDebug hex raw: ");
+                Serial.println(messageBuffer);
+                for(char c : messageBuffer) {
+                    char tmp[12];
+                    sprintf(tmp, "%02X ", c);
+                    Serial.print(tmp);
+                }
+            }
+            #endif
+            
             Serial.println("Reached");
             size_t messageLen = strlen(messageBuffer);
 
             if (messageLen && messageLen < 256) {
                 // can perform string checks
 
+                Serial.println("@Stage 1");
+                
                 if (messageBuffer[0] == '/') {
                     // this is a command from MiClone. Parse this
                     // todo
+
+                    // save command to file
                 }
                 else if (messageBuffer[0] == '!') {
                     // command from my helper program
                     // todo
+                    Serial.println("@Stage2");
                     char command[17] = { 0 };
                     size_t offset = 0;
                     offset = parseCommandFromString(messageBuffer, sizeof(messageBuffer), command, sizeof(command));
+
+                    Serial.print("  Result of command: ");
+                    Serial.println(command);
+                    Serial.print("  Result of strcmp(command, \"ping\"): ");
+                    Serial.println(!strcmp(command, "ping"), DEC);
 
                     if (!strcmp(command, "sd") || !strcmp(command, "spiffs")) {
 
@@ -158,14 +187,17 @@ void handleUSBC(void *parameters = nullptr)
                     else if (!strcmp(command, "boot-factory")) {
                         const esp_partition_t *currentParition = esp_ota_get_running_partition();
                         const esp_partition_t *factoryPartition = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_FACTORY, nullptr);
-                        esp_ota_set_boot_partition(factoryPartition);
+                        ESP_ERROR_CHECK(esp_ota_set_boot_partition(factoryPartition));
 
                         const esp_partition_t *newBootParition = esp_ota_get_boot_partition();
 
                         if (newBootParition == factoryPartition) {
                             Serial.print("Booting to factory partition in");
                             for (int i = 3; i > 0; --i) {
-                                Serial.print(" 3...");
+                                Serial.print(i);
+                                Serial.print(" ...");
+                                Serial.println("This does not work. Maybe that to trigget ESP.restart() correctly, we have to restart immediately after partition select or use CPU1 to perform the reset");
+                                assert(false);
                                 delay(1000);
                             }
 
@@ -234,6 +266,14 @@ void setup()
     Serial.begin(9600);
     Serial.println("Starting ota firmware v2");
     
+    Serial.println("\n=== Device Info ===");
+    {
+        const esp_partition_t *currentPartition = esp_ota_get_boot_partition();
+        char buff[128];
+        sprintf(buff, "  Boot Address: 0x%08X\n  %s\n\n", currentPartition->address, currentPartition->label);
+        Serial.print(buff);
+    }
+    
     Serial.println("-> Mounting SPIFFS...");
     if (!SPIFFS.begin(true)) {
         Serial.println("Error - SPIFFS failed!");
@@ -266,8 +306,22 @@ void setup()
     Serial.println("Initializing SD card...");
     if(!SD.begin(SD_CS, *hspi, 4000000U))
     {
-        Serial.println("Error: Cannot open MicroSD card. Check if inserted an mounter corectly");
-        for(;;);
+        Serial.println("Error: Cannot open MicroSD card. Check if inserted and mounted correctly");
+
+        for (int i = 3; i > 0; --i) {
+            Serial.print("\r");
+            Serial.print("                                \r");
+            Serial.print("Rebooting in ");
+            Serial.print(i);
+
+            for (int j = 3; j > 0; --j) {
+                Serial.print('.');
+                vTaskDelay(1000 / 3 / portTICK_RATE_MS);
+            }
+        }
+
+        Serial.println("Ending MicroSD card");
+        hardReset();
     }
     else {
         Serial.println("SD card mounted!");
@@ -285,7 +339,7 @@ void setup()
     };
 
     // check if required to boot to factory
-    if (SPIFFS.exists("/handoff")) {
+    if (!SPIFFS.exists("/handoff")) {
         // handoff file does not exist, boot to factory
         Serial.println("-> Handoff file in SPIFFS found. Rebooting to factory firmware...");
         rebootToFactory();
@@ -317,7 +371,7 @@ void setup()
     // setup usb c handler
     xTaskCreatePinnedToCore(handleUSBC,
                             "usbc_handler",
-                            1000,
+                            2048,
                             nullptr,
                             1,
                             &usbcHandler,
@@ -336,7 +390,7 @@ void setup()
 
     // BLE_Props.pServer->getAdvertising()->stop();
 
-    
+    // todo setup Bluetooth Serial
 }
 
 void loop()
