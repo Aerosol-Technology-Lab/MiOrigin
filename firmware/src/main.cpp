@@ -19,6 +19,7 @@ extern void loop();
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <ArduinoJson.h>
+#include "BLE_Callback_Coms.h"
 #include "BLE_UUID.h"
 #include "utils.h"
 
@@ -30,6 +31,8 @@ extern void loop();
 #endif
 
 TaskHandle_t usbcHandler = nullptr;
+
+BLE_Callback_Coms callbackComs;
 
 /**
  * @brief Struct containing device info. Contents
@@ -51,6 +54,8 @@ struct {
 
         BLEService *pService;
         BLECharacteristic *pDeviceName;
+        BLECharacteristic *pComs;
+        
     } device;
     
     /**
@@ -79,6 +84,29 @@ struct {
 
     
 } BLE_Props;
+
+class MyCallbacks: public BLECharacteristicCallbacks
+{
+  void onWrite(BLECharacteristic *pCharacteristic)
+  {
+    std::string value = pCharacteristic->getValue();
+    pCharacteristic->setValue(value + "bah");
+
+    if (value.length() > 0)
+    {
+      Serial.println("*********");
+      Serial.print("New value: ");
+      for (int i = 0; i < value.length(); i++)
+      {
+        Serial.print(value[i]);
+      }
+
+      Serial.println();
+      Serial.println("*********");
+    }
+  }
+};
+
 
 /**
  * @brief Parses command from a given string that starts with an exclamation mark
@@ -224,7 +252,21 @@ void handleUSBC(void *parameters = nullptr)
                         }
                     }
                     else if (!strcmp(command, "device-name")) {
-                        // todo
+                        Serial.print("-> Device Name: ");
+                        Serial.println(DevinceInfo.deviceName);
+                    }
+                    else if (!strcmp(command, "device-raw")) {
+                        if (SPIFFS.exists("/device_info")) {
+                            File f = SPIFFS.open("/device_info", "r");
+
+                            char sendBuffer[256] = { 0 };
+                            sprintf(sendBuffer, "name %s size %08X", f.name(), f.size());
+                            Serial.print(sendBuffer);
+                            Serial.write(f);
+                        }
+                        else {
+                            Serial.println("Error: Cannot find device info file. Flash new filesystem image");
+                        }
                     }
                 }
             }
@@ -251,6 +293,7 @@ void installFactoryFirmware(void *params) {
         return;
     }
     
+    // todo backup factory firmware before flashing
     ESP_ERROR_CHECK(esp_partition_erase_range(partition, 0, partition->size));
     
     size_t bytesRead = 0;
@@ -393,12 +436,12 @@ void setup()
         ESP.restart();
     };
 
-    // check if required to boot to factory
-    if (!SPIFFS.exists("/handoff")) {
-        // handoff file does not exist, boot to factory
-        Serial.println("-> Handoff file in SPIFFS found. Rebooting to factory firmware...");
-        rebootToFactory();
-    }
+    // // check if required to boot to factory
+    // if (!SPIFFS.exists("/handoff")) {
+    //     // handoff file does not exist, boot to factory
+    //     Serial.println("-> Handoff file in SPIFFS found. Rebooting to factory firmware...");
+    //     rebootToFactory();
+    // }
     
     // check if new ota firmware exists
     if (SD.exists("/firmware.bin")) {
@@ -428,25 +471,51 @@ void setup()
     // setup usb c handler
     xTaskCreatePinnedToCore(handleUSBC,
                             "usbc_handler",
-                            2048,
+                            4096,
                             nullptr,
                             1,
                             &usbcHandler,
-                            !ARDUINO_RUNNING_CORE);
+                            ARDUINO_RUNNING_CORE);
         
     // setup RS-232
     Serial2.begin(9600);
 
-    // Start Bluetooth
+    /* Start Bluetooth */
+    // Initialize and Server Info
     BLEDevice::init(DevinceInfo.deviceName);
     BLE_Props.pServer = BLEDevice::createServer();
+    
+    // Service creation
     BLE_Props.device.pService = BLE_Props.pServer->createService(SERVICE_DEVICE_INFO_UUID);
+    
+    // Characteristic creation
     BLE_Props.device.pDeviceName = BLE_Props.device.pService->createCharacteristic(CHARACTERISTIC_DEVICE_NAME_UUID,
-                                                                                   BLECharacteristic::PROPERTY_READ);
+                                                                                   BLECharacteristic::PROPERTY_READ   |
+                                                                                   BLECharacteristic::PROPERTY_WRITE  |
+                                                                                   BLECharacteristic::PROPERTY_NOTIFY |
+                                                                                   BLECharacteristic::PROPERTY_INDICATE);
     BLE_Props.device.pDeviceName->setValue("Test");
+    BLE_Props.device.pDeviceName->setCallbacks(new MyCallbacks());
 
+    BLE_Props.device.pComs = BLE_Props.device.pService->createCharacteristic(BLECC_CHARACTERISTIC_UUID,
+                                                                             BLECharacteristic::PROPERTY_WRITE  |
+                                                                             BLECharacteristic::PROPERTY_READ   |
+                                                                             BLECharacteristic::PROPERTY_NOTIFY |
+                                                                             BLECharacteristic::PROPERTY_INDICATE);
+    BLE_Props.device.pComs->setValue("Initialized");          
+    BLE_Props.device.pComs->setCallbacks(&callbackComs);
 
-    // todo setup Bluetooth Serial
+    
+    BLE_Props.device.pService->start();
+    
+    // Start advertising
+    BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+    pAdvertising->addServiceUUID(SERVICE_DEVICE_INFO_UUID);
+    pAdvertising->addServiceUUID(BLECC_CHARACTERISTIC_UUID);
+    pAdvertising->setScanResponse(true);
+    pAdvertising->setMinPreferred(0x06);
+    pAdvertising->setMinPreferred(0x12);
+    BLEDevice::startAdvertising();
 }
 
 void loop()
