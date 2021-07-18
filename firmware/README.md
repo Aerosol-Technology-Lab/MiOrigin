@@ -42,4 +42,4 @@ Pre-compiled firmwares are available at `todo: do this`
 - [ ] TFT SPI LCD drivers
 - [ ] BLE update
 - [ ] File upload / read via UART
-- [ ] Post scripts that generates pre-compiled firmware/binaries
+- [x] Post scripts that generates pre-compiled firmware/binaries
