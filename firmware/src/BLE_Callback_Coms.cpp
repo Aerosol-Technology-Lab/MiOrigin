@@ -212,7 +212,7 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
             size_t bufferSizeToWrite = *reinterpret_cast<uint16_t *>(responsePacket + 3);
             if (bufferSizeToWrite > sizeof(receiveBuffer) / sizeof(receiveBuffer[0])) {
                 *responseProps |= PROPS_FAIL;
-                strncpy(reinterpret_cast<char *>(responsePacket + 3), "Err: File not exists", mtu - 3);
+                strncpy(reinterpret_cast<char *>(responsePacket + 3), "Err: Buffer overflow", mtu - 3);
                 pCharacteristic->setValue(responsePacket, mtu);
                 if (*receivedProps & PROPS_REQUEST_FOR_NO_NOTIFY) pCharacteristic->notify();
 
