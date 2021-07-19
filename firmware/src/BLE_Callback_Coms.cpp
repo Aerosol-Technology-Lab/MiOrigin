@@ -168,6 +168,7 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
             strncpy(filename, smallBuffer, smallBufferSize);
             
             File f = SD.open(filename, "w+");
+            f.close();
 
             DEFAULT_RESPONSE_FOR_SERVER_REQUEST_TO_RESPOND(*responseProps);
             if (*receivedProps & PROPS_REQUEST_FOR_NO_NOTIFY) pCharacteristic->notify();
@@ -184,6 +185,45 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
                 *responseProps |= success ? PROPS_SUCCESS : PROPS_FAIL;
                 pCharacteristic->setValue(responsePacket, mtu);
             }
+            if (*receivedProps & PROPS_REQUEST_FOR_NO_NOTIFY) pCharacteristic->notify();
+
+            break;
+        }
+
+        case COMMAND_FILE_INFO: {
+            assert(false /* Implement this */);
+        }
+
+        case COMMAND_FILE_APPEND: {
+            // check if file exists
+            char filename[smallBufferSize + 1] = { 0 };
+            strncpy(filename, smallBuffer, smallBufferSize);
+            
+            if (!SD.exists(filename)) {
+                *responseProps |= PROPS_FAIL;
+                strncpy(reinterpret_cast<char *>(responsePacket + 3), "Err: File not exists", mtu - 3);
+                pCharacteristic->setValue(responsePacket, mtu);
+                if (*receivedProps & PROPS_REQUEST_FOR_NO_NOTIFY) pCharacteristic->notify();
+
+                break;
+            }
+
+            // check buffer size
+            size_t bufferSizeToWrite = *reinterpret_cast<uint16_t *>(responsePacket + 3);
+            if (bufferSizeToWrite > sizeof(receiveBuffer) / sizeof(receiveBuffer[0])) {
+                *responseProps |= PROPS_FAIL;
+                strncpy(reinterpret_cast<char *>(responsePacket + 3), "Err: File not exists", mtu - 3);
+                pCharacteristic->setValue(responsePacket, mtu);
+                if (*receivedProps & PROPS_REQUEST_FOR_NO_NOTIFY) pCharacteristic->notify();
+
+                break;
+            }
+
+            // create file and append
+            File f = SD.open(filename);
+            f.write(reinterpret_cast<uint8_t *>(receiveBuffer), bufferSizeToWrite);
+            
+            DEFAULT_RESPONSE_FOR_SERVER_REQUEST_TO_RESPOND(*responseProps);
             if (*receivedProps & PROPS_REQUEST_FOR_NO_NOTIFY) pCharacteristic->notify();
 
             break;
