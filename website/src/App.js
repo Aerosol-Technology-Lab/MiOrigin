@@ -7,8 +7,17 @@ import { triggerNotification, waitForNotification } from './BLE_Handler';
 const SERVICE_UUID = "9f9ece14-b513-4cdb-b0b8-9e5fa3b9fef2";
 
 const CHARACTERISTIC_UUID = "f5db5ef9-c1d0-4d1b-8907-d3f2075872c5";
+
+const BRANCHES = {
+  main: "main",
+  dev: "firmware/dev"
+};
+
+const CONST_BINARY_PATH = 'https://github.com/cmasterx/MiOrigin/blob/{0}/firmware/binaries/firmware.bin?raw=true';
+
 window.waitForNotification = waitForNotification;
 window.getPromise = waitForNotification;
+
 function App() {
 
   console.log("Start app");  
