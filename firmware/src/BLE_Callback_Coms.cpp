@@ -10,8 +10,12 @@
  */
 #define DEFAULT_RESPONSE_FOR_SERVER_REQUEST_TO_RESPOND(props) if (props & PROPS_REQUEST_FOR_SERVER_RESPONSE) {  \
                                                                     *responseProps |= PROPS_SUCCESS;                \
+                                                                    *responseCommand = *receivedCommand;            \
                                                                     pCharacteristic->setValue(responsePacket, mtu); \
                                                                     }                                           \
+
+#define NOTIFY_IF_REQUESTED(receivedProps) if (receivedProps & PROPS_REQUEST_FOR_NO_NOTIFY) pCharacteristic->notify();
+
 
 BLE_Callback_Coms::BLE_Callback_Coms()
 {
@@ -35,6 +39,7 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
     Command_t *receivedCommand = BLECC_getCommand(receivedPacket);
 
     /* Packet to send (if needed) */
+    memset(responsePacket, 0, mtu);                                     // * Benchmark this if this should be deleted
     Props_t *responseProps     = BLECC_getProps(responsePacket);
     *responseProps |= PROPS_SERVER_RESPONSE;
     Command_t *responseCommand = BLECC_getCommand(responsePacket);
@@ -63,16 +68,14 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
                 strlcpy(message, "ERR: Out of bounds", mtu - 3);
     
                 pCharacteristic->setValue(responsePacket, mtu);
-                pCharacteristic->indicate();
+                pCharacteristic->notify();
                 break;
             }
             
             memcpy(&mainBuffer[address], receivedPacket + 5, size);
             
-            *responseProps |= PROPS_SUCCESS;
-            *responseCommand = COMMAND_WRITE;
-            pCharacteristic->setValue(responsePacket, mtu);
-            pCharacteristic->notify();
+            DEFAULT_RESPONSE_FOR_SERVER_REQUEST_TO_RESPOND(*responsePacket);
+            NOTIFY_IF_REQUESTED(*receivedProps);
             
             break;
         }
@@ -85,7 +88,7 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
             *data = this->recSize;
             
             pCharacteristic->setValue(responsePacket, mtu);
-            pCharacteristic->indicate();
+            NOTIFY_IF_REQUESTED(*receivedProps);
             break;
         }
 
@@ -93,18 +96,15 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
             char tmp[64];
             strlcpy(tmp, mainBuffer, sizeof(tmp) / sizeof(tmp[0]));
             Serial.println(tmp);
+            NOTIFY_IF_REQUESTED(*receivedProps);
             break;
         }
 
         case COMMAND_STAGE_SMALL_BUFFER: {
             memcpy(smallBuffer, mainBuffer, smallBufferSize);
 
-            if (*receivedProps & PROPS_REQUEST_FOR_SERVER_RESPONSE) {
-                *responseProps |= PROPS_SUCCESS;
-                pCharacteristic->setValue(responsePacket, mtu);
-
-            }
-            if (*receivedProps & PROPS_REQUEST_FOR_NOTIFY) pCharacteristic->notify();
+            DEFAULT_RESPONSE_FOR_SERVER_REQUEST_TO_RESPOND(*responsePacket);
+            NOTIFY_IF_REQUESTED(*receivedProps);
             
             break;
         }
@@ -194,6 +194,7 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
             assert(false /* Implement this */);
         }
 
+        /* Packet Pattern: [2 Props, 1 Command, 2 size in bytes to write to file from main buffer] */
         case COMMAND_FILE_APPEND: {
             // check if file exists
             char filename[smallBufferSize + 1] = { 0 };
