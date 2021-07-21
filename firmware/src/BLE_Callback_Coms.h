@@ -53,12 +53,10 @@ public:
     const static Command_t SUBCOMMAND_MTU_SET             = (Command_t) 0x03;
     
     
-    char sendBuffer[256] = { 0 };
-
 private:
     uint16_t mtu = 128;      // usable MTU (actual MTU - 3 bytes). If MTU is 23 bytes, usable is 20
 
-    char receiveBuffer[256] = { 0 };
+    char mainBuffer[256] = { 0 };
     uint16_t recSize = 0;
 
     bool readReady = false;

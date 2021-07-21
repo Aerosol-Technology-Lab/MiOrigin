@@ -54,7 +54,7 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
             #endif
     
             if (size > (2 + 1 + 2) ||                                                   //  2 (props) + 1 (command) + 2 (address and size) 
-                address + size > sizeof(receiveBuffer) / sizeof(receiveBuffer[0])) {
+                address + size > sizeof(mainBuffer) / sizeof(mainBuffer[0])) {
                 
                 *responseProps |= PROPS_FAIL;
                 *responseCommand = COMMAND_STRING;
@@ -67,7 +67,7 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
                 break;
             }
             
-            memcpy(&receiveBuffer[address], receivedPacket + 5, size);
+            memcpy(&mainBuffer[address], receivedPacket + 5, size);
             
             *responseProps |= PROPS_SUCCESS;
             *responseCommand = COMMAND_WRITE;
@@ -91,13 +91,13 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
 
         case COMMAND_PRINT_REC_BUFFER: {
             char tmp[64];
-            strlcpy(tmp, receiveBuffer, sizeof(tmp) / sizeof(tmp[0]));
+            strlcpy(tmp, mainBuffer, sizeof(tmp) / sizeof(tmp[0]));
             Serial.println(tmp);
             break;
         }
 
         case COMMAND_STAGE_SMALL_BUFFER: {
-            memcpy(smallBuffer, receiveBuffer, smallBufferSize);
+            memcpy(smallBuffer, mainBuffer, smallBufferSize);
 
             if (*receivedProps & PROPS_REQUEST_FOR_SERVER_RESPONSE) {
                 *responseProps |= PROPS_SUCCESS;
@@ -110,7 +110,7 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
         }
 
         case COMMAND_PULL_SMALL_BUFFER: {
-            memcpy(receiveBuffer, smallBuffer, smallBufferSize + 1);
+            memcpy(mainBuffer, smallBuffer, smallBufferSize + 1);
             
             DEFAULT_RESPONSE_FOR_SERVER_REQUEST_TO_RESPOND(*responseProps);
             if (*receivedProps & PROPS_REQUEST_FOR_NO_NOTIFY) pCharacteristic->notify();
@@ -210,7 +210,7 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
 
             // check buffer size
             size_t bufferSizeRequestToWrite = *reinterpret_cast<uint16_t *>(receivedPacket + 3);
-            if (bufferSizeRequestToWrite > sizeof(receiveBuffer) / sizeof(receiveBuffer[0])) {
+            if (bufferSizeRequestToWrite > sizeof(mainBuffer) / sizeof(mainBuffer[0])) {
                 *responseProps |= PROPS_FAIL;
                 strncpy(reinterpret_cast<char *>(responsePacket + 3), "Err: Buffer overflow", mtu - 3);
                 pCharacteristic->setValue(responsePacket, mtu);
@@ -221,8 +221,8 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
 
             // create file and append
             File f = SD.open(filename);
-            uint16_t bytesToWrite = bufferSizeRequestToWrite == 0 ? sizeof(receiveBuffer) / sizeof(receiveBuffer[0]) : bufferSizeRequestToWrite;
-            f.write(reinterpret_cast<uint8_t *>(receiveBuffer), bytesToWrite);
+            uint16_t bytesToWrite = bufferSizeRequestToWrite == 0 ? sizeof(mainBuffer) / sizeof(mainBuffer[0]) : bufferSizeRequestToWrite;
+            f.write(reinterpret_cast<uint8_t *>(mainBuffer), bytesToWrite);
             
             DEFAULT_RESPONSE_FOR_SERVER_REQUEST_TO_RESPOND(*responseProps);
             if (*receivedProps & PROPS_REQUEST_FOR_NO_NOTIFY) pCharacteristic->notify();
@@ -236,7 +236,7 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
 
 const char * BLE_Callback_Coms::getReadBuffer()
 {
-    return receiveBuffer;
+    return mainBuffer;
 }
 
 bool BLE_Callback_Coms::resizeMTU(uint16_t size)
