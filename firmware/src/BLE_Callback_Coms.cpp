@@ -72,7 +72,7 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
             *responseProps |= PROPS_SUCCESS;
             *responseCommand = COMMAND_WRITE;
             pCharacteristic->setValue(responsePacket, mtu);
-            pCharacteristic->indicate();
+            pCharacteristic->notify();
             
             break;
         }
@@ -209,8 +209,8 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
             }
 
             // check buffer size
-            size_t bufferSizeToWrite = *reinterpret_cast<uint16_t *>(responsePacket + 3);
-            if (bufferSizeToWrite > sizeof(receiveBuffer) / sizeof(receiveBuffer[0])) {
+            size_t bufferSizeRequestToWrite = *reinterpret_cast<uint16_t *>(receivedPacket + 3);
+            if (bufferSizeRequestToWrite > sizeof(receiveBuffer) / sizeof(receiveBuffer[0])) {
                 *responseProps |= PROPS_FAIL;
                 strncpy(reinterpret_cast<char *>(responsePacket + 3), "Err: Buffer overflow", mtu - 3);
                 pCharacteristic->setValue(responsePacket, mtu);
@@ -221,7 +221,8 @@ void BLE_Callback_Coms::onWrite(BLECharacteristic *pCharacteristic)
 
             // create file and append
             File f = SD.open(filename);
-            f.write(reinterpret_cast<uint8_t *>(receiveBuffer), bufferSizeToWrite);
+            uint16_t bytesToWrite = bufferSizeRequestToWrite == 0 ? sizeof(receiveBuffer) / sizeof(receiveBuffer[0]) : bufferSizeRequestToWrite;
+            f.write(reinterpret_cast<uint8_t *>(receiveBuffer), bytesToWrite);
             
             DEFAULT_RESPONSE_FOR_SERVER_REQUEST_TO_RESPOND(*responseProps);
             if (*receivedProps & PROPS_REQUEST_FOR_NO_NOTIFY) pCharacteristic->notify();
