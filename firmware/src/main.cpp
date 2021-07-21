@@ -15,6 +15,7 @@ extern void loop();
 #include <SD.h>
 #include <esp_ota_ops.h>
 #include <esp_task_wdt.h>
+#include <BLE2902.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
@@ -503,8 +504,9 @@ void setup()
                                                                              BLECharacteristic::PROPERTY_NOTIFY |
                                                                              BLECharacteristic::PROPERTY_INDICATE);
     BLE_Props.device.pComs->setValue("Initialized");          
+    BLE_Props.device.pComs->addDescriptor(new BLE2902);          
     BLE_Props.device.pComs->setCallbacks(&callbackComs);
-
+    
     
     BLE_Props.device.pService->start();
     
