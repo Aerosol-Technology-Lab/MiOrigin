@@ -3,7 +3,7 @@
 #include <BLEDevice.h>
 #include <FreeRTOS.h>
 
-#define MAX_PACKET_SIZE 27
+#define MAX_PACKET_SIZE 512
 
 #define BLECC_CHARACTERISTIC_UUID "f5db5ef9-c1d0-4d1b-8907-d3f2075872c5"
 
