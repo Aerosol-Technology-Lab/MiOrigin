@@ -8,7 +8,7 @@
 #define VSPI_MISO MISO
 #define VSPI_MOSI MOSI
 #define VSPI_SCLK SCK
-#define VSPI_SS SS
+#define VSPI_SS 4
 
 #define HSPI_MISO 25
 #define HSPI_MOSI 13

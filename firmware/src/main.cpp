@@ -1,4 +1,5 @@
 // if true, compile factory firmware instead
+
 #ifdef FACTORY
 
 // these are defined in factory.cpp
@@ -20,9 +21,12 @@ extern void loop();
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <ArduinoJson.h>
+#include <TFT_eSPI.h>
 #include "BLE_Callback_Coms.h"
 #include "BLE_UUID.h"
 #include "utils.h"
+#include "DisplaySetup.h"       // this line must be after including TFT_eSPI.h
+
 
 // extract arduino core props
 #if CONFIG_FREERTOS_UNICORE
@@ -34,6 +38,8 @@ extern void loop();
 TaskHandle_t usbcHandler = nullptr;
 
 BLE_Callback_Coms callbackComs;
+
+TFT_eSPI tft;
 
 /**
  * @brief Struct containing device info. Contents
@@ -182,7 +188,7 @@ void handleUSBC(void *parameters = nullptr)
                 if (messageBuffer[0] == '/') {
                     // this is a command from MiClone. Parse this
                     // todo
-
+                    Serial2.print(tmpStringClass);
                     // save command to file
                 }
                 else if (messageBuffer[0] == '!') {
@@ -326,12 +332,21 @@ void setup()
     Serial.begin(9600);
     Serial.println("Starting ota firmware v2");
     
+    
     Serial.println("\n=== Device Info ===");
     {
         const esp_partition_t *currentPartition = esp_ota_get_boot_partition();
         char buff[128];
         sprintf(buff, "  Boot Address: 0x%08X\n  %s\n\n", currentPartition->address, currentPartition->label);
         Serial.print(buff);
+    }
+    
+
+    Serial.println("-- VSPI SPI --");
+    {
+        char buff[128];
+        sprintf(buff, "\tMISO: %d\n\tMOSI: %d\n\tSCLK: %d\n\t\CS: %d\n\tDC: %d\n\n", TFT_MISO, TFT_MOSI, TFT_SCLK, TFT_CS, TFT_DC);
+        Serial.println(buff);
     }
     
     Serial.println("-> Mounting SPIFFS...");
@@ -348,10 +363,28 @@ void setup()
     
     // digitalWrite(SD_CS, HIGH);
     
-    delay(1000);
+    delay(100);
     
     Common_Init();
 
+    
+    tft.init();
+    tft.setRotation(0);
+
+    tft.fillScreen(TFT_BLACK);
+    
+    tft.setCursor(30, 0, 2);
+    tft.setTextColor(TFT_YELLOW);
+    tft.setTextSize(2);
+    tft.print("Bioaerosol Collector");
+
+    tft.setCursor(10, 50, 2);
+    tft.setTextColor(TFT_ORANGE);
+    tft.setTextSize(1);
+    tft.println("SOFTWARE NOT FINAL");
+
+    tft.setTextColor(TFT_GREEN);
+    tft.setTextWrap(true);
     // digitalWrite(TCH_CS, LOW);
     
     // hspi->beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
@@ -364,9 +397,13 @@ void setup()
     // hspi->endTransaction();
     
     Serial.println("Initializing SD card...");
+    tft.println("Initializing SD Card");
     if(!SD.begin(SD_CS, *hspi, 4000000U))
     {
         Serial.println("Error: Cannot open MicroSD card. Check if inserted and mounted correctly");
+
+        tft.setTextColor(TFT_RED);
+        tft.println("ERROR: Cannot open MicroSD card. This sometimes happens, rebooting in 3 seconds...");
 
         for (int i = 3; i > 0; --i) {
             Serial.print("\r");
@@ -385,6 +422,7 @@ void setup()
     }
     else {
         Serial.println("SD card mounted!");
+        tft.println("SD card mounted!");
         File verify = SD.open("/test.txt", "a+");
         verify.println("Print");
         verify.close();
@@ -392,6 +430,7 @@ void setup()
     digitalWrite(TCH_CS, HIGH);
 
     /* Acquire device information */
+    tft.println("Acquiring device information...");
     if (SPIFFS.exists("/device_info")) {
         StaticJsonDocument<512> deviceJSON;
         File f = SPIFFS.open("/device_info", "r");
@@ -446,6 +485,7 @@ void setup()
     
     // check if new ota firmware exists
     if (SD.exists("/firmware.bin")) {
+        tft.println("New firmware exists! Beginning update...");
         File firmwareFile = SD.open("/firmware.bin", "r");
         SPIFFS.remove("/handoff");
         rebootToFactory();
@@ -480,16 +520,18 @@ void setup()
         
     // setup RS-232
     Serial2.begin(9600);
-
+    tft.println("-> Initialized Bioaerosol collector port");
+    
     /* Start Bluetooth */
     // Initialize and Server Info
+    tft.println("-> Initializing Bluetooth (BLE)...");
     BLEDevice::init(DevinceInfo.deviceName);
     BLE_Props.pServer = BLEDevice::createServer();
     
     // Service creation
     BLE_Props.device.pService = BLE_Props.pServer->createService(SERVICE_DEVICE_INFO_UUID);
     
-    // Characteristic creation
+    // Characteristic creation 
     BLE_Props.device.pDeviceName = BLE_Props.device.pService->createCharacteristic(CHARACTERISTIC_DEVICE_NAME_UUID,
                                                                                    BLECharacteristic::PROPERTY_READ   |
                                                                                    BLECharacteristic::PROPERTY_WRITE  |
@@ -518,11 +560,13 @@ void setup()
     pAdvertising->setMinPreferred(0x06);
     pAdvertising->setMinPreferred(0x12);
     BLEDevice::startAdvertising();
+
+    tft.println("=== DONE! Everything initialized ===");
 }
 
 void loop()
 {
-    vTaskDelay(10000 / portTICK_RATE_MS);
+    // vTaskDelay(10000 / portTICK_RATE_MS);
     // do nothing
 }
 
