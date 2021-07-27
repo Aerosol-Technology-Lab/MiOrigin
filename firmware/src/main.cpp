@@ -22,6 +22,7 @@ extern void loop();
 #include <BLEServer.h>
 #include <ArduinoJson.h>
 #include <TFT_eSPI.h>
+#include <XPT2046_Touchscreen.h>
 #include "BLE_Callback_Coms.h"
 #include "BLE_UUID.h"
 #include "utils.h"
@@ -40,6 +41,8 @@ TaskHandle_t usbcHandler = nullptr;
 BLE_Callback_Coms callbackComs;
 
 TFT_eSPI tft;
+
+XPT2046_Touchscreen ts(TCH_CS);
 
 /**
  * @brief Struct containing device info. Contents
@@ -372,6 +375,9 @@ void setup()
     tft.setRotation(0);
 
     tft.fillScreen(TFT_BLACK);
+
+    ts.begin(*hspi);
+    // ts.setRotation()
     
     tft.setCursor(30, 0, 2);
     tft.setTextColor(TFT_YELLOW);
@@ -568,6 +574,27 @@ void loop()
 {
     // vTaskDelay(10000 / portTICK_RATE_MS);
     // do nothing
+    if (ts.touched()) {
+
+        uint16_t x, y;
+        uint8_t z;
+        ts.readData(&x, &y, &z);
+        
+        char buffer[64];
+        sprintf(buffer, "Touch Detected: X: %d, Y: %d, Z: %d", x, y, z);
+        Serial.println(buffer);
+    }
+    else {
+        uint16_t x, y;
+        uint8_t z;
+        ts.readData(&x, &y, &z);
+        
+        char buffer[64];
+        Serial.println(buffer);
+        sprintf(buffer, "No Touch: X: %d, Y: %d, Z: %d", x, y, z);
+    }
+
+    delay(333);
 }
 
 #endif
