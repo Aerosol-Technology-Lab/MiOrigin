@@ -41,7 +41,7 @@ size_t nextSubString(char *buffer, size_t offset, size_t buffer_length, char *co
     return endIdx;
 }
 
-void utilsPrint(char *buffer, Stream &stream = Serial)
+void utilsPrint(const char *buffer, Stream &stream = Serial)
 {
     stream.print(buffer);
     stream.print('\0');

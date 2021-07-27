@@ -347,7 +347,7 @@ void setup()
     Serial.println("-- VSPI SPI --");
     {
         char buff[128];
-        sprintf(buff, "\tMISO: %d\n\tMOSI: %d\n\tSCLK: %d\n\t\CS: %d\n\tDC: %d\n\n", TFT_MISO, TFT_MOSI, TFT_SCLK, TFT_CS, TFT_DC);
+        sprintf(buff, "\tMISO: %d\n\tMOSI: %d\n\tSCLK: %d\n\tCS: %d\n\tDC: %d\n\n", TFT_MISO, TFT_MOSI, TFT_SCLK, TFT_CS, TFT_DC);
         Serial.println(buff);
     }
     
@@ -442,7 +442,7 @@ void setup()
         deserializeJson(deviceJSON, f);
 
         // parse and acquire values
-        auto acquireValueFromDoc = [&deviceJSON] (char *key, char *deviceProperty, size_t devicePropertySize) {
+        auto acquireValueFromDoc = [&deviceJSON] (const char *key, char *deviceProperty, size_t devicePropertySize) {
 
             if (deviceJSON.containsKey(key)) {
                 std::string data = deviceJSON[key].as<std::string>();
