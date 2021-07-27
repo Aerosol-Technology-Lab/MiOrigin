@@ -1,5 +1,6 @@
 #include "common.h"
 #include <Arduino.h>
+#include <Wire.h>
 #include <assert.h>
 #include <esp_int_wdt.h>
 #include <esp_task_wdt.h>
@@ -21,8 +22,8 @@ void hardReset()
 
 void Common_Init()
 {
-    // todo clean this up
-    Serial.println("Running test code");
+    Wire.begin(I2C_SDA, I2C_SCL);
+    
     vspi = new SPIClass(VSPI);
     hspi = new SPIClass(HSPI);
 

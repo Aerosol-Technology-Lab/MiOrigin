@@ -23,6 +23,7 @@ extern void loop();
 #include <ArduinoJson.h>
 #include <TFT_eSPI.h>
 #include <XPT2046_Touchscreen.h>
+#include "driver/lipo.h"
 #include "BLE_Callback_Coms.h"
 #include "BLE_UUID.h"
 #include "utils.h"
@@ -434,6 +435,22 @@ void setup()
     }
     digitalWrite(TCH_CS, HIGH);
 
+
+    /* ----- Initialize Battery Fuel Gauge ----- */
+
+    tft.println("-> Initializing battery fuel gauge... ");
+    if (Driver::lipo.begin(Wire)) {
+
+        Driver::lipo.setThreshold(20);
+        tft.println("SUCCESS!");
+    }
+    else {
+        tft.setTextColor(TFT_RED);
+        tft.println("FAIL");
+        tft.setTextColor(TFT_GREEN);
+    }
+
+
     /* Acquire device information */
     tft.println("Acquiring device information...");
     if (SPIFFS.exists("/device_info")) {
@@ -564,6 +581,20 @@ void setup()
 void loop()
 {
     #ifdef DEV_DEBUG
+    tft.setCursor(20, 200);
+    tft.setTextColor(TFT_GREEN, TFT_BLACK);
+    tft.println("-- Battery --");
+    tft.printf("  Voltage: %5.3f V  -  Charge Level: %5.0f%%\n", Driver::lipo.getVoltage(), Driver::lipo.getSOC() + 0.5f);
+    tft.print("  Battery State: ");
+    if (!Driver::lipo.getAlert()) {
+        tft.println("GOOD");
+    }
+    else {
+        tft.setTextColor(TFT_RED, TFT_BLACK);
+        tft.println("LOW!");
+    }
+    tft.setTextColor(TFT_GREEN);
+    
     uint16_t x, y;
     uint8_t z;
     char buffer[80] = { 0 };
