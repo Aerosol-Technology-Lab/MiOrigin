@@ -53,7 +53,7 @@ struct {
     char deviceName[17] = "NONE";
     uint16_t id = (uint16_t) 0xFFFF;
     char pcbRev[17] = "NULL";
-    
+    char uuid[40] = "";
 } DevinceInfo;
 
 struct {
@@ -442,6 +442,26 @@ void setup()
         File f = SPIFFS.open("/device_info", "r");
         deserializeJson(deviceJSON, f);
 
+        // parse and acquire values
+        char * keys[] = {
+            "name",
+            "id",
+            "uuid"
+            "pcbRev",
+        };
+
+        auto acquireValueFromDoc = [&deviceJSON] (char *key, char *deviceProperty, size_t devicePropertySize) {
+
+            if (deviceJSON.containsKey(key)) {
+                std::string data = deviceJSON[key].as<std::string>();
+                strlcpy(deviceProperty, data.c_str(), devicePropertySize);
+            }
+        };
+
+        acquireValueFromDoc("name",   DevinceInfo.deviceName, sizeof(DevinceInfo.deviceName) / sizeof(DevinceInfo.deviceName[0]));
+        acquireValueFromDoc("pcbRev", DevinceInfo.pcbRev,     sizeof(DevinceInfo.pcbRev)     / sizeof(DevinceInfo.pcbRev[0])    );
+        acquireValueFromDoc("uuid",   DevinceInfo.uuid,       sizeof(DevinceInfo.uuid)       / sizeof(DevinceInfo.uuid[0])      );
+
         // checks for values
         if (deviceJSON.containsKey("name")) {
             std::string data = deviceJSON["name"].as<std::string>();
@@ -464,7 +484,7 @@ void setup()
             strcpy(DevinceInfo.pcbRev, data.c_str());
         }
         if (deviceJSON.containsKey("id")) {
-            uint16_t data = deviceJSON["pcbRev"].as<uint16_t>();
+            uint16_t data = deviceJSON["id"].as<uint16_t>();
             DevinceInfo.id = data;
         }
 
