@@ -5,3 +5,6 @@
 .vscode/ipch
 
 binaries/
+
+# unique device information
+unique_device_data/
