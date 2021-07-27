@@ -158,7 +158,6 @@ void handleUSBC(void *parameters = nullptr)
     tmpStringClass.reserve(256);
     
     while (true) {
-        Serial.println("Loop");
         
         if (Serial.available()) {
             Serial.println("@ Init stage");
@@ -564,29 +563,18 @@ void setup()
 
 void loop()
 {
-    // vTaskDelay(10000 / portTICK_RATE_MS);
-    // do nothing
-    if (ts.touched()) {
+    #ifdef DEV_DEBUG
+    uint16_t x, y;
+    uint8_t z;
+    char buffer[80] = { 0 };
 
-        uint16_t x, y;
-        uint8_t z;
-        ts.readData(&x, &y, &z);
-        
-        char buffer[64];
-        sprintf(buffer, "Touch Detected: X: %d, Y: %d, Z: %d", x, y, z);
-        Serial.println(buffer);
-    }
-    else {
-        uint16_t x, y;
-        uint8_t z;
-        ts.readData(&x, &y, &z);
-        
-        char buffer[64];
-        Serial.println(buffer);
-        sprintf(buffer, "No Touch: X: %d, Y: %d, Z: %d", x, y, z);
-    }
+    ts.readData(&x, &y, &z);
+    sprintf(buffer, "Touch Sensor: X: %4d, Y: %4d, Z: %4d - Touched: %s\n", x, y, z, ts.touched() ? "TRUE" : "FALSE");
+    Serial.print(buffer);
 
     delay(333);
+
+    #endif
 }
 
 #endif
