@@ -443,13 +443,6 @@ void setup()
         deserializeJson(deviceJSON, f);
 
         // parse and acquire values
-        char * keys[] = {
-            "name",
-            "id",
-            "uuid"
-            "pcbRev",
-        };
-
         auto acquireValueFromDoc = [&deviceJSON] (char *key, char *deviceProperty, size_t devicePropertySize) {
 
             if (deviceJSON.containsKey(key)) {
@@ -462,27 +455,6 @@ void setup()
         acquireValueFromDoc("pcbRev", DevinceInfo.pcbRev,     sizeof(DevinceInfo.pcbRev)     / sizeof(DevinceInfo.pcbRev[0])    );
         acquireValueFromDoc("uuid",   DevinceInfo.uuid,       sizeof(DevinceInfo.uuid)       / sizeof(DevinceInfo.uuid[0])      );
 
-        // checks for values
-        if (deviceJSON.containsKey("name")) {
-            std::string data = deviceJSON["name"].as<std::string>();
-            if (data.size() > sizeof(DevinceInfo.deviceName) / sizeof(DevinceInfo.deviceName[0])) {
-                // deletes extra characters
-                data.erase(data.begin() + (sizeof(DevinceInfo.deviceName) / sizeof(DevinceInfo.deviceName[0])),
-                           data.end());
-            }
-            
-            strcpy(DevinceInfo.deviceName, data.c_str());
-        }
-        if (deviceJSON.containsKey("pcbRev")) {
-            std::string data = deviceJSON["pcbRev"].as<std::string>();
-            if (data.size() > sizeof(DevinceInfo.pcbRev) / sizeof(DevinceInfo.pcbRev[0])) {
-                // deletes extra characters
-                data.erase(data.begin() + (sizeof(DevinceInfo.pcbRev) / sizeof(DevinceInfo.pcbRev[0])),
-                           data.end());
-            }
-            
-            strcpy(DevinceInfo.pcbRev, data.c_str());
-        }
         if (deviceJSON.containsKey("id")) {
             uint16_t data = deviceJSON["id"].as<uint16_t>();
             DevinceInfo.id = data;
