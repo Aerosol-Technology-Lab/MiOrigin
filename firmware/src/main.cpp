@@ -280,6 +280,23 @@ void handleUSBC(void *parameters = nullptr)
                             Serial.println("Error: Cannot find device info file. Flash new filesystem image");
                         }
                     }
+                    else if (!strcmp(command, "help")) {
+                        
+                        if (!SPIFFS.exists("/help.txt")) {
+                            Serial.println("Error: Cannot find \"help.txt\" in SPIFFS");
+                            continue;
+                        }
+
+                        File f = SPIFFS.open("/help.txt");
+                        if (f.isDirectory()) {
+                            Serial.println("Error: \"help.txt\" is a directory and not a file");
+                            f.close();
+                            continue;
+                        }
+
+                        Serial.println(f);
+                        f.close();
+                    }
                 }
             }
             else {
