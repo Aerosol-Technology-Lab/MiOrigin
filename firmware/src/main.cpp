@@ -37,6 +37,8 @@ extern void loop();
 #define ARDUINO_RUNNING_CORE 1
 #endif
 
+#define FIRMWARE_VERSION "0.5 alpha"
+
 TaskHandle_t usbcHandler = nullptr;
 
 BLE_Callback_Coms callbackComs;
@@ -333,8 +335,15 @@ void installFactoryFirmware(void *params) {
 void setup()
 {
     Serial.begin(9600);
-    Serial.println("Starting ota firmware v2");
-    
+    Serial.println("                  ====== MiOrigin - Bioaersol Collector Controller ======                   ");
+    Serial.println(" --- Aersol Technology Lab at the Department of Biological and Agricultural Engineering --- \n");
+    Serial.println("\tSoftware and PCB Designed By:     Charlemagne Wong - CECN 21'");
+    Serial.println("\t                                  Texas A&M University");
+    Serial.println("\tWebsite:                          https://cmasterx.github.io/MiOrigin/");
+    Serial.println("\tSource Code and Documentation:     https://github.com/cmasterx/MiOrigin");
+    Serial.printf("\tFirmware Version: %s\n", FIRMWARE_VERSION);
+    Serial.println("\nType and enter !help to see list of commands");
+    Serial.println();
     
     Serial.println("\n=== Device Info ===");
     {
@@ -343,15 +352,7 @@ void setup()
         sprintf(buff, "  Boot Address: 0x%08X\n  %s\n\n", currentPartition->address, currentPartition->label);
         Serial.print(buff);
     }
-    
-
-    Serial.println("-- VSPI SPI --");
-    {
-        char buff[128];
-        sprintf(buff, "\tMISO: %d\n\tMOSI: %d\n\tSCLK: %d\n\tCS: %d\n\tDC: %d\n\n", TFT_MISO, TFT_MOSI, TFT_SCLK, TFT_CS, TFT_DC);
-        Serial.println(buff);
-    }
-    
+       
     Serial.println("-> Mounting SPIFFS...");
     if (!SPIFFS.begin(true)) {
         Serial.println("Error - SPIFFS failed!");
@@ -361,13 +362,8 @@ void setup()
         Serial.println("-> SPIFFS mounted.");
     }
     
-    
-    // pinMode(SD_CS, OUTPUT);
-    
-    // digitalWrite(SD_CS, HIGH);
-    
-    delay(100);
-    
+    // initialize common properties between firmware and factory
+    // loads spi and i2c drivers
     Common_Init();
 
     
