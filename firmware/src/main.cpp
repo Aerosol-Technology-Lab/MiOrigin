@@ -37,7 +37,8 @@ extern void loop();
 #define ARDUINO_RUNNING_CORE 1
 #endif
 
-#define FIRMWARE_VERSION "0.5 alpha"
+#define MAJOR_FIRMWARE_VERSION 0
+#define MINOR_FIRMWAR_VERSION  6
 
 TaskHandle_t usbcHandler = nullptr;
 
@@ -369,7 +370,7 @@ void setup()
     Serial.println("\t                                     Texas A&M University");
     Serial.println("\t-> Website:                          https://cmasterx.github.io/MiOrigin/");
     Serial.println("\t-> Source Code and Documentation:    https://github.com/cmasterx/MiOrigin");
-    Serial.printf("\t-> Firmware Version:                  %s\n", FIRMWARE_VERSION);
+    Serial.printf("\t-> Firmware Version:                  %d.%d\n", MAJOR_FIRMWARE_VERSION, MINOR_FIRMWAR_VERSION);
     Serial.println("\nType and enter !help to see list of commands");
     Serial.println();
     
