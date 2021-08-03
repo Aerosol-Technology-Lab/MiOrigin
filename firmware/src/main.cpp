@@ -366,7 +366,13 @@ void installFactoryFirmware(void *params) {
     vTaskDelete(NULL);
 }
 
-void firmwareUpdateChecker(void *params)
+/**
+ * @brief Checks Github for updates. If found, an attempt will be made to download the file.
+ *          WiFi must be enabled and connected for an OTA update over WiFi to work.
+ * 
+ * @param params Unused, pass nullptr
+ */
+void firmwareUpdateCheckerTask(void *params)
 {
     while (true) {
 
