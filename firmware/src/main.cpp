@@ -17,6 +17,9 @@ extern void loop();
 #include <esp_ota_ops.h>
 #include <esp_task_wdt.h>
 #include <BLE2902.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include "WiFiOTAUpdater.h"
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
@@ -28,7 +31,7 @@ extern void loop();
 #include "BLE_UUID.h"
 #include "utils.h"
 #include "DisplaySetup.h"       // this line must be after including TFT_eSPI.h
-
+#include "rom/md5_hash.h"
 
 // extract arduino core props
 #if CONFIG_FREERTOS_UNICORE
@@ -39,6 +42,8 @@ extern void loop();
 
 #define MAJOR_FIRMWARE_VERSION 0
 #define MINOR_FIRMWAR_VERSION  6
+
+#define BINARY_URL "https://raw.githubusercontent.com/cmasterx/MiOrigin/%s/firmware/binaries/%s"
 
 TaskHandle_t usbcHandler = nullptr;
 
@@ -357,6 +362,89 @@ void installFactoryFirmware(void *params) {
     SD.rename("/factory.bin", "/firmware/factory.bin");
     
     Serial.println("Successfully flashed factory firmware!");
+    
+    vTaskDelete(NULL);
+}
+
+void firmwareUpdateChecker(void *params)
+{
+    while (true) {
+
+        if (WiFi.status() != WL_CONNECTED) {
+            delay(30 * 1000);
+            continue;
+        }
+
+        HTTPClient request;
+
+        StaticJsonDocument<256> metadata;
+        request.begin("https://raw.githubusercontent.com/cmasterx/MiOrigin/main/firmware/binaries/meta.json");
+        int metaRequestCode = request.GET();
+        if (metaRequestCode != HTTP_CODE_OK) deserializeJson(metadata, request.getStream());
+        request.end();
+        
+        if (!metadata.containsKey("firmware") || !metadata["firmware"].containsKey("version")) {
+            delay(5 * 60 * 1000);
+            continue;
+        }
+        
+        const char *metaversion = metadata["firmware"]["version"];
+        char *next;
+        int majorVersion = strtol(metaversion, &next, 10);
+        int minorVersion = *next == '.' ? strtol(++next, NULL, 10) : 0;
+        
+        if (majorVersion > MAJOR_FIRMWARE_VERSION ||
+           (majorVersion == MAJOR_FIRMWARE_VERSION && minorVersion > MINOR_FIRMWAR_VERSION))
+        {
+            char downloadURL[128];
+            int branchIndex = WiFiOTAUpdater::branchInList("main");
+            if (branchIndex < 0) {
+                Serial.println("-> ERROR: Trying to access a branch that does not exist!");
+                vTaskDelay(NULL);
+                return;
+            }
+            
+            sprintf(downloadURL, BINARY_URL, WiFiOTAUpdater::BRANCHES[branchIndex], "firmware.bin");
+            request.begin(downloadURL);
+            if (request.GET()) {
+
+                unsigned long stopwatch = millis();
+                
+                struct MD5Context md5ctx;
+                uint8_t md5buff[16] = { 0 };
+                MD5Init(&md5ctx);
+
+                Stream &stream = request.getStream();
+                File f = SD.open("/preload/firmware.bin", "w+");
+                uint8_t *buf = new uint8_t[512];
+                int bytesRemaining = request.getSize();
+
+                while (bytesRemaining) {
+
+                    size_t bytesToSave = std::min(bytesRemaining, 512);
+                    stream.readBytes(buf, bytesToSave);
+                    f.write(buf, bytesToSave);
+                    MD5Update(&md5ctx, buf, bytesToSave);
+                    bytesRemaining -= bytesToSave;
+                }
+                
+                MD5Final(md5buff, &md5ctx);
+                Serial.printf("Done! Download took %ds. MD5 Hash: ", (millis() - stopwatch) / 1000.0f);
+                for (uint8_t i : md5buff) {
+                    Serial.printf("%016X ", i);
+                }
+                Serial.println();
+                f.close();
+                delete[] buf;
+                request.end();
+                vTaskDelete(NULL);
+
+                return;
+            }
+            request.end();
+        }
+        
+    }
     
     vTaskDelete(NULL);
 }
