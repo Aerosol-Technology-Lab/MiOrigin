@@ -47,8 +47,6 @@ TFT_eSPI tft;
 
 XPT2046_Touchscreen ts(TCH_CS);
 
-// File miCloneEmulationLog;
-
 /**
  * @brief Struct containing device info. Contents
  *        will be populated during setup
@@ -132,7 +130,7 @@ class MyCallbacks: public BLECharacteristicCallbacks
  * @param command_length 
  * @return size_t 
  */
-size_t parseCommandFromString(char *buffer, size_t buffer_length, char *command, size_t command_length)
+size_t parseCommandFromString(const char *buffer, size_t buffer_length, char *command, size_t command_length)
 {
     if (buffer_length && buffer[0] == '!') {
         size_t i;
@@ -166,54 +164,50 @@ void handleUSBC(void *parameters = nullptr)
         
         if (Serial.available()) {
             Serial.println("@ Init stage");
-            char messageBuffer[256] = {0};
-            {
-                tmpStringClass = Serial.readStringUntil('\n');
-                strcpy(messageBuffer, tmpStringClass.c_str());
-            }
+            String message = Serial.readString();
             
             #ifdef DEV_DEBUG
             {
                 Serial.print("\nDebug hex raw: ");
-                Serial.println(messageBuffer);
-                for(char c : messageBuffer) {
-                    char tmp[12];
-                    sprintf(tmp, "%02X ", c);
-                    Serial.print(tmp);
+                Serial.printf("\nDebug hex raw: %s\n", message);
+                for(const char c : message) {
+                    Serial.printf("%02X ", c);
                 }
             }
             #endif
             
             Serial.println("Reached");
-            size_t messageLen = strlen(messageBuffer);
+            size_t messageLen = message.length();
 
             if (messageLen && messageLen < 256) {
                 // can perform string checks
 
                 Serial.println("@Stage 1");
                 
-                if (messageBuffer[0] == '/') {
+                if (message[0] == '/') {
                     // this is a command from MiClone. Parse this
                     // todo
                     Serial2.print(tmpStringClass);
                     
                     File miCloneEmulationLog = SD.open("/miclone.log", "w+");
                     if (miCloneEmulationLog) {
+                        
                         Serial.printf("File is valid, printing \"%s\"", tmpStringClass.c_str());
+                        const char printBuffer[] = "-> ";
                         miCloneEmulationLog.seek(miCloneEmulationLog.size());
-                        miCloneEmulationLog.printf("-> %s", tmpStringClass.c_str());
+                        miCloneEmulationLog.write(reinterpret_cast<const uint8_t *>(printBuffer), strlen(printBuffer));
                     }
 
                     miCloneEmulationLog.close();
                     delay(10);
                 }
-                else if (messageBuffer[0] == '!') {
+                else if (message[0] == '!') {
                     // command from my helper program
                     // todo
                     Serial.println("@Stage2");
                     char command[17] = { 0 };
                     size_t offset = 0;
-                    offset = parseCommandFromString(messageBuffer, sizeof(messageBuffer), command, sizeof(command));
+                    offset = parseCommandFromString(message.c_str(), message.length(), command, sizeof(command));
 
                     Serial.print("  Result of command: ");
                     Serial.println(command);
@@ -224,7 +218,7 @@ void handleUSBC(void *parameters = nullptr)
 
                         // FS &fs = !strcmp(command, "!sd") ? *(dynamic_cast<fs::FS *>)(&SD) : *(dynamic_cast<fs::FS *>)(&SPIFFS);
                         
-                        offset = nextSubString(messageBuffer, offset, sizeof(messageBuffer), command, sizeof(command));
+                        offset = nextSubString(message.c_str(), offset, message.length(), command, sizeof(command));
                         bool commandError = false;      // true when there is an invalid input to the command
                         
                         if (offset) {

@@ -19,7 +19,7 @@ void substr(char s[], char sub[], int p, int l) {
    sub[c] = '\0';
 }
 
-size_t nextSubString(char *buffer, size_t offset, size_t buffer_length, char *command, size_t command_length)
+size_t nextSubString(const char *buffer, size_t offset, size_t buffer_length, char *command, size_t command_length)
 {
     auto isEnd = [](char c) { return c == ' ' || c == '\r' || c == '\n' || c == '\0'; };
 
