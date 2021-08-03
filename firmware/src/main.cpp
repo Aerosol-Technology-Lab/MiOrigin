@@ -47,6 +47,8 @@ TFT_eSPI tft;
 
 XPT2046_Touchscreen ts(TCH_CS);
 
+// File miCloneEmulationLog;
+
 /**
  * @brief Struct containing device info. Contents
  *        will be populated during setup
@@ -194,7 +196,16 @@ void handleUSBC(void *parameters = nullptr)
                     // this is a command from MiClone. Parse this
                     // todo
                     Serial2.print(tmpStringClass);
-                    // save command to file
+                    
+                    File miCloneEmulationLog = SD.open("/miclone.log", "w+");
+                    if (miCloneEmulationLog) {
+                        Serial.printf("File is valid, printing \"%s\"", tmpStringClass.c_str());
+                        miCloneEmulationLog.seek(miCloneEmulationLog.size());
+                        miCloneEmulationLog.printf("-> %s", tmpStringClass.c_str());
+                    }
+
+                    miCloneEmulationLog.close();
+                    delay(10);
                 }
                 else if (messageBuffer[0] == '!') {
                     // command from my helper program
@@ -347,18 +358,18 @@ void installFactoryFirmware(void *params) {
     Serial.println("Successfully flashed factory firmware!");
     
     vTaskDelete(NULL);
-};
+}
 
 void setup()
 {
     Serial.begin(9600);
-    Serial.println("                  ====== MiOrigin - Bioaersol Collector Controller ======                   ");
+    Serial.println("\n                  ====== MiOrigin - Bioaersol Collector Controller ======                   ");
     Serial.println(" --- Aersol Technology Lab at the Department of Biological and Agricultural Engineering --- \n");
-    Serial.println("\tSoftware and PCB Designed By:     Charlemagne Wong - CECN 21'");
-    Serial.println("\t                                  Texas A&M University");
-    Serial.println("\tWebsite:                          https://cmasterx.github.io/MiOrigin/");
-    Serial.println("\tSource Code and Documentation:     https://github.com/cmasterx/MiOrigin");
-    Serial.printf("\tFirmware Version: %s\n", FIRMWARE_VERSION);
+    Serial.println("\t-> Software and PCB Designed By:     Charlemagne Wong - CECN 21'");
+    Serial.println("\t                                     Texas A&M University");
+    Serial.println("\t-> Website:                          https://cmasterx.github.io/MiOrigin/");
+    Serial.println("\t-> Source Code and Documentation:    https://github.com/cmasterx/MiOrigin");
+    Serial.printf("\t-> Firmware Version:                  %s\n", FIRMWARE_VERSION);
     Serial.println("\nType and enter !help to see list of commands");
     Serial.println();
     
@@ -444,6 +455,7 @@ void setup()
         tft.println("SD card mounted!");
         File verify = SD.open("/test.txt", "a+");
         verify.println("Print");
+        verify.println("Penguin");
         verify.close();
     }
     digitalWrite(TCH_CS, HIGH);
@@ -546,8 +558,34 @@ void setup()
                             ARDUINO_RUNNING_CORE);
         
     // setup RS-232
+    tft.print("-> Initializing collector port... ");
     Serial2.begin(9600);
-    tft.println("-> Initialized Bioaerosol collector port");
+    tft.println("SUCCESS");
+    // tft.print("-> Opening MiClone file log... ");
+    // miCloneEmulationLog = SD.open("/miclone.log", "w+");
+    // if (miCloneEmulationLog) {
+    //     tft.println("SUCCESS");
+    //     Serial.println(miCloneEmulationLog);
+    //     miCloneEmulationLog.print("Initialized Complete");
+    //     // close and re-open to make sure file is created
+    //     miCloneEmulationLog.close();
+    //     miCloneEmulationLog = SD.open("/miclone.log", "a+");
+    // }
+    // else {
+    //     tft.setTextColor(TFT_RED);
+    //     tft.println("FAIL");
+    //     tft.setTextColor(TFT_GREEN);
+    //     tft.print("\nRebooting in ");
+
+    //     const int maxTime = 3;
+    //     for (int i = 0; i < maxTime; ++i) {
+
+    //         tft.printf("%d... ", maxTime - i);
+    //         delay(1000);
+    //     }
+
+    //     ESP.restart();
+    // }
     
     /* Start Bluetooth */
     // Initialize and Server Info
@@ -589,12 +627,27 @@ void setup()
     BLEDevice::startAdvertising();
 
     tft.println("=== DONE! Everything initialized ===");
+
+        File verify = SD.open("/test.txt", "a");;
+        verify.println("Pizza bacon!");
+        verify.close();
+
+    File testFile = SD.open("/partlog.txt", "a");
+    if (testFile) {
+        Serial.println("File is correctly opened");
+        testFile.write((const uint8_t *) "Hello world!", 13);
+        testFile.seek(0);
+        Serial.println("Data in the file: ");
+        Serial.print(testFile.readString());
+        testFile.close();
+    }
+    assert(false && "Try creating and writing a file before creatiion of tasks");
 }
 
 void loop()
 {
     #ifdef DEV_DEBUG
-    tft.setCursor(20, 200);
+    tft.setCursor(20, 240);
     tft.setTextColor(TFT_GREEN, TFT_BLACK);
     tft.println("-- Battery --");
     tft.printf("  Voltage: %5.3f V  -  Charge Level: %5.0f%%\n", Driver::lipo.getVoltage(), Driver::lipo.getSOC() + 0.5f);
@@ -613,10 +666,11 @@ void loop()
     char buffer[80] = { 0 };
 
     ts.readData(&x, &y, &z);
-    sprintf(buffer, "Touch Sensor: X: %4d, Y: %4d, Z: %4d - Touched: %s\n", x, y, z, ts.touched() ? "TRUE" : "FALSE");
-    Serial.print(buffer);
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    sprintf(buffer, "\nTouch Sensor: X: %4d, Y: %4d, Z: %4d\nTouched: %s\n", x, y, z, ts.touched() ? "TRUE" : "FALSE");
+    tft.print(buffer);
 
-    delay(333);
+    delay(50);
 
     #endif
 }
