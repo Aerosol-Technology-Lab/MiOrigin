@@ -375,12 +375,29 @@ void firmwareUpdateChecker(void *params)
             continue;
         }
 
-        HTTPClient request;
+        // get url download information
+        char downloadURL[128];
+        int branchIndex = WiFiOTAUpdater::branchInList("main");
+        if (branchIndex < 0) {
+
+            Serial.println("-> ERROR: Trying to access a branch that does not exist!");
+            vTaskDelete(nullptr);
+            return;
+        }
+
 
         StaticJsonDocument<256> metadata;
-        request.begin("https://raw.githubusercontent.com/cmasterx/MiOrigin/main/firmware/binaries/meta.json");
-        int metaRequestCode = request.GET();
-        if (metaRequestCode != HTTP_CODE_OK) deserializeJson(metadata, request.getStream());
+
+        HTTPClient request;
+        sprintf(downloadURL, BINARY_URL, WiFiOTAUpdater::BRANCHES[branchIndex].path, "meta.json");
+        request.begin(downloadURL);
+        if (request.GET()) {
+
+            request.end();
+            delay(5 * 60 * 1000);
+            continue;
+        }
+        deserializeJson(metadata, request.getStream());
         request.end();
         
         if (!metadata.containsKey("firmware") || !metadata["firmware"].containsKey("version")) {
@@ -391,36 +408,30 @@ void firmwareUpdateChecker(void *params)
         const char *metaversion = metadata["firmware"]["version"];
         char *next;
         int majorVersion = strtol(metaversion, &next, 10);
-        int minorVersion = *next == '.' ? strtol(++next, NULL, 10) : 0;
+        int minorVersion = *next == '.' ? strtol(++next, nullptr, 10) : 0;
         
         if (majorVersion > MAJOR_FIRMWARE_VERSION ||
            (majorVersion == MAJOR_FIRMWARE_VERSION && minorVersion > MINOR_FIRMWAR_VERSION))
         {
-            char downloadURL[128];
-            int branchIndex = WiFiOTAUpdater::branchInList("main");
-            if (branchIndex < 0) {
-                Serial.println("-> ERROR: Trying to access a branch that does not exist!");
-                vTaskDelay(NULL);
-                return;
-            }
-            
-            sprintf(downloadURL, BINARY_URL, WiFiOTAUpdater::BRANCHES[branchIndex], "firmware.bin");
+            sprintf(downloadURL, BINARY_URL, WiFiOTAUpdater::BRANCHES[branchIndex].path, "firmware.bin");
             request.begin(downloadURL);
             if (request.GET()) {
 
                 unsigned long stopwatch = millis();
                 
+                // init MD5 hasher
                 struct MD5Context md5ctx;
                 uint8_t md5buff[16] = { 0 };
                 MD5Init(&md5ctx);
 
+                // get request stream info
                 Stream &stream = request.getStream();
                 File f = SD.open("/preload/firmware.bin", "w+");
                 uint8_t *buf = new uint8_t[512];
                 int bytesRemaining = request.getSize();
 
                 while (bytesRemaining) {
-
+                    // save data to file and add to MD5
                     size_t bytesToSave = std::min(bytesRemaining, 512);
                     stream.readBytes(buf, bytesToSave);
                     f.write(buf, bytesToSave);
@@ -429,24 +440,28 @@ void firmwareUpdateChecker(void *params)
                 }
                 
                 MD5Final(md5buff, &md5ctx);
-                Serial.printf("Done! Download took %ds. MD5 Hash: ", (millis() - stopwatch) / 1000.0f);
+                Serial.printf("Done! Download took %0.3fs. MD5 Hash: ", (millis() - stopwatch) / 1000.0f);
                 for (uint8_t i : md5buff) {
                     Serial.printf("%016X ", i);
                 }
                 Serial.println();
+
                 f.close();
                 delete[] buf;
                 request.end();
-                vTaskDelete(NULL);
+                vTaskDelete(nullptr);
 
                 return;
             }
             request.end();
         }
-        
+        // No updates found
+        else {
+            delay(10 * 60 * 1000);
+        }
     }
     
-    vTaskDelete(NULL);
+    vTaskDelete(nullptr);
 }
 
 void setup()
