@@ -18,7 +18,7 @@
 class WiFiControllerAlreadyInitializedException : public std::exception
 {
 public:
-    virtual char const *what() const
+    virtual char const *what() const noexcept override
     {
         return "WiFiController can only be initialized once for the entire life of the program";
     }
