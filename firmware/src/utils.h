@@ -9,7 +9,7 @@
  * @param p offset index
  * @param l number of characters to copy
  */
-void substr(char s[], char sub[], int p, int l) {
+void substr(const char s[], char sub[], int p, int l) {
    int c = 0;
    
    while (c < l) {

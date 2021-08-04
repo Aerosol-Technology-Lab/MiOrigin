@@ -169,7 +169,7 @@ void handleUSBC(void *parameters = nullptr)
             #ifdef DEV_DEBUG
             {
                 Serial.print("\nDebug hex raw: ");
-                Serial.printf("\nDebug hex raw: %s\n", message);
+                Serial.printf("\nDebug hex raw: %s\n", message.c_str());
                 for(const char c : message) {
                     Serial.printf("%02X ", c);
                 }
