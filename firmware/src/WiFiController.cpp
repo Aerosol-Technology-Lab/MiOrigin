@@ -22,8 +22,8 @@ bool _WiFiController::begin()
     
     xTaskCreatePinnedToCore(
         _WiFiController::keepWiFiAliveTask, 
-        "wifi-wake", 
-        1024,
+        "WiFiController", 
+        2048,
         nullptr,
         1,
         &WiFiController.taskHandlerKeepWiFiAwake,
@@ -35,17 +35,22 @@ bool _WiFiController::begin()
 
 bool _WiFiController::addConnection(WiFiConnection *newConnection) {
 
+    Serial.println("Take!");
     xSemaphoreTake(mutexConnections, portMAX_DELAY);
+    Serial.println("Got it!");
 
     for (WiFiConnection *&connection : WiFiController.connections) {
 
         if (!connection) {
             connection = newConnection;
+            xSemaphoreGive(mutexConnections);
+            Serial.println("Done!");
             return true;
         }
     }
 
     xSemaphoreGive(mutexConnections);
+    Serial.println("Done!");
     
     return false;
 }
@@ -65,12 +70,12 @@ WiFiConnection *_WiFiController::removeConnection(WiFiConnection *toRemove)
 
     xSemaphoreGive(mutexConnections);
     
-    return false;
+    return nullptr;
 }
 
 WiFiConnection *_WiFiController::removeConnection(size_t index)
 {
-    if (index > MAX_AP) return false;
+    if (index > MAX_AP) return nullptr;
     
     xSemaphoreTake(mutexConnections, portMAX_DELAY);
 
@@ -107,11 +112,13 @@ void _WiFiController::enableWiFiSleep(bool state)
 
 void _WiFiController::keepWiFiAliveTask(void *)
 {
+    Serial.println("Wifi Here");
     while (true) {
 
         xSemaphoreTake(WiFiController.binSemaphoreWiFiAlive, portMAX_DELAY);
-
+        Serial.println("LOOP WIFI");
         if (WiFi.status() == WL_CONNECTED) {
+            Serial.println("WiFi is connected! Nothing to do...");
             const static int nextCheckTimeMS = 3 * 60 * 1000;
             delay(nextCheckTimeMS);
             continue;
@@ -126,14 +133,17 @@ void _WiFiController::keepWiFiAliveTask(void *)
         for (uint16_t i = 0; i < numAailableNetworks; ++i) {
             
             String ssid = WiFi.SSID(i);
+            Serial.printf("SSID check: %s\n", ssid.c_str());
             bool connectionEstablished = false;
+            Serial.println("Over here 1");
             xSemaphoreTake(WiFiController.mutexConnections, portMAX_DELAY);
             for (WiFiConnection *&connection : WiFiController.connections) {
+                if (!connection || !connection->active) continue;      // if null, then there is no wifi connection
 
-                if (!connection) continue;      // if null, then there is no wifi connection
-
+                Serial.printf("This connection attempt is valid. The ssid is %s\n", connection->ssid);
                 if (!strcmp(connection->ssid, ssid.c_str())) {
                     // found ssis matches in possible connections
+                    Serial.println("SSID FOUND!");
                     
                     connection->connect();
 
@@ -174,3 +184,5 @@ void _WiFiController::keepWiFiAliveTask(void *)
 
     vTaskDelete(nullptr);
 }
+
+_WiFiController WiFiController;
