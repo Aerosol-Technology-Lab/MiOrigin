@@ -157,9 +157,6 @@ void handleUSBC(void *parameters = nullptr)
     Serial.flush();
     delay(200);
     
-    String tmpStringClass;
-    tmpStringClass.reserve(256);
-    
     while (true) {
         
         if (Serial.available()) {
@@ -185,14 +182,12 @@ void handleUSBC(void *parameters = nullptr)
                 Serial.println("@Stage 1");
                 
                 if (message[0] == '/') {
-                    // this is a command from MiClone. Parse this
-                    // todo
-                    Serial2.print(tmpStringClass);
+                    // this is a command from MiClone
                     
                     File miCloneEmulationLog = SD.open("/miclone.log", "w+");
                     if (miCloneEmulationLog) {
                         
-                        Serial.printf("File is valid, printing \"%s\"", tmpStringClass.c_str());
+                        Serial.printf("File is valid, printing \"%s\"", message.c_str());
                         const char printBuffer[] = "-> ";
                         miCloneEmulationLog.seek(miCloneEmulationLog.size());
                         miCloneEmulationLog.write(reinterpret_cast<const uint8_t *>(printBuffer), strlen(printBuffer));
