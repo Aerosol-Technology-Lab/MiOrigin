@@ -19,6 +19,8 @@ extern void loop();
 #include <BLE2902.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include "WiFiController.h"
+#include "WiFi_WPA_Connection.h"
 #include "WiFiOTAUpdater.h"
 #include <BLEDevice.h>
 #include <BLEUtils.h>
@@ -697,6 +699,17 @@ void setup()
     //     ESP.restart();
     // }
     
+    /* Start WiFi */
+    if (!WiFiController.begin()) {
+        Serial.println("Error: Failed to start WiFi Controller");
+        tft.setTextColor(TFT_RED);
+        tft.println("Error: Failed to start WiFi Controller");
+        tft.setTextColor(TFT_WHITE);
+    }
+    else {
+        WiFiController.addConnection(new WiFi_WPA_Connection("I Got a Gold Fish 2.4GHz", "Charlemagne13"));
+    }
+    
     /* Start Bluetooth */
     // Initialize and Server Info
     tft.println("-> Initializing Bluetooth (BLE)...");
@@ -751,7 +764,7 @@ void setup()
         Serial.print(testFile.readString());
         testFile.close();
     }
-    assert(false && "Try creating and writing a file before creatiion of tasks");
+    // assert(false && "Try creating and writing a file before creatiion of tasks");
 }
 
 void loop()
@@ -779,6 +792,8 @@ void loop()
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     sprintf(buffer, "\nTouch Sensor: X: %4d, Y: %4d, Z: %4d\nTouched: %s\n", x, y, z, ts.touched() ? "TRUE" : "FALSE");
     tft.print(buffer);
+
+    tft.printf("\n RAM: %.1f%% (%.0f kB, %0.0f kB)", ESP.getFreeHeap() * 100.0f / ESP.getHeapSize(), ESP.getFreeHeap() / 1024.0f, ESP.getHeapSize() / 1024.0f);
 
     delay(50);
 
