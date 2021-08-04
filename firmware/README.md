@@ -39,7 +39,10 @@ In normal operation, the ota firmware will always boot over the factory firmware
 Pre-compiled firmwares are available at `todo: do this`
 
 ## Pipeline
-- [ ] TFT SPI LCD drivers
-- [ ] BLE update
-- [ ] File upload / read via UART
+- [x] TFT SPI LCD drivers
 - [x] Post scripts that generates pre-compiled firmware/binaries
+- [x] WiFi with keep awake
+- [x] WiFi WPA
+- [ ] WiFi WPA2 Enterprise
+- [ ] BLE device settings
+- [ ] Update over WiFi

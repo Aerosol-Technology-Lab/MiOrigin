@@ -61,3 +61,8 @@ void lower(char *buffer, size_t size = std::numeric_limits<size_t>::max())
         buffer[i] = toLowerCase(buffer[i]);
     }
 }
+
+namespace utils
+{
+    int stoi(const std::string &str);
+}
