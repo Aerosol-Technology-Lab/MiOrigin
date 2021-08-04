@@ -2,8 +2,8 @@
 
 #pragma once
 
-#define RX2 27
-#define TX2 26
+#define RS232_RX2 27
+#define RS232_TX2 26
 
 #define I2C_SDA 21
 #define I2C_SCL 22

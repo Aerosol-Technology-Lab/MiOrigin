@@ -603,10 +603,8 @@ void setup()
     // check if new ota firmware exists
     if (SD.exists("/firmware.bin")) {
         tft.println("New firmware exists! Beginning update...");
-        File firmwareFile = SD.open("/firmware.bin", "r");
         SPIFFS.remove("/handoff");
         rebootToFactory();
-        firmwareFile.close();
     }
 
     /* Loads vars from SPIFFS */
@@ -637,7 +635,7 @@ void setup()
         
     // setup RS-232
     tft.print("-> Initializing collector port... ");
-    Serial2.begin(9600);
+    Serial2.begin(9600, SERIAL_8N1, RS232_RX2, RS232_TX2);
     tft.println("SUCCESS");
     // tft.print("-> Opening MiClone file log... ");
     // miCloneEmulationLog = SD.open("/miclone.log", "w+");
@@ -708,21 +706,6 @@ void setup()
     BLEDevice::startAdvertising();
 
     tft.println("=== DONE! Everything initialized ===");
-
-        File verify = SD.open("/test.txt", "a");;
-        verify.println("Pizza bacon!");
-        verify.close();
-
-    File testFile = SD.open("/partlog.txt", "a");
-    if (testFile) {
-        Serial.println("File is correctly opened");
-        testFile.write((const uint8_t *) "Hello world!", 13);
-        testFile.seek(0);
-        Serial.println("Data in the file: ");
-        Serial.print(testFile.readString());
-        testFile.close();
-    }
-    // assert(false && "Try creating and writing a file before creatiion of tasks");
 }
 
 void loop()
