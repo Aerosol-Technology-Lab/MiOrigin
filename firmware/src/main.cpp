@@ -493,17 +493,8 @@ void setup()
 
     tft.setTextColor(TFT_GREEN);
     tft.setTextWrap(true);
-    // digitalWrite(TCH_CS, LOW);
-    
-    // hspi->beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
 
-    // {
-    //     char message[] = "Hello world! This is my sentence!";
-    //     hspi->transferBytes((uint8_t *) &message, nullptr, sizeof(message));
-    // }
-    
-    // hspi->endTransaction();
-    
+
     Serial.println("Initializing SD card...");
     tft.println("Initializing SD Card");
     if(!SD.begin(SD_CS, *hspi, 4000000U))
@@ -593,22 +584,12 @@ void setup()
         ESP.restart();
     };
 
-    // // check if required to boot to factory
-    // if (!SPIFFS.exists("/handoff")) {
-    //     // handoff file does not exist, boot to factory
-    //     Serial.println("-> Handoff file in SPIFFS found. Rebooting to factory firmware...");
-    //     rebootToFactory();
-    // }
-    
     // check if new ota firmware exists
     if (SD.exists("/firmware.bin")) {
         tft.println("New firmware exists! Beginning update...");
         SPIFFS.remove("/handoff");
         rebootToFactory();
     }
-
-    /* Loads vars from SPIFFS */
-
 
     // enables watchdog timer
     // esp_task_wdt_init();
@@ -637,31 +618,7 @@ void setup()
     tft.print("-> Initializing collector port... ");
     Serial2.begin(9600, SERIAL_8N1, RS232_RX2, RS232_TX2);
     tft.println("SUCCESS");
-    // tft.print("-> Opening MiClone file log... ");
-    // miCloneEmulationLog = SD.open("/miclone.log", "w+");
-    // if (miCloneEmulationLog) {
-    //     tft.println("SUCCESS");
-    //     Serial.println(miCloneEmulationLog);
-    //     miCloneEmulationLog.print("Initialized Complete");
-    //     // close and re-open to make sure file is created
-    //     miCloneEmulationLog.close();
-    //     miCloneEmulationLog = SD.open("/miclone.log", "a+");
-    // }
-    // else {
-    //     tft.setTextColor(TFT_RED);
-    //     tft.println("FAIL");
-    //     tft.setTextColor(TFT_GREEN);
-    //     tft.print("\nRebooting in ");
 
-    //     const int maxTime = 3;
-    //     for (int i = 0; i < maxTime; ++i) {
-
-    //         tft.printf("%d... ", maxTime - i);
-    //         delay(1000);
-    //     }
-
-    //     ESP.restart();
-    // }
     
     /* Start WiFi */
     if (!WiFiController.begin()) {
