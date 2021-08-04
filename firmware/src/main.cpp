@@ -55,8 +55,6 @@ TFT_eSPI tft;
 
 XPT2046_Touchscreen ts(TCH_CS);
 
-// File miCloneEmulationLog;
-
 /**
  * @brief Struct containing device info. Contents
  *        will be populated during setup
@@ -108,29 +106,6 @@ struct {
     
 } BLE_Props;
 
-class MyCallbacks: public BLECharacteristicCallbacks
-{
-  void onWrite(BLECharacteristic *pCharacteristic)
-  {
-    std::string value = pCharacteristic->getValue();
-    pCharacteristic->setValue(value + "bah");
-
-    if (value.length() > 0)
-    {
-      Serial.println("*********");
-      Serial.print("New value: ");
-      for (int i = 0; i < value.length(); i++)
-      {
-        Serial.print(value[i]);
-      }
-
-      Serial.println();
-      Serial.println("*********");
-    }
-  }
-};
-
-
 /**
  * @brief Parses command from a given string that starts with an exclamation mark
  * 
@@ -140,7 +115,7 @@ class MyCallbacks: public BLECharacteristicCallbacks
  * @param command_length 
  * @return size_t 
  */
-size_t parseCommandFromString(char *buffer, size_t buffer_length, char *command, size_t command_length)
+size_t parseCommandFromString(const char *buffer, size_t buffer_length, char *command, size_t command_length)
 {
     if (buffer_length && buffer[0] == '!') {
         size_t i;
@@ -167,61 +142,52 @@ void handleUSBC(void *parameters = nullptr)
     Serial.flush();
     delay(200);
     
-    String tmpStringClass;
-    tmpStringClass.reserve(256);
-    
     while (true) {
         
         if (Serial.available()) {
             Serial.println("@ Init stage");
-            char messageBuffer[256] = {0};
-            {
-                tmpStringClass = Serial.readStringUntil('\n');
-                strcpy(messageBuffer, tmpStringClass.c_str());
-            }
+            String message = Serial.readString();
             
             #ifdef DEV_DEBUG
             {
                 Serial.print("\nDebug hex raw: ");
-                Serial.println(messageBuffer);
-                for(char c : messageBuffer) {
-                    char tmp[12];
-                    sprintf(tmp, "%02X ", c);
-                    Serial.print(tmp);
+                Serial.printf("\nDebug hex raw: %s\n", message.c_str());
+                for(const char c : message) {
+                    Serial.printf("%02X ", c);
                 }
             }
             #endif
             
             Serial.println("Reached");
-            size_t messageLen = strlen(messageBuffer);
+            size_t messageLen = message.length();
 
             if (messageLen && messageLen < 256) {
                 // can perform string checks
 
                 Serial.println("@Stage 1");
                 
-                if (messageBuffer[0] == '/') {
-                    // this is a command from MiClone. Parse this
-                    // todo
-                    Serial2.print(tmpStringClass);
+                if (message[0] == '/') {
+                    // this is a command from MiClone
                     
                     File miCloneEmulationLog = SD.open("/miclone.log", "w+");
                     if (miCloneEmulationLog) {
-                        Serial.printf("File is valid, printing \"%s\"", tmpStringClass.c_str());
+                        
+                        Serial.printf("File is valid, printing \"%s\"", message.c_str());
+                        const char printBuffer[] = "-> ";
                         miCloneEmulationLog.seek(miCloneEmulationLog.size());
-                        miCloneEmulationLog.printf("-> %s", tmpStringClass.c_str());
+                        miCloneEmulationLog.write(reinterpret_cast<const uint8_t *>(printBuffer), strlen(printBuffer));
                     }
 
                     miCloneEmulationLog.close();
                     delay(10);
                 }
-                else if (messageBuffer[0] == '!') {
+                else if (message[0] == '!') {
                     // command from my helper program
                     // todo
                     Serial.println("@Stage2");
                     char command[17] = { 0 };
                     size_t offset = 0;
-                    offset = parseCommandFromString(messageBuffer, sizeof(messageBuffer), command, sizeof(command));
+                    offset = parseCommandFromString(message.c_str(), message.length(), command, sizeof(command));
 
                     Serial.print("  Result of command: ");
                     Serial.println(command);
@@ -232,7 +198,7 @@ void handleUSBC(void *parameters = nullptr)
 
                         // FS &fs = !strcmp(command, "!sd") ? *(dynamic_cast<fs::FS *>)(&SD) : *(dynamic_cast<fs::FS *>)(&SPIFFS);
                         
-                        offset = nextSubString(messageBuffer, offset, sizeof(messageBuffer), command, sizeof(command));
+                        offset = nextSubString(message.c_str(), offset, message.length(), command, sizeof(command));
                         bool commandError = false;      // true when there is an invalid input to the command
                         
                         if (offset) {
@@ -637,10 +603,8 @@ void setup()
     // check if new ota firmware exists
     if (SD.exists("/firmware.bin")) {
         tft.println("New firmware exists! Beginning update...");
-        File firmwareFile = SD.open("/firmware.bin", "r");
         SPIFFS.remove("/handoff");
         rebootToFactory();
-        firmwareFile.close();
     }
 
     /* Loads vars from SPIFFS */
@@ -671,7 +635,7 @@ void setup()
         
     // setup RS-232
     tft.print("-> Initializing collector port... ");
-    Serial2.begin(9600);
+    Serial2.begin(9600, SERIAL_8N1, RS232_RX2, RS232_TX2);
     tft.println("SUCCESS");
     // tft.print("-> Opening MiClone file log... ");
     // miCloneEmulationLog = SD.open("/miclone.log", "w+");
@@ -720,14 +684,6 @@ void setup()
     BLE_Props.device.pService = BLE_Props.pServer->createService(SERVICE_DEVICE_INFO_UUID);
     
     // Characteristic creation 
-    BLE_Props.device.pDeviceName = BLE_Props.device.pService->createCharacteristic(CHARACTERISTIC_DEVICE_NAME_UUID,
-                                                                                   BLECharacteristic::PROPERTY_READ   |
-                                                                                   BLECharacteristic::PROPERTY_WRITE  |
-                                                                                   BLECharacteristic::PROPERTY_NOTIFY |
-                                                                                   BLECharacteristic::PROPERTY_INDICATE);
-    BLE_Props.device.pDeviceName->setValue("Test");
-    BLE_Props.device.pDeviceName->setCallbacks(new MyCallbacks());
-
     BLE_Props.device.pComs = BLE_Props.device.pService->createCharacteristic(BLECC_CHARACTERISTIC_UUID,
                                                                              BLECharacteristic::PROPERTY_WRITE  |
                                                                              BLECharacteristic::PROPERTY_READ   |
@@ -750,21 +706,6 @@ void setup()
     BLEDevice::startAdvertising();
 
     tft.println("=== DONE! Everything initialized ===");
-
-        File verify = SD.open("/test.txt", "a");;
-        verify.println("Pizza bacon!");
-        verify.close();
-
-    File testFile = SD.open("/partlog.txt", "a");
-    if (testFile) {
-        Serial.println("File is correctly opened");
-        testFile.write((const uint8_t *) "Hello world!", 13);
-        testFile.seek(0);
-        Serial.println("Data in the file: ");
-        Serial.print(testFile.readString());
-        testFile.close();
-    }
-    // assert(false && "Try creating and writing a file before creatiion of tasks");
 }
 
 void loop()

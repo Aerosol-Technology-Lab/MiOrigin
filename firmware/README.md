@@ -46,3 +46,6 @@ Pre-compiled firmwares are available at `todo: do this`
 - [ ] WiFi WPA2 Enterprise
 - [ ] BLE device settings
 - [ ] Update over WiFi
+
+## Known Issues
+- Cannot communicate over RS-232. TX and RX pins are flipped between the rs3232 ic and D-sub port.
