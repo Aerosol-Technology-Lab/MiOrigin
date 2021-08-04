@@ -106,29 +106,6 @@ struct {
     
 } BLE_Props;
 
-class MyCallbacks: public BLECharacteristicCallbacks
-{
-  void onWrite(BLECharacteristic *pCharacteristic)
-  {
-    std::string value = pCharacteristic->getValue();
-    pCharacteristic->setValue(value + "bah");
-
-    if (value.length() > 0)
-    {
-      Serial.println("*********");
-      Serial.print("New value: ");
-      for (int i = 0; i < value.length(); i++)
-      {
-        Serial.print(value[i]);
-      }
-
-      Serial.println();
-      Serial.println("*********");
-    }
-  }
-};
-
-
 /**
  * @brief Parses command from a given string that starts with an exclamation mark
  * 
@@ -709,14 +686,6 @@ void setup()
     BLE_Props.device.pService = BLE_Props.pServer->createService(SERVICE_DEVICE_INFO_UUID);
     
     // Characteristic creation 
-    BLE_Props.device.pDeviceName = BLE_Props.device.pService->createCharacteristic(CHARACTERISTIC_DEVICE_NAME_UUID,
-                                                                                   BLECharacteristic::PROPERTY_READ   |
-                                                                                   BLECharacteristic::PROPERTY_WRITE  |
-                                                                                   BLECharacteristic::PROPERTY_NOTIFY |
-                                                                                   BLECharacteristic::PROPERTY_INDICATE);
-    BLE_Props.device.pDeviceName->setValue("Test");
-    BLE_Props.device.pDeviceName->setCallbacks(new MyCallbacks());
-
     BLE_Props.device.pComs = BLE_Props.device.pService->createCharacteristic(BLECC_CHARACTERISTIC_UUID,
                                                                              BLECharacteristic::PROPERTY_WRITE  |
                                                                              BLECharacteristic::PROPERTY_READ   |
