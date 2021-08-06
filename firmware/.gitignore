@@ -14,3 +14,6 @@ secret/
 
 # tamu credentials
 data/tamu_credentials.json
+
+# unique firmware credentials
+src/credentials.h
