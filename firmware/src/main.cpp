@@ -8,8 +8,11 @@ extern void loop();
 
 #else
 
+#include "config.h"
 #include <Arduino.h>
+#include "credentials.h"
 #include "common.h"
+#include <memory>
 #include <FS.h>
 #include <SPI.h>
 #include <SPIFFS.h>
@@ -34,6 +37,7 @@ extern void loop();
 #include "utils.h"
 #include "DisplaySetup.h"       // this line must be after including TFT_eSPI.h
 #include "rom/md5_hash.h"
+#include <hwcrypto/aes.h>
 
 // extract arduino core props
 #if CONFIG_FREERTOS_UNICORE
@@ -44,8 +48,6 @@ extern void loop();
 
 #define MAJOR_FIRMWARE_VERSION 0
 #define MINOR_FIRMWAR_VERSION  6
-
-#define BINARY_URL "https://raw.githubusercontent.com/cmasterx/MiOrigin/%s/firmware/binaries/%s"
 
 TaskHandle_t usbcHandler = nullptr;
 
@@ -169,13 +171,17 @@ void handleUSBC(void *parameters = nullptr)
                 if (message[0] == '/') {
                     // this is a command from MiClone
                     
-                    File miCloneEmulationLog = SD.open("/miclone.log", "w+");
+                    // bypass mode
+                    Serial2.write(reinterpret_cast<const uint8_t *>(message.c_str()), message.length());
+                    
+                    File miCloneEmulationLog = SD.open(MICLONE_LOG_FILENAME, "w+");
                     if (miCloneEmulationLog) {
                         
                         Serial.printf("File is valid, printing \"%s\"", message.c_str());
                         const char printBuffer[] = "-> ";
                         miCloneEmulationLog.seek(miCloneEmulationLog.size());
                         miCloneEmulationLog.write(reinterpret_cast<const uint8_t *>(printBuffer), strlen(printBuffer));
+                        miCloneEmulationLog.write(reinterpret_cast<const uint8_t *>(message.c_str()), message.length());
                     }
 
                     miCloneEmulationLog.close();
@@ -663,6 +669,38 @@ void setup()
     BLEDevice::startAdvertising();
 
     tft.println("=== DONE! Everything initialized ===");
+
+    File f = SD.open(MICLONE_LOG_FILENAME, "w");
+    f.println("\n ------ Session Started -----");
+    f.close();
+
+    // encryption
+    const char testString[] = "Hello World! This is the message";
+    uint8_t key[32];
+    uint8_t iv[16] = { 0 };
+    uint8_t _iv[16] = { 0 };
+    utils::hexchar2bin(AES_KEY, key, sizeof(key) / sizeof(key[0]));
+    generateIV(iv, sizeof(iv));
+    memcpy(_iv, iv, 16);
+
+    size_t aesBuffSize = (sizeof(testString) + 15) / 16;
+    aesBuffSize *= 16;
+
+    unsigned char * encrypted = new unsigned char[aesBuffSize];
+    unsigned char * decrypted = new unsigned char[aesBuffSize];
+
+    esp_aes_context ctx;
+    esp_aes_init( &ctx );
+    esp_aes_setkey(&ctx, key, 256);
+    esp_aes_crypt_cbc(&ctx, ESP_AES_ENCRYPT, aesBuffSize, iv, (const unsigned char *)testString, encrypted);
+    // memset(iv, 0, 16);
+    esp_aes_crypt_cbc(&ctx, ESP_AES_DECRYPT, aesBuffSize, _iv, encrypted, decrypted);
+    esp_aes_free(&ctx);
+
+    Serial.print("Encrypted string: ");
+    Serial.println((char *)encrypted);
+    Serial.print("Decrypted string: ");
+    Serial.print((const char *)decrypted);
 }
 
 void loop()
