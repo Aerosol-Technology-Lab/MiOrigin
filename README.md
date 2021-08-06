@@ -10,7 +10,9 @@ This device is a controller for a bioaerosol collector used by the [Aerosol Tech
 
 <img src='img/3d.png' width=300px>
 
-## Drivers
+## Branches
+
+## USB Drivers for Windows, Linux, macOS
 Install CP210x driver if device cannot be detected by computer if connecting to the controller via USB
 
 - Download [CP210x Drivers](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers)
