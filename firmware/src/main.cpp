@@ -38,6 +38,7 @@ extern void loop();
 #include "DisplaySetup.h"       // this line must be after including TFT_eSPI.h
 #include "rom/md5_hash.h"
 #include <hwcrypto/aes.h>
+#include <mbedtls/rsa.h>
 
 // extract arduino core props
 #if CONFIG_FREERTOS_UNICORE
@@ -357,7 +358,7 @@ void firmwareUpdateCheckerTask(void *params)
 
         // get url download information
         char downloadURL[128];
-        int branchIndex = WiFiOTAUpdater::branchInList("main");
+        int branchIndex = WiFiOTAUpdater::branchInList("development");
         if (branchIndex < 0) {
 
             Serial.println("-> ERROR: Trying to access a branch that does not exist!");
@@ -370,14 +371,22 @@ void firmwareUpdateCheckerTask(void *params)
 
         HTTPClient request;
         sprintf(downloadURL, BINARY_URL, WiFiOTAUpdater::BRANCHES[branchIndex].path, "meta.json");
+        Serial.printf("-> Filepath request: %s", downloadURL);
         request.begin(downloadURL);
-        if (request.GET()) {
+        Serial.println("-> Starting request");
+        int metaRequestCode = request.GET();
+        Serial.println("-> Request GET initiated");
+        if (metaRequestCode <= 0) {
 
             request.end();
-            delay(5 * 60 * 1000);
+            Serial.println("-> Invalid request");
             continue;
         }
+        String s = request.getString();
+        Serial.printf("The message is: %s", s);
+        delay(1000000);
         deserializeJson(metadata, request.getStream());
+        serializeJson(metadata, Serial);
         request.end();
         
         if (!metadata.containsKey("firmware") || !metadata["firmware"].containsKey("version")) {
@@ -619,6 +628,14 @@ void setup()
                             1,
                             &usbcHandler,
                             ARDUINO_RUNNING_CORE);
+
+    xTaskCreate(firmwareUpdateCheckerTask,
+                "firm-upd",
+                4096 * 3,
+                nullptr,
+                1,
+                nullptr
+                );
         
     // setup RS-232
     tft.print("-> Initializing collector port... ");
