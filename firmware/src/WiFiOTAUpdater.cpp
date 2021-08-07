@@ -9,7 +9,7 @@ const WiFiOTAUpdater::branch_t WiFiOTAUpdater::BRANCHES[2] = {
         .path = "main"
     },
     branch_t {
-        .name = "developent",
+        .name = "development",
         .path = "firmware/dev"
     }
 };
