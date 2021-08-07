@@ -22,8 +22,8 @@ extern void loop();
 #include <BLE2902.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
-#include "WiFiController.h"
-#include "WiFi_WPA_Connection.h"
+#include "wifisys/WiFiController.h"
+#include "wifisys/WiFi_WPA_Connection.h"
 #include "WiFiOTAUpdater.h"
 #include <BLEDevice.h>
 #include <BLEUtils.h>
