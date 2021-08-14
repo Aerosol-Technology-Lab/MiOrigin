@@ -20,17 +20,19 @@ extern void loop();
 #include <esp_ota_ops.h>
 #include <esp_task_wdt.h>
 #include <BLE2902.h>
-#include <WiFi.h>
-#include <HTTPClient.h>
-#include "wifisys/WiFiController.h"
-#include "wifisys/WiFi_WPA_Connection.h"
-#include "WiFiOTAUpdater.h"
+#ifdef WIFI_CONNECTIVITY_ENABLE
+    #include <WiFi.h>
+    #include <HTTPClient.h>
+    #include "wifisys/WiFiController.h"
+    #include "wifisys/WiFi_WPA_Connection.h"
+    #include "WiFiOTAUpdater.h"
+#endif
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <ArduinoJson.h>
 #include <TFT_eSPI.h>
-#include <XPT2046_Touchscreen.h>
+#include "driver/touchscreen.h"
 #include "driver/lipo.h"
 #include "BLE_Callback_Coms.h"
 #include "BLE_UUID.h"
@@ -50,13 +52,15 @@ extern void loop();
 #define MAJOR_FIRMWARE_VERSION 0
 #define MINOR_FIRMWAR_VERSION  6
 
+QueueHandle_t tsQueue;
+
 TaskHandle_t usbcHandler = nullptr;
 
 BLE_Callback_Coms callbackComs;
 
 TFT_eSPI tft;
 
-XPT2046_Touchscreen ts(TCH_CS);
+using Driver::ts;
 
 /**
  * @brief Struct containing device info. Contents
@@ -341,6 +345,7 @@ void installFactoryFirmware(void *params) {
     vTaskDelete(NULL);
 }
 
+#ifdef CHECK_FOR_FIRMWARE_UPDATE
 /**
  * @brief Checks Github for updates. If found, an attempt will be made to download the file.
  *          WiFi must be enabled and connected for an OTA update over WiFi to work.
@@ -452,6 +457,8 @@ void firmwareUpdateCheckerTask(void *params)
     
     vTaskDelete(nullptr);
 }
+#endif
+
 
 void setup()
 {
@@ -493,8 +500,40 @@ void setup()
 
     tft.fillScreen(TFT_BLACK);
 
-    ts.begin(*hspi);
+    Driver::touchscreen_begin(*hspi);
+    // ts.begin(*hspi);
     // ts.setRotation()
+    Driver::Touchscreen_cfg.onPress = []() -> void {
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        int response = Driver::Touchscreen_cfg.state;
+        xQueueSendFromISR(tsQueue, &response, &xHigherPriorityTaskWoken);
+
+        if (xHigherPriorityTaskWoken) portYIELD_FROM_ISR();
+    };
+    Driver::Touchscreen_cfg.onRelease = Driver::Touchscreen_cfg.onPress;
+    
+    tsQueue = xQueueCreate(10, sizeof(int));
+    
+    TaskFunction_t touchScreenStateChange = [](void *) -> void {
+        Serial.println("Starting touch screen");
+        while (true) {
+            Serial.print("Touch screen touch loop");
+            int response;
+            if (xQueueReceive(tsQueue, (void *)&response, portMAX_DELAY) == pdTRUE) {
+
+                Serial.printf("Got message from ISR: %d", response);
+            }
+
+        }
+    };
+    
+    xTaskCreate(touchScreenStateChange,
+                "ts-state",
+                1024,
+                nullptr,
+                1,
+                nullptr
+                );
     
     tft.setCursor(30, 0, 2);
     tft.setTextColor(TFT_YELLOW);
@@ -629,6 +668,7 @@ void setup()
                             &usbcHandler,
                             ARDUINO_RUNNING_CORE);
 
+#ifdef CHECK_FOR_FIRMWARE_UPDATE
     xTaskCreate(firmwareUpdateCheckerTask,
                 "firm-upd",
                 4096 * 3,
@@ -636,6 +676,7 @@ void setup()
                 1,
                 nullptr
                 );
+#endif
         
     // setup RS-232
     tft.print("-> Initializing collector port... ");
@@ -643,6 +684,7 @@ void setup()
     tft.println("SUCCESS");
 
     
+#ifdef WIFI_CONNECTIVITY_ENABLE
     /* Start WiFi */
     if (!WiFiController.begin()) {
         Serial.println("Error: Failed to start WiFi Controller");
@@ -653,6 +695,7 @@ void setup()
     else {
         WiFiController.addConnection(new WiFi_WPA_Connection("I Got a Gold Fish 2.4GHz", "Charlemagne13"));
     }
+#endif
     
     /* Start Bluetooth */
     // Initialize and Server Info

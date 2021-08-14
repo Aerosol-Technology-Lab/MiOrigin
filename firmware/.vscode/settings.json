@@ -5,6 +5,7 @@
     "idf.customExtraVars": "{\"OPENOCD_SCRIPTS\":\"/home/charliew/.espressif/tools/openocd-esp32/v0.10.0-esp32-20210401/openocd-esp32/share/openocd/scripts\"}",
     "idf.port": "/dev/ttyUSB0",
     "files.associations": {
-        "tft_espi_generic.c": "cpp"
+        "tft_espi_generic.c": "cpp",
+        "stdlib.h": "c"
     }
 }
