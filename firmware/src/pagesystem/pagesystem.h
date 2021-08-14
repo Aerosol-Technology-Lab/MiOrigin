@@ -4,6 +4,7 @@
 #include "page.h"
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define MAX_PAGES 6
 // #define DYNAMIC_PAGES    // if this is enabled, MAX_PAGES does nothing
@@ -39,6 +40,8 @@ typedef struct {
     uint16_t numPages;
     
     Page_t *activePage;
+
+    bool started;
 
     /* DO NOT TOUCH ANYTHING ABOVE THIS LINE */
 

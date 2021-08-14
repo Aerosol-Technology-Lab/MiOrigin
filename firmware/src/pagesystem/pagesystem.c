@@ -1,5 +1,6 @@
 #include "pagesystem/pagesystem.h"
 #include <stdlib.h>
+#include <stdbool.h>
 
 void PageSystem_init(PageSystem_t *pgt)
 {
@@ -15,6 +16,13 @@ void PageSystem_init(PageSystem_t *pgt)
     pgt->preSwitch      = NULL;
     pgt->midSwitch      = NULL;
     pgt->postSwitch     = NULL;
+}
+
+void PageSystem_start(PageSystem_t *pgt)
+{
+    for (size_t i = 0; i < pgt->numPages; ++i) {
+        if (pgt->pages[i].onStart) pgt->pages[i].onStart(pgt->defaultParams);
+    }
 }
 
 PageSystem_state PageSystem_add_page(PageSystem_t *pgt, Page_t *page)
@@ -44,6 +52,9 @@ PageSystem_state PageSystem_add_page(PageSystem_t *pgt, Page_t *page)
     pgt->pages[pgt->numPages] = *page;
     ++pgt->numPages;
     
+    if (pgt->started && page->onStart) {
+        page->onStart(pgt->defaultParams);
+    }
 
     return PAGESYSTEM_SUCESS;
 }
