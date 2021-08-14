@@ -25,7 +25,7 @@ void PageSystem_start(PageSystem_t *pgt)
     }
 }
 
-PageSystem_state PageSystem_add_page(PageSystem_t *pgt, Page_t *page)
+bool PageSystem_add_page(PageSystem_t *pgt, Page_t *page)
 {
 #ifdef DYNAMIC_PAGES
     // todo fix this while loop because it is inefficient
@@ -45,7 +45,7 @@ PageSystem_state PageSystem_add_page(PageSystem_t *pgt, Page_t *page)
 #else
     
     if (pgt->numPages >= MAX_PAGES) {
-        return PAGESYSTEM_FAIL;
+        return false;
     }
 #endif
 
@@ -56,10 +56,10 @@ PageSystem_state PageSystem_add_page(PageSystem_t *pgt, Page_t *page)
         page->onStart(pgt->defaultParams);
     }
 
-    return PAGESYSTEM_SUCESS;
+    return true;
 }
 
-PageSystem_state PageSystem_findSwitch(PageSystem_t *pgt, char *name, void *args)
+bool PageSystem_findSwitch(PageSystem_t *pgt, char *name, void *args)
 {
     uint16_t i;
     for (i = 0; i < pgt->numPages; ++i) {
@@ -68,10 +68,10 @@ PageSystem_state PageSystem_findSwitch(PageSystem_t *pgt, char *name, void *args
         }
     }
 
-    return PAGESYSTEM_FAIL;
+    return false;
 }
 
-PageSystem_state PageSystem_switch(PageSystem_t *pgt, Page_t *page, void *args)
+bool PageSystem_switch(PageSystem_t *pgt, Page_t *page, void *args)
 {
     if (pgt->preSwitch) pgt->preSwitch();
     
@@ -92,7 +92,7 @@ PageSystem_state PageSystem_switch(PageSystem_t *pgt, Page_t *page, void *args)
 
     if (pgt->postSwitch) pgt->postSwitch();
 
-    return PAGESYSTEM_SUCESS;
+    return true;
 }
 
 void PageSystem_end(PageSystem_t *pgt)

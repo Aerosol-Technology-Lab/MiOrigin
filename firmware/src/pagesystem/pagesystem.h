@@ -23,12 +23,6 @@
     #define PAGESYSTEM_FAST
 #endif
 
-
-typedef enum PageSystem_state {
-    PAGESYSTEM_SUCESS,
-    PAGESYSTEM_FAIL
-} PageSystem_state;
-
 typedef struct {
 
 #ifndef DYNAMIC_PAGES
@@ -63,7 +57,7 @@ void PageSystem_init(PageSystem_t *pgt);
 
 void PageSystem_start(PageSystem_t *pgt);
 
-PageSystem_state PageSystem_add_page(PageSystem_t *pgt, Page_t *page);
+bool PageSystem_add_page(PageSystem_t *pgt, Page_t *page);
 
 /**
  * @brief Finds a page in the PageSystem that matches the name. If found,
@@ -74,7 +68,7 @@ PageSystem_state PageSystem_add_page(PageSystem_t *pgt, Page_t *page);
  * @param args 
  * @return PageSystem_state 
  */
-PageSystem_state PageSystem_findSwitch(PageSystem_t *pgt, char *name, void *args);
+bool PageSystem_findSwitch(PageSystem_t *pgt, char *name, void *args);
 
 /**
  * @brief Switches to the desired page
@@ -83,7 +77,7 @@ PageSystem_state PageSystem_findSwitch(PageSystem_t *pgt, char *name, void *args
  * @param page Do NOT pass in NULL when PAGESYSTEM_FAST is defined
  * @return PageSystem_state 
  */
-PageSystem_state PageSystem_switch(PageSystem_t *pgt, Page_t *page, void *args);
+bool PageSystem_switch(PageSystem_t *pgt, Page_t *page, void *args);
 
 /**
  * @brief Cleans up PageSystem_t resources. Once this is is called, the PageSystem
