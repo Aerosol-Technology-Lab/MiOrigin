@@ -3,6 +3,9 @@
 #include <Arduino.h>
 #include <XPT2046_Touchscreen.h>
 #include <SPI.h>
+#include <FreeRTOS.h>
+
+// #define DRIVER_TS_ENABLE_DEBUG_PRINT
 
 #define DRIVER_TS_CHECK_INTERVAL 17
 
@@ -20,12 +23,14 @@ namespace Driver
 
     struct {
         TouchscreenState state;
-        uint32_t interruptPin;
+        int32_t interruptPin;
         bool GPIO_firstGroup;
 
         TouchscreenFunctionBehavior onPress;
 
         TouchscreenFunctionBehavior onRelease;
+        
+        TaskHandle_t busyInterruptHandler;
         
     } Touchscreen_cfg;
     
@@ -57,11 +62,22 @@ namespace Driver
         }
     }
 
+    void touchscreen_init();
+
     void touchscreen_begin(SPIClass &spi,
                            uint8_t rotation=0,
                            bool enableInterrupts=false,
                            uint8_t interruptPin=32
                            );
+
+    /**
+     * @brief Enables a busy while loop to check if the touch screen is pressed or not
+     * 
+     * @param enable Enable (true) or disable (false) busy check loop
+     * @return true requested operation is successful
+     * @return false requested operation is unsuccessful
+     */
+    bool touchscreen_busy_check_interrupt(bool enable);
 
     /**
      * @brief Registers a function to call when the touch screen is pressed
@@ -78,4 +94,6 @@ namespace Driver
      * @param func Function called when touchscreen is released
      */
     void touchscreen_register_on_release(TouchscreenFunctionBehavior func);
+
+    static void busyInterruptFunction(void *args);
 }

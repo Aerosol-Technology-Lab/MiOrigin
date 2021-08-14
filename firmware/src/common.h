@@ -24,6 +24,8 @@
 
 #define LCD_DC 15
 
+#define TCH_INT 32
+
 #define LINE_TERMINATION    (uint16_t) 0x0D0A
 #define FLUSH_SERIAL        (uint16_t) 0x0000
 

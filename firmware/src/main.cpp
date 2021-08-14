@@ -500,7 +500,12 @@ void setup()
 
     tft.fillScreen(TFT_BLACK);
 
+    Driver::touchscreen_init();
     Driver::touchscreen_begin(*hspi);
+    if (!Driver::touchscreen_busy_check_interrupt(true)) {
+        Serial.println("FAIL TO ENABLE TS!");
+        for(;;);
+    }
     // ts.begin(*hspi);
     // ts.setRotation()
     Driver::Touchscreen_cfg.onPress = []() -> void {
