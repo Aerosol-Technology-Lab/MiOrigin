@@ -62,11 +62,24 @@ namespace Driver
         }
     }
 
+    /**
+     * @brief Initialized the touch screen high-level driver. This should be called first
+     *          before doing anything with the touch screen.
+     */
     void touchscreen_init();
 
+    /**
+     * @brief Begins the touch screen driver
+     * 
+     * @param spi Hardware SPI that is attached to touch screen
+     * @param rotation rotation of touch screen
+     * @param enableHardwareInterrupts enables hardware interrupts at pin "interruptPin". Not currently working
+     *          @warning DO NOT USE and leave as false
+     * @param interruptPin GPIO pin attatched to interrupt
+     */
     void touchscreen_begin(SPIClass &spi,
                            uint8_t rotation=0,
-                           bool enableInterrupts=false,
+                           bool enableHardwareInterrupts=false,
                            uint8_t interruptPin=32
                            );
 
@@ -95,5 +108,11 @@ namespace Driver
      */
     void touchscreen_register_on_release(TouchscreenFunctionBehavior func);
 
+    /**
+     * @brief RTOS task software based interrupt loop.
+     * @warning do not use - this is an internal function used by the driver
+     * 
+     * @param args unused - pass nullptr
+     */
     static void busyInterruptFunction(void *args);
 }
