@@ -1,4 +1,5 @@
 // if true, compile factory firmware instead
+
 #ifdef FACTORY
 
 // these are defined in factory.cpp
@@ -7,21 +8,39 @@ extern void loop();
 
 #else
 
+#include "config.h"
 #include <Arduino.h>
+#include "credentials.h"
 #include "common.h"
+#include <memory>
 #include <FS.h>
 #include <SPI.h>
 #include <SPIFFS.h>
 #include <SD.h>
 #include <esp_ota_ops.h>
 #include <esp_task_wdt.h>
+#include <BLE2902.h>
+#ifdef WIFI_CONNECTIVITY_ENABLE
+    #include <WiFi.h>
+    #include <HTTPClient.h>
+    #include "wifisys/WiFiController.h"
+    #include "wifisys/WiFi_WPA_Connection.h"
+    #include "WiFiOTAUpdater.h"
+#endif
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <ArduinoJson.h>
+#include <TFT_eSPI.h>
+#include "driver/touchscreen.h"
+#include "driver/lipo.h"
 #include "BLE_Callback_Coms.h"
 #include "BLE_UUID.h"
 #include "utils.h"
+#include "DisplaySetup.h"       // this line must be after including TFT_eSPI.h
+#include "rom/md5_hash.h"
+#include <hwcrypto/aes.h>
+#include <mbedtls/rsa.h>
 
 // extract arduino core props
 #if CONFIG_FREERTOS_UNICORE
@@ -30,9 +49,18 @@ extern void loop();
 #define ARDUINO_RUNNING_CORE 1
 #endif
 
+#define MAJOR_FIRMWARE_VERSION 0
+#define MINOR_FIRMWAR_VERSION  6
+
+QueueHandle_t tsQueue;
+
 TaskHandle_t usbcHandler = nullptr;
 
 BLE_Callback_Coms callbackComs;
+
+TFT_eSPI tft;
+
+using Driver::ts;
 
 /**
  * @brief Struct containing device info. Contents
@@ -43,7 +71,7 @@ struct {
     char deviceName[17] = "NONE";
     uint16_t id = (uint16_t) 0xFFFF;
     char pcbRev[17] = "NULL";
-    
+    char uuid[40] = "";
 } DevinceInfo;
 
 struct {
@@ -85,29 +113,6 @@ struct {
     
 } BLE_Props;
 
-class MyCallbacks: public BLECharacteristicCallbacks
-{
-  void onWrite(BLECharacteristic *pCharacteristic)
-  {
-    std::string value = pCharacteristic->getValue();
-    pCharacteristic->setValue(value + "bah");
-
-    if (value.length() > 0)
-    {
-      Serial.println("*********");
-      Serial.print("New value: ");
-      for (int i = 0; i < value.length(); i++)
-      {
-        Serial.print(value[i]);
-      }
-
-      Serial.println();
-      Serial.println("*********");
-    }
-  }
-};
-
-
 /**
  * @brief Parses command from a given string that starts with an exclamation mark
  * 
@@ -117,7 +122,7 @@ class MyCallbacks: public BLECharacteristicCallbacks
  * @param command_length 
  * @return size_t 
  */
-size_t parseCommandFromString(char *buffer, size_t buffer_length, char *command, size_t command_length)
+size_t parseCommandFromString(const char *buffer, size_t buffer_length, char *command, size_t command_length)
 {
     if (buffer_length && buffer[0] == '!') {
         size_t i;
@@ -144,53 +149,56 @@ void handleUSBC(void *parameters = nullptr)
     Serial.flush();
     delay(200);
     
-    String tmpStringClass;
-    tmpStringClass.reserve(256);
-    
     while (true) {
-        Serial.println("Loop");
         
         if (Serial.available()) {
             Serial.println("@ Init stage");
-            char messageBuffer[256] = {0};
-            {
-                tmpStringClass = Serial.readStringUntil('\n');
-                strcpy(messageBuffer, tmpStringClass.c_str());
-            }
+            String message = Serial.readString();
             
             #ifdef DEV_DEBUG
             {
                 Serial.print("\nDebug hex raw: ");
-                Serial.println(messageBuffer);
-                for(char c : messageBuffer) {
-                    char tmp[12];
-                    sprintf(tmp, "%02X ", c);
-                    Serial.print(tmp);
+                Serial.printf("\nDebug hex raw: %s\n", message.c_str());
+                for(const char c : message) {
+                    Serial.printf("%02X ", c);
                 }
             }
             #endif
             
             Serial.println("Reached");
-            size_t messageLen = strlen(messageBuffer);
+            size_t messageLen = message.length();
 
             if (messageLen && messageLen < 256) {
                 // can perform string checks
 
                 Serial.println("@Stage 1");
                 
-                if (messageBuffer[0] == '/') {
-                    // this is a command from MiClone. Parse this
-                    // todo
+                if (message[0] == '/') {
+                    // this is a command from MiClone
+                    
+                    // bypass mode
+                    Serial2.write(reinterpret_cast<const uint8_t *>(message.c_str()), message.length());
+                    
+                    File miCloneEmulationLog = SD.open(MICLONE_LOG_FILENAME, "w+");
+                    if (miCloneEmulationLog) {
+                        
+                        Serial.printf("File is valid, printing \"%s\"", message.c_str());
+                        const char printBuffer[] = "-> ";
+                        miCloneEmulationLog.seek(miCloneEmulationLog.size());
+                        miCloneEmulationLog.write(reinterpret_cast<const uint8_t *>(printBuffer), strlen(printBuffer));
+                        miCloneEmulationLog.write(reinterpret_cast<const uint8_t *>(message.c_str()), message.length());
+                    }
 
-                    // save command to file
+                    miCloneEmulationLog.close();
+                    delay(10);
                 }
-                else if (messageBuffer[0] == '!') {
+                else if (message[0] == '!') {
                     // command from my helper program
                     // todo
                     Serial.println("@Stage2");
                     char command[17] = { 0 };
                     size_t offset = 0;
-                    offset = parseCommandFromString(messageBuffer, sizeof(messageBuffer), command, sizeof(command));
+                    offset = parseCommandFromString(message.c_str(), message.length(), command, sizeof(command));
 
                     Serial.print("  Result of command: ");
                     Serial.println(command);
@@ -201,7 +209,7 @@ void handleUSBC(void *parameters = nullptr)
 
                         // FS &fs = !strcmp(command, "!sd") ? *(dynamic_cast<fs::FS *>)(&SD) : *(dynamic_cast<fs::FS *>)(&SPIFFS);
                         
-                        offset = nextSubString(messageBuffer, offset, sizeof(messageBuffer), command, sizeof(command));
+                        offset = nextSubString(message.c_str(), offset, message.length(), command, sizeof(command));
                         bool commandError = false;      // true when there is an invalid input to the command
                         
                         if (offset) {
@@ -268,6 +276,23 @@ void handleUSBC(void *parameters = nullptr)
                             Serial.println("Error: Cannot find device info file. Flash new filesystem image");
                         }
                     }
+                    else if (!strcmp(command, "help")) {
+                        
+                        if (!SPIFFS.exists("/help.txt")) {
+                            Serial.println("Error: Cannot find \"help.txt\" in SPIFFS");
+                            continue;
+                        }
+
+                        File f = SPIFFS.open("/help.txt");
+                        if (f.isDirectory()) {
+                            Serial.println("Error: \"help.txt\" is a directory and not a file");
+                            f.close();
+                            continue;
+                        }
+
+                        Serial.println(f);
+                        f.close();
+                    }
                 }
             }
             else {
@@ -318,12 +343,135 @@ void installFactoryFirmware(void *params) {
     Serial.println("Successfully flashed factory firmware!");
     
     vTaskDelete(NULL);
-};
+}
+
+#ifdef CHECK_FOR_FIRMWARE_UPDATE
+/**
+ * @brief Checks Github for updates. If found, an attempt will be made to download the file.
+ *          WiFi must be enabled and connected for an OTA update over WiFi to work.
+ * 
+ * @param params Unused, pass nullptr
+ */
+void firmwareUpdateCheckerTask(void *params)
+{
+    while (true) {
+
+        if (WiFi.status() != WL_CONNECTED) {
+            delay(30 * 1000);
+            continue;
+        }
+
+        // get url download information
+        char downloadURL[128];
+        int branchIndex = WiFiOTAUpdater::branchInList("development");
+        if (branchIndex < 0) {
+
+            Serial.println("-> ERROR: Trying to access a branch that does not exist!");
+            vTaskDelete(nullptr);
+            return;
+        }
+
+
+        StaticJsonDocument<256> metadata;
+
+        HTTPClient request;
+        sprintf(downloadURL, BINARY_URL, WiFiOTAUpdater::BRANCHES[branchIndex].path, "meta.json");
+        Serial.printf("-> Filepath request: %s", downloadURL);
+        request.begin(downloadURL);
+        Serial.println("-> Starting request");
+        int metaRequestCode = request.GET();
+        Serial.println("-> Request GET initiated");
+        if (metaRequestCode <= 0) {
+
+            request.end();
+            Serial.println("-> Invalid request");
+            continue;
+        }
+        String s = request.getString();
+        Serial.printf("The message is: %s", s);
+        delay(1000000);
+        deserializeJson(metadata, request.getStream());
+        serializeJson(metadata, Serial);
+        request.end();
+        
+        if (!metadata.containsKey("firmware") || !metadata["firmware"].containsKey("version")) {
+            delay(5 * 60 * 1000);
+            continue;
+        }
+        
+        const char *metaversion = metadata["firmware"]["version"];
+        char *next;
+        int majorVersion = strtol(metaversion, &next, 10);
+        int minorVersion = *next == '.' ? strtol(++next, nullptr, 10) : 0;
+        
+        if (majorVersion > MAJOR_FIRMWARE_VERSION ||
+           (majorVersion == MAJOR_FIRMWARE_VERSION && minorVersion > MINOR_FIRMWAR_VERSION))
+        {
+            sprintf(downloadURL, BINARY_URL, WiFiOTAUpdater::BRANCHES[branchIndex].path, "firmware.bin");
+            request.begin(downloadURL);
+            if (request.GET()) {
+
+                unsigned long stopwatch = millis();
+                
+                // init MD5 hasher
+                struct MD5Context md5ctx;
+                uint8_t md5buff[16] = { 0 };
+                MD5Init(&md5ctx);
+
+                // get request stream info
+                Stream &stream = request.getStream();
+                File f = SD.open("/preload/firmware.bin", "w+");
+                uint8_t *buf = new uint8_t[512];
+                int bytesRemaining = request.getSize();
+
+                while (bytesRemaining) {
+                    // save data to file and add to MD5
+                    size_t bytesToSave = std::min(bytesRemaining, 512);
+                    stream.readBytes(buf, bytesToSave);
+                    f.write(buf, bytesToSave);
+                    MD5Update(&md5ctx, buf, bytesToSave);
+                    bytesRemaining -= bytesToSave;
+                }
+                
+                MD5Final(md5buff, &md5ctx);
+                Serial.printf("Done! Download took %0.3fs. MD5 Hash: ", (millis() - stopwatch) / 1000.0f);
+                for (uint8_t i : md5buff) {
+                    Serial.printf("%016X ", i);
+                }
+                Serial.println();
+
+                f.close();
+                delete[] buf;
+                request.end();
+                vTaskDelete(nullptr);
+
+                return;
+            }
+            request.end();
+        }
+        // No updates found
+        else {
+            delay(10 * 60 * 1000);
+        }
+    }
+    
+    vTaskDelete(nullptr);
+}
+#endif
+
 
 void setup()
 {
     Serial.begin(9600);
-    Serial.println("Starting ota firmware v2");
+    Serial.println("\n                  ====== MiOrigin - Bioaersol Collector Controller ======                   ");
+    Serial.println(" --- Aersol Technology Lab at the Department of Biological and Agricultural Engineering --- \n");
+    Serial.println("\t-> Software and PCB Designed By:     Charlemagne Wong - CECN 21'");
+    Serial.println("\t                                     Texas A&M University");
+    Serial.println("\t-> Website:                          https://cmasterx.github.io/MiOrigin/");
+    Serial.println("\t-> Source Code and Documentation:    https://github.com/cmasterx/MiOrigin");
+    Serial.printf("\t-> Firmware Version:                  %d.%d\n", MAJOR_FIRMWARE_VERSION, MINOR_FIRMWAR_VERSION);
+    Serial.println("\nType and enter !help to see list of commands");
+    Serial.println();
     
     Serial.println("\n=== Device Info ===");
     {
@@ -332,7 +480,7 @@ void setup()
         sprintf(buff, "  Boot Address: 0x%08X\n  %s\n\n", currentPartition->address, currentPartition->label);
         Serial.print(buff);
     }
-    
+       
     Serial.println("-> Mounting SPIFFS...");
     if (!SPIFFS.begin(true)) {
         Serial.println("Error - SPIFFS failed!");
@@ -342,30 +490,78 @@ void setup()
         Serial.println("-> SPIFFS mounted.");
     }
     
-    
-    // pinMode(SD_CS, OUTPUT);
-    
-    // digitalWrite(SD_CS, HIGH);
-    
-    delay(1000);
-    
+    // initialize common properties between firmware and factory
+    // loads spi and i2c drivers
     Common_Init();
 
-    // digitalWrite(TCH_CS, LOW);
     
-    // hspi->beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
+    tft.init();
+    tft.setRotation(0);
 
-    // {
-    //     char message[] = "Hello world! This is my sentence!";
-    //     hspi->transferBytes((uint8_t *) &message, nullptr, sizeof(message));
-    // }
+    tft.fillScreen(TFT_BLACK);
+
+    Driver::touchscreen_init();
+    Driver::touchscreen_begin(*hspi);
+    if (!Driver::touchscreen_busy_check_interrupt(true)) {
+        Serial.println("FAIL TO ENABLE TS!");
+        for(;;);
+    }
+    // ts.begin(*hspi);
+    // ts.setRotation()
+    Driver::Touchscreen_cfg.onPress = []() -> void {
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        int response = Driver::Touchscreen_cfg.state;
+        xQueueSendFromISR(tsQueue, &response, &xHigherPriorityTaskWoken);
+
+        if (xHigherPriorityTaskWoken) portYIELD_FROM_ISR();
+    };
+    Driver::Touchscreen_cfg.onRelease = Driver::Touchscreen_cfg.onPress;
     
-    // hspi->endTransaction();
+    tsQueue = xQueueCreate(10, sizeof(int));
     
+    TaskFunction_t touchScreenStateChange = [](void *) -> void {
+        Serial.println("Starting touch screen");
+        while (true) {
+            Serial.print("Touch screen touch loop");
+            int response;
+            if (xQueueReceive(tsQueue, (void *)&response, portMAX_DELAY) == pdTRUE) {
+
+                Serial.printf("Got message from ISR: %d", response);
+            }
+
+        }
+    };
+    
+    xTaskCreate(touchScreenStateChange,
+                "ts-state",
+                1024,
+                nullptr,
+                1,
+                nullptr
+                );
+    
+    tft.setCursor(30, 0, 2);
+    tft.setTextColor(TFT_YELLOW);
+    tft.setTextSize(2);
+    tft.print("Bioaerosol Collector");
+
+    tft.setCursor(10, 50, 2);
+    tft.setTextColor(TFT_ORANGE);
+    tft.setTextSize(1);
+    tft.println("SOFTWARE NOT FINAL");
+
+    tft.setTextColor(TFT_GREEN);
+    tft.setTextWrap(true);
+
+
     Serial.println("Initializing SD card...");
+    tft.println("Initializing SD Card");
     if(!SD.begin(SD_CS, *hspi, 4000000U))
     {
         Serial.println("Error: Cannot open MicroSD card. Check if inserted and mounted correctly");
+
+        tft.setTextColor(TFT_RED);
+        tft.println("ERROR: Cannot open MicroSD card. This sometimes happens, rebooting in 3 seconds...");
 
         for (int i = 3; i > 0; --i) {
             Serial.print("\r");
@@ -384,41 +580,52 @@ void setup()
     }
     else {
         Serial.println("SD card mounted!");
+        tft.println("SD card mounted!");
         File verify = SD.open("/test.txt", "a+");
         verify.println("Print");
+        verify.println("Penguin");
         verify.close();
     }
     digitalWrite(TCH_CS, HIGH);
 
+
+    /* ----- Initialize Battery Fuel Gauge ----- */
+
+    tft.println("-> Initializing battery fuel gauge... ");
+    if (Driver::lipo.begin(Wire)) {
+
+        Driver::lipo.setThreshold(20);
+        tft.println("SUCCESS!");
+    }
+    else {
+        tft.setTextColor(TFT_RED);
+        tft.println("FAIL");
+        tft.setTextColor(TFT_GREEN);
+    }
+
+
     /* Acquire device information */
+    tft.println("Acquiring device information...");
     if (SPIFFS.exists("/device_info")) {
         StaticJsonDocument<512> deviceJSON;
         File f = SPIFFS.open("/device_info", "r");
         deserializeJson(deviceJSON, f);
 
-        // checks for values
-        if (deviceJSON.containsKey("name")) {
-            std::string data = deviceJSON["name"].as<std::string>();
-            if (data.size() > sizeof(DevinceInfo.deviceName) / sizeof(DevinceInfo.deviceName[0])) {
-                // deletes extra characters
-                data.erase(data.begin() + (sizeof(DevinceInfo.deviceName) / sizeof(DevinceInfo.deviceName[0])),
-                           data.end());
+        // parse and acquire values
+        auto acquireValueFromDoc = [&deviceJSON] (const char *key, char *deviceProperty, size_t devicePropertySize) {
+
+            if (deviceJSON.containsKey(key)) {
+                std::string data = deviceJSON[key].as<std::string>();
+                strlcpy(deviceProperty, data.c_str(), devicePropertySize);
             }
-            
-            strcpy(DevinceInfo.deviceName, data.c_str());
-        }
-        if (deviceJSON.containsKey("pcbRev")) {
-            std::string data = deviceJSON["pcbRev"].as<std::string>();
-            if (data.size() > sizeof(DevinceInfo.pcbRev) / sizeof(DevinceInfo.pcbRev[0])) {
-                // deletes extra characters
-                data.erase(data.begin() + (sizeof(DevinceInfo.pcbRev) / sizeof(DevinceInfo.pcbRev[0])),
-                           data.end());
-            }
-            
-            strcpy(DevinceInfo.pcbRev, data.c_str());
-        }
+        };
+
+        acquireValueFromDoc("name",   DevinceInfo.deviceName, sizeof(DevinceInfo.deviceName) / sizeof(DevinceInfo.deviceName[0]));
+        acquireValueFromDoc("pcbRev", DevinceInfo.pcbRev,     sizeof(DevinceInfo.pcbRev)     / sizeof(DevinceInfo.pcbRev[0])    );
+        acquireValueFromDoc("uuid",   DevinceInfo.uuid,       sizeof(DevinceInfo.uuid)       / sizeof(DevinceInfo.uuid[0])      );
+
         if (deviceJSON.containsKey("id")) {
-            uint16_t data = deviceJSON["pcbRev"].as<uint16_t>();
+            uint16_t data = deviceJSON["id"].as<uint16_t>();
             DevinceInfo.id = data;
         }
 
@@ -436,23 +643,12 @@ void setup()
         ESP.restart();
     };
 
-    // // check if required to boot to factory
-    // if (!SPIFFS.exists("/handoff")) {
-    //     // handoff file does not exist, boot to factory
-    //     Serial.println("-> Handoff file in SPIFFS found. Rebooting to factory firmware...");
-    //     rebootToFactory();
-    // }
-    
     // check if new ota firmware exists
     if (SD.exists("/firmware.bin")) {
-        File firmwareFile = SD.open("/firmware.bin", "r");
+        tft.println("New firmware exists! Beginning update...");
         SPIFFS.remove("/handoff");
         rebootToFactory();
-        firmwareFile.close();
     }
-
-    /* Loads vars from SPIFFS */
-
 
     // enables watchdog timer
     // esp_task_wdt_init();
@@ -476,35 +672,55 @@ void setup()
                             1,
                             &usbcHandler,
                             ARDUINO_RUNNING_CORE);
+
+#ifdef CHECK_FOR_FIRMWARE_UPDATE
+    xTaskCreate(firmwareUpdateCheckerTask,
+                "firm-upd",
+                4096 * 3,
+                nullptr,
+                1,
+                nullptr
+                );
+#endif
         
     // setup RS-232
-    Serial2.begin(9600);
+    tft.print("-> Initializing collector port... ");
+    Serial2.begin(9600, SERIAL_8N1, RS232_RX2, RS232_TX2);
+    tft.println("SUCCESS");
 
+    
+#ifdef WIFI_CONNECTIVITY_ENABLE
+    /* Start WiFi */
+    if (!WiFiController.begin()) {
+        Serial.println("Error: Failed to start WiFi Controller");
+        tft.setTextColor(TFT_RED);
+        tft.println("Error: Failed to start WiFi Controller");
+        tft.setTextColor(TFT_WHITE);
+    }
+    else {
+        WiFiController.addConnection(new WiFi_WPA_Connection("I Got a Gold Fish 2.4GHz", "Charlemagne13"));
+    }
+#endif
+    
     /* Start Bluetooth */
     // Initialize and Server Info
+    tft.println("-> Initializing Bluetooth (BLE)...");
     BLEDevice::init(DevinceInfo.deviceName);
     BLE_Props.pServer = BLEDevice::createServer();
     
     // Service creation
     BLE_Props.device.pService = BLE_Props.pServer->createService(SERVICE_DEVICE_INFO_UUID);
     
-    // Characteristic creation
-    BLE_Props.device.pDeviceName = BLE_Props.device.pService->createCharacteristic(CHARACTERISTIC_DEVICE_NAME_UUID,
-                                                                                   BLECharacteristic::PROPERTY_READ   |
-                                                                                   BLECharacteristic::PROPERTY_WRITE  |
-                                                                                   BLECharacteristic::PROPERTY_NOTIFY |
-                                                                                   BLECharacteristic::PROPERTY_INDICATE);
-    BLE_Props.device.pDeviceName->setValue("Test");
-    BLE_Props.device.pDeviceName->setCallbacks(new MyCallbacks());
-
+    // Characteristic creation 
     BLE_Props.device.pComs = BLE_Props.device.pService->createCharacteristic(BLECC_CHARACTERISTIC_UUID,
                                                                              BLECharacteristic::PROPERTY_WRITE  |
                                                                              BLECharacteristic::PROPERTY_READ   |
                                                                              BLECharacteristic::PROPERTY_NOTIFY |
                                                                              BLECharacteristic::PROPERTY_INDICATE);
     BLE_Props.device.pComs->setValue("Initialized");          
+    BLE_Props.device.pComs->addDescriptor(new BLE2902);          
     BLE_Props.device.pComs->setCallbacks(&callbackComs);
-
+    
     
     BLE_Props.device.pService->start();
     
@@ -516,12 +732,73 @@ void setup()
     pAdvertising->setMinPreferred(0x06);
     pAdvertising->setMinPreferred(0x12);
     BLEDevice::startAdvertising();
+
+    tft.println("=== DONE! Everything initialized ===");
+
+    File f = SD.open(MICLONE_LOG_FILENAME, "w");
+    f.println("\n ------ Session Started -----");
+    f.close();
+
+    // encryption
+    const char testString[] = "Hello World! This is the message";
+    uint8_t key[32];
+    uint8_t iv[16] = { 0 };
+    uint8_t _iv[16] = { 0 };
+    utils::hexchar2bin(AES_KEY, key, sizeof(key) / sizeof(key[0]));
+    generateIV(iv, sizeof(iv));
+    memcpy(_iv, iv, 16);
+
+    size_t aesBuffSize = (sizeof(testString) + 15) / 16;
+    aesBuffSize *= 16;
+
+    unsigned char * encrypted = new unsigned char[aesBuffSize];
+    unsigned char * decrypted = new unsigned char[aesBuffSize];
+
+    esp_aes_context ctx;
+    esp_aes_init( &ctx );
+    esp_aes_setkey(&ctx, key, 256);
+    esp_aes_crypt_cbc(&ctx, ESP_AES_ENCRYPT, aesBuffSize, iv, (const unsigned char *)testString, encrypted);
+    // memset(iv, 0, 16);
+    esp_aes_crypt_cbc(&ctx, ESP_AES_DECRYPT, aesBuffSize, _iv, encrypted, decrypted);
+    esp_aes_free(&ctx);
+
+    Serial.print("Encrypted string: ");
+    Serial.println((char *)encrypted);
+    Serial.print("Decrypted string: ");
+    Serial.print((const char *)decrypted);
 }
 
 void loop()
 {
-    vTaskDelay(10000 / portTICK_RATE_MS);
-    // do nothing
+    #ifdef DEV_DEBUG
+    tft.setCursor(20, 240);
+    tft.setTextColor(TFT_GREEN, TFT_BLACK);
+    tft.println("-- Battery --");
+    tft.printf("  Voltage: %5.3f V  -  Charge Level: %5.0f%%\n", Driver::lipo.getVoltage(), Driver::lipo.getSOC() + 0.5f);
+    tft.print("  Battery State: ");
+    if (!Driver::lipo.getAlert()) {
+        tft.println("GOOD");
+    }
+    else {
+        tft.setTextColor(TFT_RED, TFT_BLACK);
+        tft.println("LOW!");
+    }
+    tft.setTextColor(TFT_GREEN);
+    
+    uint16_t x, y;
+    uint8_t z;
+    char buffer[80] = { 0 };
+
+    ts.readData(&x, &y, &z);
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    sprintf(buffer, "\nTouch Sensor: X: %4d, Y: %4d, Z: %4d\nTouched: %s\n", x, y, z, ts.touched() ? "TRUE" : "FALSE");
+    tft.print(buffer);
+
+    tft.printf("\n RAM: %.1f%% (%.0f kB, %0.0f kB)", ESP.getFreeHeap() * 100.0f / ESP.getHeapSize(), ESP.getFreeHeap() / 1024.0f, ESP.getHeapSize() / 1024.0f);
+
+    delay(50);
+
+    #endif
 }
 
 #endif

@@ -5,3 +5,15 @@
 .vscode/ipch
 
 binaries/
+
+# unique device information
+unique_device_data/
+
+# folder used to contain encryption keys
+secret/
+
+# tamu credentials
+data/tamu_credentials.json
+
+# unique firmware credentials
+src/credentials.h

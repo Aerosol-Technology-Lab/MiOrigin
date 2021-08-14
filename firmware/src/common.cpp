@@ -1,5 +1,6 @@
 #include "common.h"
 #include <Arduino.h>
+#include <Wire.h>
 #include <assert.h>
 #include <esp_int_wdt.h>
 #include <esp_task_wdt.h>
@@ -21,8 +22,8 @@ void hardReset()
 
 void Common_Init()
 {
-    // todo clean this up
-    Serial.println("Running test code");
+    Wire.begin(I2C_SDA, I2C_SCL);
+    
     vspi = new SPIClass(VSPI);
     hspi = new SPIClass(HSPI);
 
@@ -35,28 +36,9 @@ void Common_Init()
     pinMode(TCH_CS, OUTPUT);
     digitalWrite(TCH_CS, HIGH);
     
-    digitalWrite(TCH_CS, LOW);
-    digitalWrite(HSPI_MOSI, HIGH);
     delay(200);
-    digitalWrite(HSPI_MOSI, LOW);
-    delay(200);
-    digitalWrite(HSPI_MOSI, HIGH);
-    delay(200);
-    digitalWrite(HSPI_MOSI, LOW);
-    delay(200);
-    digitalWrite(TCH_CS, HIGH);
-    
-    
-    
-    digitalWrite(TCH_CS, LOW);
-    hspi->beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
-    uint8_t buff[] = { 0xFF, 0x01, 0x02, 0x13, 0x44, 0xFF};
-    hspi->transferBytes(buff, buff, sizeof(buff));
-    digitalWrite(TCH_CS, HIGH);
-    hspi->endTransaction();
 
     Serial.println("DONE!");
-    // for (;;);
 }
 
 size_t readUntilEnd(char *buffer, size_t bufferSize, Stream &stream)

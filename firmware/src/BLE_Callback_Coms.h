@@ -3,7 +3,7 @@
 #include <BLEDevice.h>
 #include <FreeRTOS.h>
 
-#define MAX_PACKET_SIZE 27
+#define MAX_PACKET_SIZE 512
 
 #define BLECC_CHARACTERISTIC_UUID "f5db5ef9-c1d0-4d1b-8907-d3f2075872c5"
 
@@ -53,12 +53,10 @@ public:
     const static Command_t SUBCOMMAND_MTU_SET             = (Command_t) 0x03;
     
     
-    char sendBuffer[256] = { 0 };
-
 private:
     uint16_t mtu = 128;      // usable MTU (actual MTU - 3 bytes). If MTU is 23 bytes, usable is 20
 
-    char receiveBuffer[256] = { 0 };
+    char mainBuffer[256] = { 0 };
     uint16_t recSize = 0;
 
     bool readReady = false;

@@ -2,13 +2,16 @@
 
 #pragma once
 
-#define RX2 27
-#define TX2 26
+#define RS232_RX2 27
+#define RS232_TX2 26
+
+#define I2C_SDA 21
+#define I2C_SCL 22
 
 #define VSPI_MISO MISO
 #define VSPI_MOSI MOSI
 #define VSPI_SCLK SCK
-#define VSPI_SS SS
+#define VSPI_SS 4
 
 #define HSPI_MISO 25
 #define HSPI_MOSI 13
@@ -20,6 +23,8 @@
 #define TCH_CS 16
 
 #define LCD_DC 15
+
+#define TCH_INT 32
 
 #define LINE_TERMINATION    (uint16_t) 0x0D0A
 #define FLUSH_SERIAL        (uint16_t) 0x0000

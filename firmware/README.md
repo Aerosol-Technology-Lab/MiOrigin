@@ -39,12 +39,13 @@ In normal operation, the ota firmware will always boot over the factory firmware
 Pre-compiled firmwares are available at `todo: do this`
 
 ## Pipeline
-- [ ] TFT SPI LCD drivers
-- [ ] BLE update
-- [ ] File upload / read via UART
+- [x] TFT SPI LCD drivers
 - [x] Post scripts that generates pre-compiled firmware/binaries
+- [x] WiFi with keep awake
+- [x] WiFi WPA
+- [ ] WiFi WPA2 Enterprise
+- [ ] BLE device settings
+- [ ] Update over WiFi
 
 ## Known Issues
-- MicroSD card does not initialize after a crash or a restart called from firmware. Fix is to perform a hardware restart (reset button or power cycle). This error does not happen if changing boot firmware from ota0 to factory, but does happen when switching factory to ota0
-- Cannot communicate over RS-232. TX and RX pins are flipped between the rs3232 ic and D-sub port.
-- String not completely sending from USB-C to RS-232 during MiClone emulation mode.
+- Touch screen not working
