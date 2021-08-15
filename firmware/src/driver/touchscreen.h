@@ -5,7 +5,7 @@
 #include <SPI.h>
 #include <FreeRTOS.h>
 
-// #define DRIVER_TS_ENABLE_DEBUG_PRINT
+#define DRIVER_TS_ENABLE_DEBUG_PRINT
 
 #define DRIVER_TS_CHECK_INTERVAL 17
 
@@ -114,5 +114,5 @@ namespace Driver
      * 
      * @param args unused - pass nullptr
      */
-    static void busyInterruptFunction(void *args);
+    extern void busyInterruptFunction(void *args);
 }

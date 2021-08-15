@@ -36,9 +36,9 @@ bool Driver::touchscreen_busy_check_interrupt(bool enable)
     if (enable && Touchscreen_cfg.interruptPin < 0 && !Touchscreen_cfg.busyInterruptHandler) {
 
         xTaskCreate(
-            busyInterruptFunction,
+            Driver::busyInterruptFunction,
             "ts-interhnd",
-            1024,
+            3 * 1024,
             nullptr,
             1,
             &Touchscreen_cfg.busyInterruptHandler
@@ -71,7 +71,7 @@ void Driver::busyInterruptFunction(void *args)
     while (true) {
         bool currentState = ts.touched();
 
-#ifdef DRIVER_TS_ENABLE_DEBUG_PRINTnamespace Driver
+#ifdef DRIVER_TS_ENABLE_DEBUG_PRINT
 
         if (currentState) {
             
@@ -85,23 +85,35 @@ void Driver::busyInterruptFunction(void *args)
 
         if (currentState != touched) {
             
-            uint16_t x, y;
-            uint8_t z;
-            ts.readData(&x, &y, &z);
-
             touched = currentState;
             if (touched) {
                 if (!Touchscreen_cfg.onPress) {
+                    #ifdef DRIVER_TS_ENABLE_DEBUG_PRINT
+                    Serial.print("There is no press handler!");
+                    #endif
+                    
                     vTaskDelay(1000 / portTICK_PERIOD_MS);
                     continue;
                 }
+                
+                #ifdef DRIVER_TS_ENABLE_DEBUG_PRINT
+                Serial.print("There is a press handler!");
+                #endif
                 Touchscreen_cfg.onPress();
             }
             else {
                 if (!Touchscreen_cfg.onRelease) {
+                    #ifdef DRIVER_TS_ENABLE_DEBUG_PRINT
+                    Serial.print("There is no release handler!");
+                    #endif
+                    
                     vTaskDelay(1000 / portTICK_PERIOD_MS);
                     continue;
                 }
+
+                #ifdef DRIVER_TS_ENABLE_DEBUG_PRINT
+                Serial.print("There is a release handler!");
+                #endif
                 Touchscreen_cfg.onRelease();
             }
         }

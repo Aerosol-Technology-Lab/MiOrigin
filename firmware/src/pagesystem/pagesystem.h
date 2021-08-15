@@ -1,6 +1,11 @@
 #ifndef PAGESYSTEM_H
 #define PAGESYSTEM_H
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include "page.h"
 #include <stdint.h>
 #include <stdlib.h>
@@ -53,11 +58,11 @@ typedef struct {
  * 
  * @param pgt Page system to initialize
  */
-void PageSystem_init(PageSystem_t *pgt);
+extern void PageSystem_init(PageSystem_t *pgt);
 
-void PageSystem_start(PageSystem_t *pgt);
+extern void PageSystem_start(PageSystem_t *pgt);
 
-bool PageSystem_add_page(PageSystem_t *pgt, Page_t *page);
+extern bool PageSystem_add_page(PageSystem_t *pgt, Page_t *page);
 
 /**
  * @brief Finds a page in the PageSystem that matches the name. If found,
@@ -68,7 +73,7 @@ bool PageSystem_add_page(PageSystem_t *pgt, Page_t *page);
  * @param args 
  * @return PageSystem_state 
  */
-bool PageSystem_findSwitch(PageSystem_t *pgt, char *name, void *args);
+extern bool PageSystem_findSwitch(PageSystem_t *pgt, const char *name, void *args);
 
 /**
  * @brief Switches to the desired page
@@ -77,7 +82,7 @@ bool PageSystem_findSwitch(PageSystem_t *pgt, char *name, void *args);
  * @param page Do NOT pass in NULL when PAGESYSTEM_FAST is defined
  * @return PageSystem_state 
  */
-bool PageSystem_switch(PageSystem_t *pgt, Page_t *page, void *args);
+extern bool PageSystem_switch(PageSystem_t *pgt, Page_t *page, void *args);
 
 /**
  * @brief Cleans up PageSystem_t resources. Once this is is called, the PageSystem
@@ -85,6 +90,10 @@ bool PageSystem_switch(PageSystem_t *pgt, Page_t *page, void *args);
  * 
  * @param pgt PageSystem to end / cleanup
  */
-void PageSystem_end(PageSystem_t *pgt);
+extern void PageSystem_end(PageSystem_t *pgt);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
