@@ -510,7 +510,7 @@ void setup()
     tft.fillScreen(TFT_BLACK);
 
     Driver::touchscreen_init();
-    Driver::touchscreen_begin(*hspi);
+    Driver::touchscreen_begin(*hspi, 2);
     if (!Driver::touchscreen_busy_check_interrupt(true)) {
         Serial.println("FAIL TO ENABLE TS!");
         for(;;);
@@ -776,49 +776,57 @@ void setup()
     Serial.print("Decrypted string: ");
     Serial.print((const char *)decrypted);
 
+    #ifndef DISABLE_PAGE_SYSTEM
+
     Page_t tmpPage;
     
     PageSystem_init(&devicePageManager);
     
+    #ifndef DISABLE_CALIBRATION
     Calibration.begin(SPIFFS);
     Calibration.generatePage(tmpPage);
     PageSystem_add_page(&devicePageManager, &tmpPage);
+    #endif
     
     PageSystem_start(&devicePageManager);
     PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, nullptr);
+
+    #endif
 }
 
 void loop()
 {
-    // #ifdef DEV_DEBUG
-    // tft.setCursor(20, 240);
-    // tft.setTextColor(TFT_GREEN, TFT_BLACK);
-    // tft.println("-- Battery --");
-    // tft.printf("  Voltage: %5.3f V  -  Charge Level: %5.0f%%\n", Driver::lipo.getVoltage(), Driver::lipo.getSOC() + 0.5f);
-    // tft.print("  Battery State: ");
-    // if (!Driver::lipo.getAlert()) {
-    //     tft.println("GOOD");
-    // }
-    // else {
-    //     tft.setTextColor(TFT_RED, TFT_BLACK);
-    //     tft.println("LOW!");
-    // }
-    // tft.setTextColor(TFT_GREEN);
+    #ifdef ENABLE_REPORTING_SYSTEM_STATS_IN_DISPLAY
+    #ifdef DEV_DEBUG
+    tft.setCursor(20, 240);
+    tft.setTextColor(TFT_GREEN, TFT_BLACK);
+    tft.println("-- Battery --");
+    tft.printf("  Voltage: %5.3f V  -  Charge Level: %5.0f%%\n", Driver::lipo.getVoltage(), Driver::lipo.getSOC() + 0.5f);
+    tft.print("  Battery State: ");
+    if (!Driver::lipo.getAlert()) {
+        tft.println("GOOD");
+    }
+    else {
+        tft.setTextColor(TFT_RED, TFT_BLACK);
+        tft.println("LOW!");
+    }
+    tft.setTextColor(TFT_GREEN);
     
-    // uint16_t x, y;
-    // uint8_t z;
-    // char buffer[80] = { 0 };
+    uint16_t x, y;
+    uint8_t z;
+    char buffer[80] = { 0 };
 
-    // ts.readData(&x, &y, &z);
-    // tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    // sprintf(buffer, "\nTouch Sensor: X: %4d, Y: %4d, Z: %4d\nTouched: %s\n", x, y, z, ts.touched() ? "TRUE" : "FALSE");
-    // tft.print(buffer);
+    ts.readData(&x, &y, &z);
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    sprintf(buffer, "\nTouch Sensor: X: %4d, Y: %4d, Z: %4d\nTouched: %s\n", x, y, z, ts.touched() ? "TRUE" : "FALSE");
+    tft.print(buffer);
 
-    // tft.printf("\n RAM: %.1f%% (%.0f kB, %0.0f kB)", ESP.getFreeHeap() * 100.0f / ESP.getHeapSize(), ESP.getFreeHeap() / 1024.0f, ESP.getHeapSize() / 1024.0f);
+    tft.printf("\n RAM: %.1f%% (%.0f kB, %0.0f kB)", ESP.getFreeHeap() * 100.0f / ESP.getHeapSize(), ESP.getFreeHeap() / 1024.0f, ESP.getHeapSize() / 1024.0f);
 
-    // delay(50);
+    delay(50);
 
-    // #endif
+    #endif
+    #endif
 }
 
 #endif

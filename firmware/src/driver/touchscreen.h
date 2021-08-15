@@ -5,7 +5,7 @@
 #include <SPI.h>
 #include <FreeRTOS.h>
 
-#define DRIVER_TS_ENABLE_DEBUG_PRINT
+// #define DRIVER_TS_ENABLE_DEBUG_PRINT
 
 #define DRIVER_TS_CHECK_INTERVAL 17
 
