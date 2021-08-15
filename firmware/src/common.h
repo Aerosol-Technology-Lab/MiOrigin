@@ -50,9 +50,3 @@ size_t readUntilEnd(char *buffer, size_t bufferSize, Stream &stream);
 void Common_USBC_Handler(void *params);
 
 void Common_HEX_print(char *cstr, Stream &stream = Serial);
-
-#ifdef DEBUG
-#define debug_println(m) Serial.print("Debug: "); Serial.println(m)
-#else
-#define debug_println(m)
-#endif
