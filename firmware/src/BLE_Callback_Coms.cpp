@@ -245,4 +245,5 @@ bool BLE_Callback_Coms::resizeMTU(uint16_t size)
     delete[] responsePacket;
     responsePacket = new uint8_t[size];
     mtu = size;
+    return true;
 }

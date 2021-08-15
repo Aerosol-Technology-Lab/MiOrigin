@@ -3,7 +3,15 @@
 #include <Arduino.h>
 #include <string>
 
-#define hexchar2byte(h) h >= '0' && h <= '9' ? h - '0' : h - 'a' + 10
+#ifdef DEV_DEBUG
+    #define dev_print(mess)     Serial.print(mess)
+    #define dev_println(mess)   Serial.println(mess)
+#elif
+    #define dev_print(mess)
+    #define dev_println(mess)
+#endif
+
+#define hexchar2byte(h) ((h >= '0') && (h <= '9') ? (h - '0') : ((h - 'a') + 10))
 
 #define generateIV(buffer, length) esp_fill_random((uint8_t *) buffer, length)
 

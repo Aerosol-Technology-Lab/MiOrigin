@@ -89,7 +89,7 @@ void Common_USBC_Handler(void *params)
             // process if there's data in the buffer
             if (strlen(buffer)) {
 
-                if (!strcmp(buffer, "!update-firmware"));
+                if (!strcmp(buffer, "!update-firmware")) { }
                 // Serial.readBytes
                 // todo
                 #ifdef OTA0
