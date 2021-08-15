@@ -279,6 +279,7 @@ void handleUSBC(void *parameters = nullptr)
                             sprintf(sendBuffer, "name %s size %08X", f.name(), f.size());
                             Serial.print(sendBuffer);
                             Serial.write(f);
+                            f.close();
                         }
                         else {
                             Serial.println("Error: Cannot find device info file. Flash new filesystem image");
