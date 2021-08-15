@@ -26,6 +26,12 @@ namespace Driver
         int32_t interruptPin;
         bool GPIO_firstGroup;
 
+        struct {
+            uint16_t x;
+            uint16_t y;
+            uint8_t  z;
+        } point;
+
         TouchscreenFunctionBehavior onPress;
 
         TouchscreenFunctionBehavior onRelease;
@@ -82,6 +88,26 @@ namespace Driver
                            bool enableHardwareInterrupts=false,
                            uint8_t interruptPin=32
                            );
+
+    /**
+     * @brief Acquires the x, y, and z coordinate of the raw points from the screen
+     *          Because x, y, and z are pointers to a pointer to constant, these values
+     *          will always be the updated values from the driver once acquired.
+     * @example
+     *          const uint16_t *x, *y;
+     *          const uint8_t  *z;
+     *          touchscreen_get_raw_points(&x, &y, &z);
+     * 
+     *          while (1) {
+     *              // no need to call touchscreen_get_raw_points repeatedly
+     *              do_something_with_points(*x, *y, *z);
+     *          }
+     * 
+     * @param x x point
+     * @param y y point
+     * @param z pressure
+     */
+    void touchscreen_get_raw_points(const uint16_t **x, const uint16_t **y, const uint8_t **z);
 
     /**
      * @brief Enables a busy while loop to check if the touch screen is pressed or not

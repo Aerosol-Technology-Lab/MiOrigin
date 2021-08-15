@@ -10,6 +10,9 @@ void Driver::touchscreen_init()
     Touchscreen_cfg.onPress = nullptr;
     Touchscreen_cfg.onRelease = nullptr;
     Touchscreen_cfg.busyInterruptHandler = nullptr;
+    Touchscreen_cfg.point.x = 0;
+    Touchscreen_cfg.point.y = 0;
+    Touchscreen_cfg.point.z = 0;
 }
 
 void Driver::touchscreen_begin(SPIClass &spi, uint8_t rotation, bool enableInterrupts, uint8_t interruptPin)
@@ -27,6 +30,13 @@ void Driver::touchscreen_begin(SPIClass &spi, uint8_t rotation, bool enableInter
         Touchscreen_cfg.interruptPin = -1;
     }
     
+}
+
+void Driver::touchscreen_get_raw_points(const uint16_t **x, const uint16_t **y, const uint8_t **z)
+{
+    *x = &Driver::Touchscreen_cfg.point.x;
+    *y = &Driver::Touchscreen_cfg.point.y;
+    *z = &Driver::Touchscreen_cfg.point.z;
 }
 
 bool Driver::touchscreen_busy_check_interrupt(bool enable)
@@ -70,8 +80,8 @@ void Driver::busyInterruptFunction(void *args)
     
     while (true) {
         bool currentState = ts.touched();
-
-#ifdef DRIVER_TS_ENABLE_DEBUG_PRINT
+        
+        #ifdef DRIVER_TS_ENABLE_DEBUG_PRINT
 
         if (currentState) {
             
@@ -81,12 +91,20 @@ void Driver::busyInterruptFunction(void *args)
             Serial.println("-> Nothing. I feel nothing at all...");
         }
 
-#endif
+        #endif
 
         if (currentState != touched) {
             
             touched = currentState;
             if (touched) {
+
+                // update values
+                Driver::ts.readData(&Touchscreen_cfg.point.x,
+                                    &Touchscreen_cfg.point.y,
+                                    &Touchscreen_cfg.point.z
+                                    );
+
+                // call event handler
                 if (!Touchscreen_cfg.onPress) {
                     #ifdef DRIVER_TS_ENABLE_DEBUG_PRINT
                     Serial.print("There is no press handler!");
