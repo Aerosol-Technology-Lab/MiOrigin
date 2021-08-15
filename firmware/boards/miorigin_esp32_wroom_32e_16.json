@@ -27,7 +27,7 @@
   "name": "MiOrigin ",
   "upload": {
     "flash_size": "16MB",
-    "maximum_ram_size": 548864,
+    "maximum_ram_size": 292864,
     "maximum_size": 16777216,
     "require_upload_port": true,
     "speed": 460800
