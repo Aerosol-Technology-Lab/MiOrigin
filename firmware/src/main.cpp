@@ -810,7 +810,7 @@ void setup()
     #endif
     
     PageSystem_start(&devicePageManager);
-    PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)0);
+    PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)1);
 
     #endif
 }
@@ -847,6 +847,18 @@ void loop()
     delay(50);
 
     #endif
+    #endif
+
+    #ifdef DEV_DEBUG
+
+    multi_heap_info_t info;
+    
+    heap_caps_get_info(&info, MALLOC_CAP_INTERNAL);
+    float totalRam = (info.total_allocated_bytes + info.total_free_bytes) / 1024.0f;
+    float usedRam = info.total_allocated_bytes / 1024.0f;
+    dev_printf("Percent RAM: %.0f (%.3fKB / %.3fKB)\n", usedRam / totalRam * 100.0f, usedRam, totalRam);
+    vTaskDelay(3000 / portTICK_PERIOD_MS);
+    
     #endif
 }
 

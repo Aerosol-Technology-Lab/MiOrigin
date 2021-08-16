@@ -3,6 +3,20 @@
 #include <Arduino.h>
 #include <string>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+#ifdef ESP32
+// usage static const char[4096] IROM_VAR = "... contents ...";
+// refer: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/memory-types.html
+#define IROM_VAR __attribute__((section(".irom.text")))     // does this actually work?
+
+#else
+#define IROM_VAR
+#endif
+
 #ifdef DEV_DEBUG
     #define dev_print(mess)         Serial.print(mess)
     #define dev_println(mess)       Serial.println(mess)
@@ -85,3 +99,7 @@ namespace utils
 
     void hexchar2bin(const char *str, uint8_t *buff, size_t length);
 }
+
+#ifdef __cplusplus
+}       // extern "C"
+#endif

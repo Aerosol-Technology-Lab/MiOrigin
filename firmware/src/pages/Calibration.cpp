@@ -178,8 +178,8 @@ void _Calibration::drawScreen(bool touched)
             dev_println("-> calibrated x");
             
             // do y calibration
-            float my = 1.0f * (TFT_HEIGHT - tGap - tGap) / (points[1]->x - points[0]->x);
-            float by = tGap - mx * points[0]->x;
+            float my = 1.0f * (TFT_HEIGHT - tGap - tGap) / (points[1]->y - points[0]->y);
+            float by = tGap - my * points[0]->y;
             
             dev_println("-> calibrated y");
             
