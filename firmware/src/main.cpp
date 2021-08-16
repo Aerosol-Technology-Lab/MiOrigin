@@ -789,7 +789,7 @@ void setup()
     #endif
     
     PageSystem_start(&devicePageManager);
-    PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, nullptr);
+    PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)0);
 
     #endif
 }

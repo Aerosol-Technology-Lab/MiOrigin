@@ -11,6 +11,10 @@ _Calibration::_Calibration()
     bx = 0;
     my = 0;
     by = 0;
+    raw_x = nullptr;
+    raw_y = nullptr;
+    raw_z = nullptr;
+    isCalibrated = true;
 }
 
 void _Calibration::begin(FS &fs)
@@ -42,7 +46,7 @@ void _Calibration::begin(FS &fs)
     }
 }
 
-void _Calibration::translateFromRaw(uint16_t &x, uint16_t &y, uint16_t &xRaw, uint16_t &yRaw)
+void _Calibration::translateFromRaw(uint16_t &x, uint16_t &y, uint16_t xRaw, uint16_t yRaw)
 {
     x = uint16_t(mx * xRaw + bx + 0.5f);
     y = uint16_t(my * yRaw + by + 0.5f);
@@ -79,12 +83,15 @@ void _Calibration::onStart(void *pageArgs)
 {
     Serial.println("-> Calibration page started");
     Calibration.pageArgs = pageArgs;
+    Driver::touchscreen_get_raw_points(&Calibration.raw_x, &Calibration.raw_y, &Calibration.raw_z);
     Driver::touchscreen_register_on_press(ts_onPress);
     Driver::touchscreen_register_on_release(ts_onRelease);
 }
 
-void _Calibration::onLoad(void *, void *)
+void _Calibration::onLoad(void *, void *toCalibrate)
 {
+    Calibration.isCalibrated = !((size_t) toCalibrate);
+
     Serial.println("-> Calibration page loaded");
     Calibration.drawScreen();
 }
@@ -111,10 +118,10 @@ void _Calibration::drawGrid()
     }
 }
 
-void _Calibration::drawTarget(uint16_t x, uint16_t y, uint16_t gap)
+void _Calibration::drawTarget(uint16_t x, uint16_t y, uint32_t color, uint16_t gap)
 {
-    Driver::tft.drawLine(x, 0, x, TFT_HEIGHT, TFT_BLUE);
-    Driver::tft.drawLine(0, y, TFT_WIDTH, y, TFT_BLUE);
+    Driver::tft.drawLine(x, 0, x, TFT_HEIGHT, color);
+    Driver::tft.drawLine(0, y, TFT_WIDTH, y, color);
 }
 
 void _Calibration::drawScreen(bool touched)
@@ -122,16 +129,15 @@ void _Calibration::drawScreen(bool touched)
     Serial.println("-> I am in the draw screen");
     const static uint16_t tGap = 20;
     static Point *points[2] = { nullptr, nullptr };
-    static bool isCalibrated = false;
-    uint16_t x, y;
-    uint8_t z;
+    // static bool isCalibrated = false;
+    const uint16_t &x = *Calibration.raw_x;
+    const uint16_t &y = *Calibration.raw_y;
+    const uint8_t  &z = *Calibration.raw_z;
 
     Serial.println("-> Stage 1");
 
-    if (touched) {
+    if (!isCalibrated && touched) {
         Serial.println("-> Stage 2");
-
-        Driver::ts.readData(&x, &y, &z);
 
         if (!points[0]) {
             Serial.println("-> Stage 3a");
@@ -151,50 +157,56 @@ void _Calibration::drawScreen(bool touched)
     drawGrid();
     
     // draw first target    
-    if (!points[0]) {
-        Serial.println("-> Stage 5a");
-        drawTarget(tGap, tGap);
-    }
-    // draw second target
-    else if (!points[1]) {
-        Serial.println("-> Stage 5b");
-        drawTarget(TFT_WIDTH - tGap, TFT_HEIGHT - tGap);
-    }
-    else {
-        Serial.println("-> Stage 5c");
-        // do calibration magic here
-        // do x calibration
-        float mx = 1.0f * (TFT_WIDTH - tGap - tGap) / (points[1]->x - points[0]->x);
-        float bx = tGap - mx * points[0]->x;
-        
-        Serial.println("-> calibrated x");
-        
-        // do y calibration
-        float my = 1.0f * (TFT_WIDTH - tGap - tGap) / (points[1]->x - points[0]->x);
-        float by = tGap - mx * points[0]->x;
-        
-        Serial.println("-> calibrated y");
-        
-        calibrate(mx, bx, my, by);
-        isCalibrated = true;
-        
-        Serial.println("-> Done calibrating");
-        
-        // cleanup
-        delete points[0];
-        delete points[1];
-        points[0] = nullptr;
-        points[1] = nullptr;
+    if (!isCalibrated) {
 
-        Serial.println("-> Cleanup");
+        if (!points[0]) {
+            Serial.println("-> Stage 5a");
+            drawTarget(tGap, tGap);
+        }
+        // draw second target
+        else if (!points[1]) {
+            Serial.println("-> Stage 5b");
+            drawTarget(TFT_WIDTH - tGap, TFT_HEIGHT - tGap);
+        }
+        else {
+            Serial.println("-> Stage 5c");
+            // do calibration magic here
+            // do x calibration
+            float mx = 1.0f * (TFT_WIDTH - tGap - tGap) / (points[1]->x - points[0]->x);
+            float bx = tGap - mx * points[0]->x;
+            
+            dev_println("-> calibrated x");
+            
+            // do y calibration
+            float my = 1.0f * (TFT_HEIGHT - tGap - tGap) / (points[1]->x - points[0]->x);
+            float by = tGap - mx * points[0]->x;
+            
+            dev_println("-> calibrated y");
+            
+            calibrate(mx, bx, my, by);
+            isCalibrated = true;
+            
+            dev_println("-> Done calibrating");
+            
+            // cleanup
+            delete points[0];
+            delete points[1];
+            points[0] = nullptr;
+            points[1] = nullptr;
+
+            dev_println("-> Cleanup");
+        }
     }
 
     if (touched && isCalibrated) {
-        Serial.println("-> Drawing here...");
+        dev_println("-> Drawing here...");
         uint16_t xT, yT;
         translateFromRaw(xT, yT, x, y);
-        drawTarget(xT, yT);
-        Serial.println("-> Drawing done...");
+        drawTarget(xT, yT, TFT_RED);
+        dev_printf("-> x-equation: xn = %fx + %f --- y-equation yn = %fy + %f", mx, bx, my, by);
+        dev_printf("-> Raw is: (%d, %d)", x, y);
+        dev_printf("-> Target is: (%d, %d)", xT, yT);
+        dev_println("-> Drawing done...");
     }
     Serial.println("-> Stage 6");
 
@@ -218,12 +230,12 @@ Page_t _Calibration::generatePage()
 
 void _Calibration::ts_onPress()
 { 
-    Serial.println("This is the touch screen on press handler");
+    dev_println("This is the touch screen on press handler");
 }
 
 void _Calibration::ts_onRelease()
 {
-    Serial.println("This is the touch screen on release handler");
+    dev_println("This is the touch screen on release handler");
     Calibration.drawScreen(true);
 }
 
