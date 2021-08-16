@@ -32,6 +32,7 @@ extern void loop();
 #include <BLEServer.h>
 #include <ArduinoJson.h>
 #include <TFT_eSPI.h>
+#include "driver/tftdisplay.h"
 #include "driver/touchscreen.h"
 #include "driver/lipo.h"
 #include "BLE_Callback_Coms.h"
@@ -41,6 +42,12 @@ extern void loop();
 #include "rom/md5_hash.h"
 #include <hwcrypto/aes.h>
 #include <mbedtls/rsa.h>
+#include <string>
+
+// pages
+#include "pagesystem/pagesystem.h"
+#include "pagesystem/pageoptions.h"
+#include "pages/Calibration.h"
 
 // extract arduino core props
 #if CONFIG_FREERTOS_UNICORE
@@ -58,7 +65,9 @@ TaskHandle_t usbcHandler = nullptr;
 
 BLE_Callback_Coms callbackComs;
 
-TFT_eSPI tft;
+PageSystem_t devicePageManager;
+
+using Driver::tft;
 
 using Driver::ts;
 
@@ -259,6 +268,26 @@ void handleUSBC(void *parameters = nullptr)
                             Serial.println("Error: Partition is booting to something else! It is neither factory or firmware (ota0)");
                         }
                     }
+                    else if (!strcmp(command, "touchscreen")) {
+                        assert(false && "This command is not working.");    // possible causes is a bug in the nextSubstring function
+                        dev_println("=> Processing touchscreen command...");
+                        offset = nextSubString(message.c_str(), offset, message.length(), command, sizeof(command));
+                        if (!offset) continue;
+                        if (strcmp(command, "rotate")) continue;        // this is in a separate if statement for future reference
+
+                        dev_println("=> Processing rotation sub command...");
+                        offset = nextSubString(message.c_str(), offset, message.length(), command, sizeof(command));
+                        if (!offset) continue;
+
+                        if (command[0] >= '0' && command[0] < '9') {
+                            int rotation = atoi(command);
+                            Driver::ts.setRotation(rotation);
+                            Serial.printf("-> Rotation set to %d\n", rotation % 4);
+                        }
+                        else {
+                            Serial.println("-> Cannot process request because the arguments passed is invalid");
+                        }
+                    }
                     else if (!strcmp(command, "device-name")) {
                         Serial.print("-> Device Name: ");
                         Serial.println(DevinceInfo.deviceName);
@@ -271,6 +300,7 @@ void handleUSBC(void *parameters = nullptr)
                             sprintf(sendBuffer, "name %s size %08X", f.name(), f.size());
                             Serial.print(sendBuffer);
                             Serial.write(f);
+                            f.close();
                         }
                         else {
                             Serial.println("Error: Cannot find device info file. Flash new filesystem image");
@@ -501,7 +531,7 @@ void setup()
     tft.fillScreen(TFT_BLACK);
 
     Driver::touchscreen_init();
-    Driver::touchscreen_begin(*hspi);
+    Driver::touchscreen_begin(*hspi, 2);
     if (!Driver::touchscreen_busy_check_interrupt(true)) {
         Serial.println("FAIL TO ENABLE TS!");
         for(;;);
@@ -766,10 +796,28 @@ void setup()
     Serial.println((char *)encrypted);
     Serial.print("Decrypted string: ");
     Serial.print((const char *)decrypted);
+
+    #ifndef DISABLE_PAGE_SYSTEM
+
+    Page_t tmpPage;
+    
+    PageSystem_init(&devicePageManager);
+    
+    #ifndef DISABLE_CALIBRATION
+    Calibration.begin(SPIFFS);
+    Calibration.generatePage(tmpPage);
+    PageSystem_add_page(&devicePageManager, &tmpPage);
+    #endif
+    
+    PageSystem_start(&devicePageManager);
+    PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)0);
+
+    #endif
 }
 
 void loop()
 {
+    #ifdef ENABLE_REPORTING_SYSTEM_STATS_IN_DISPLAY
     #ifdef DEV_DEBUG
     tft.setCursor(20, 240);
     tft.setTextColor(TFT_GREEN, TFT_BLACK);
@@ -798,6 +846,7 @@ void loop()
 
     delay(50);
 
+    #endif
     #endif
 }
 

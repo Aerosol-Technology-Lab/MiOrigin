@@ -1,6 +1,12 @@
-#include "pagesystem/pagesystem.h"
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+#include "pagesystem.h"
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 void PageSystem_init(PageSystem_t *pgt)
 {
@@ -20,9 +26,11 @@ void PageSystem_init(PageSystem_t *pgt)
 
 void PageSystem_start(PageSystem_t *pgt)
 {
-    for (size_t i = 0; i < pgt->numPages; ++i) {
+    size_t i;
+    for (i = 0; i < pgt->numPages; ++i) {
         if (pgt->pages[i].onStart) pgt->pages[i].onStart(pgt->defaultParams);
     }
+    pgt->started = true;
 }
 
 bool PageSystem_add_page(PageSystem_t *pgt, Page_t *page)
@@ -59,7 +67,7 @@ bool PageSystem_add_page(PageSystem_t *pgt, Page_t *page)
     return true;
 }
 
-bool PageSystem_findSwitch(PageSystem_t *pgt, char *name, void *args)
+bool PageSystem_findSwitch(PageSystem_t *pgt, const char *name, void *args)
 {
     uint16_t i;
     for (i = 0; i < pgt->numPages; ++i) {
@@ -101,3 +109,7 @@ void PageSystem_end(PageSystem_t *pgt)
     free(pages);
 #endif
 }
+
+#ifdef __cplusplus
+}
+#endif

@@ -6,6 +6,7 @@
 
 #include <Arduino.h>
 #define DEBUG
+#include "utils.h"
 #include "common.h"
 #include <SPIFFS.h>
 #include <FS.h>
@@ -21,7 +22,7 @@
  */
 void handOff()
 {
-    debug_println("Handing off");
+    dev_println("Handing off");
     if (!SPIFFS.exists("/handoff")) {
         File f = SPIFFS.open("/handoff", "w+");
         f.close();
