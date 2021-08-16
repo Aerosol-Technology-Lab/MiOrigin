@@ -45,6 +45,8 @@ extern void loop();
 #include <string>
 
 // pages
+#include "graphics/Graphics.hpp"
+#include "pages/AppPageConfig.hpp"
 #include "pagesystem/pagesystem.h"
 #include "pagesystem/pageoptions.h"
 #include "pages/Calibration.h"
@@ -798,6 +800,29 @@ void setup()
     Serial.print((const char *)decrypted);
 
     #ifndef DISABLE_PAGE_SYSTEM
+
+    /* Initialize Graphics Wrapper for Page System */
+    drawingWrapper.drawPixel = [](uint16_t x, uint16_t y, CMXGraphics::Color color) {
+        tft.drawPixel(x, y, color);
+    };
+    drawingWrapper.drawRect = [](uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t radius, CMXGraphics::Color color) {
+        tft.drawRoundRect(x, y, width, height, radius, color);
+    };
+    drawingWrapper.print = [](const char *str) {
+        tft.print(str);
+    };
+    drawingWrapper.println = [](const char *str) {
+        tft.println(str);
+    };
+    drawingWrapper.setCursor = [](uint16_t x, uint16_t y, uint8_t font) {
+        tft.setCursor(x, y, font);
+    };
+    drawingWrapper.setTextDatum = [](uint8_t d) {
+        tft.setTextDatum(d);
+    };
+    drawingWrapper.setTextColor = [](CMXGraphics::Color foreground, CMXGraphics::Color background) {
+        tft.setTextColor(foreground, background);
+    };
 
     Page_t tmpPage;
     
