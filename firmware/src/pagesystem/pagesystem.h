@@ -53,6 +53,8 @@ typedef struct {
     
 } PageSystem_t;
 
+// TODO: Remove externs!
+
 /**
  * @brief Initialized a page system object
  * 

@@ -42,6 +42,7 @@ extern void loop();
 #include "rom/md5_hash.h"
 #include <hwcrypto/aes.h>
 #include <mbedtls/rsa.h>
+#include <string>
 
 // pages
 #include "pagesystem/pagesystem.h"
@@ -265,6 +266,26 @@ void handleUSBC(void *parameters = nullptr)
                         }
                         else {
                             Serial.println("Error: Partition is booting to something else! It is neither factory or firmware (ota0)");
+                        }
+                    }
+                    else if (!strcmp(command, "touchscreen")) {
+                        assert(false && "This command is not working.");    // possible causes is a bug in the nextSubstring function
+                        dev_println("=> Processing touchscreen command...");
+                        offset = nextSubString(message.c_str(), offset, message.length(), command, sizeof(command));
+                        if (!offset) continue;
+                        if (strcmp(command, "rotate")) continue;        // this is in a separate if statement for future reference
+
+                        dev_println("=> Processing rotation sub command...");
+                        offset = nextSubString(message.c_str(), offset, message.length(), command, sizeof(command));
+                        if (!offset) continue;
+
+                        if (command[0] >= '0' && command[0] < '9') {
+                            int rotation = atoi(command);
+                            Driver::ts.setRotation(rotation);
+                            Serial.printf("-> Rotation set to %d\n", rotation % 4);
+                        }
+                        else {
+                            Serial.println("-> Cannot process request because the arguments passed is invalid");
                         }
                     }
                     else if (!strcmp(command, "device-name")) {
