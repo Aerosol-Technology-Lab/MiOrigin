@@ -11,10 +11,11 @@ _Calibration::_Calibration()
     bx = 0;
     my = 0;
     by = 0;
-    raw_x = nullptr;
-    raw_y = nullptr;
-    raw_z = nullptr;
+    // raw_x = nullptr;
+    // raw_y = nullptr;
+    // raw_z = nullptr;
     isCalibrated = true;
+    Driver::touchscreen_get_raw_points(&Calibration.raw_x, &Calibration.raw_y, &Calibration.raw_z);
 }
 
 void _Calibration::begin(FS &fs)
@@ -46,6 +47,11 @@ void _Calibration::begin(FS &fs)
     }
 }
 
+void _Calibration::translateFromRaw(uint16_t &x, uint16_t &y)
+{
+    x = uint16_t(mx * *Calibration.raw_x + bx + 0.5f);
+    y = uint16_t(my * *Calibration.raw_y + by + 0.5f);
+}
 void _Calibration::translateFromRaw(uint16_t &x, uint16_t &y, uint16_t xRaw, uint16_t yRaw)
 {
     x = uint16_t(mx * xRaw + bx + 0.5f);
@@ -83,14 +89,14 @@ void _Calibration::onStart(void *pageArgs)
 {
     Serial.println("-> Calibration page started");
     Calibration.pageArgs = pageArgs;
-    Driver::touchscreen_get_raw_points(&Calibration.raw_x, &Calibration.raw_y, &Calibration.raw_z);
-    Driver::touchscreen_register_on_press(ts_onPress);
-    Driver::touchscreen_register_on_release(ts_onRelease);
 }
 
 void _Calibration::onLoad(void *, void *toCalibrate)
 {
     Calibration.isCalibrated = !((size_t) toCalibrate);
+    
+    Driver::touchscreen_register_on_press(ts_onPress);
+    Driver::touchscreen_register_on_release(ts_onRelease);
 
     Serial.println("-> Calibration page loaded");
     Calibration.drawScreen();

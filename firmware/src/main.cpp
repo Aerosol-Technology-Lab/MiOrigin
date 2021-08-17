@@ -50,6 +50,7 @@ extern void loop();
 #include "pagesystem/pagesystem.h"
 #include "pagesystem/pageoptions.h"
 #include "pages/Calibration.h"
+#include "pages/Debug.hpp"
 
 // extract arduino core props
 #if CONFIG_FREERTOS_UNICORE
@@ -802,10 +803,10 @@ void setup()
     #ifndef DISABLE_PAGE_SYSTEM
 
     /* Initialize Graphics Wrapper for Page System */
-    drawingWrapper.drawPixel = [](uint16_t x, uint16_t y, CMXGraphics::Color color) {
+    drawingWrapper.drawPixel = [](uint16_t x, uint16_t y, Color color) {
         tft.drawPixel(x, y, color);
     };
-    drawingWrapper.drawRect = [](uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t radius, CMXGraphics::Color color) {
+    drawingWrapper.drawRect = [](uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t radius, Color color) {
         tft.drawRoundRect(x, y, width, height, radius, color);
     };
     drawingWrapper.print = [](const char *str) {
@@ -820,7 +821,7 @@ void setup()
     drawingWrapper.setTextDatum = [](uint8_t d) {
         tft.setTextDatum(d);
     };
-    drawingWrapper.setTextColor = [](CMXGraphics::Color foreground, CMXGraphics::Color background) {
+    drawingWrapper.setTextColor = [](Color foreground, Color background) {
         tft.setTextColor(foreground, background);
     };
 
@@ -830,12 +831,20 @@ void setup()
     
     #ifndef DISABLE_CALIBRATION
     Calibration.begin(SPIFFS);
-    Calibration.generatePage(tmpPage);
-    PageSystem_add_page(&devicePageManager, &tmpPage);
+    // Calibration.generatePage(tmpPage);
+    // PageSystem_add_page(&devicePageManager, &tmpPage);
     #endif
     
+    DebugPage.generatePage(tmpPage);
+    PageSystem_add_page(&devicePageManager, &tmpPage);
+    
     PageSystem_start(&devicePageManager);
-    PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)1);
+    // PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)0);
+    Serial.println("Done!");
+
+    
+    PageSystem_findSwitch(&devicePageManager, DEBUG_PAGE_NAME, (void *)0);
+
 
     #endif
 }

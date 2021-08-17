@@ -37,6 +37,7 @@ public:
 
     void begin(FS &fs = SPIFFS);
 
+    void translateFromRaw(uint16_t &x, uint16_t &y);
     void translateFromRaw(uint16_t &x, uint16_t &y, uint16_t xRaw, uint16_t yRaw);
 
     void calibrate(float mx, float bx, float my, float by);
