@@ -8,6 +8,8 @@
         "tft_espi_generic.c": "cpp",
         "stdlib.h": "c",
         "string.h": "c",
-        "pagesystem.h": "c"
+        "pagesystem.h": "c",
+        "arduino.h": "c",
+        "utils.h": "c"
     }
 }

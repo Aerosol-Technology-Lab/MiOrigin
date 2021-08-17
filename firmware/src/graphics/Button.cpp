@@ -2,8 +2,9 @@
 #include <string.h>
 #include "DrawingWrapper.hpp"
 
-Button::Button(DrawingWrapper &drw, name_t name ,uint16_t x, uint16_t y, uint16_t width, uint16_t height)
+Button::Button(DrawingWrapper &drw, name_t name ,uint16_t x, uint16_t y, uint16_t width, uint16_t height, Font_t fnt)
     : BoundedArea(x, y, width, height)
+    , font(fnt)
     , drw(drw)
 {
     #ifdef GRAPHICS_BUTTON_DYNAMIC_MEMORY
@@ -51,3 +52,8 @@ void Button::performAction(uint16_t x, uint16_t y, uint8_t z,bool pressed)
     state.previousClickState = pressed;
     state.previousInBoundsState = hit;
 }
+
+// Button& Button::operator=(const Button &other)
+// {
+
+// }

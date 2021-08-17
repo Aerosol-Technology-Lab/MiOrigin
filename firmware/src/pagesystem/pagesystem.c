@@ -7,6 +7,7 @@ extern "C"
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include "cpp_wrapper.h"
 
 void PageSystem_init(PageSystem_t *pgt)
 {
@@ -28,6 +29,7 @@ void PageSystem_start(PageSystem_t *pgt)
 {
     size_t i;
     for (i = 0; i < pgt->numPages; ++i) {
+        cprintln("Hello");
         if (pgt->pages[i].onStart) pgt->pages[i].onStart(pgt->defaultParams);
     }
     pgt->started = true;
@@ -53,12 +55,13 @@ bool PageSystem_add_page(PageSystem_t *pgt, Page_t *page)
 #else
     
     if (pgt->numPages >= MAX_PAGES) {
+        cprintln("Error: Cannot add anymore pages!");
         return false;
     }
 #endif
 
     pgt->pages[pgt->numPages] = *page;
-    ++pgt->numPages;
+    ++(pgt->numPages);
     
     if (pgt->started && page->onStart) {
         page->onStart(pgt->defaultParams);
@@ -70,17 +73,22 @@ bool PageSystem_add_page(PageSystem_t *pgt, Page_t *page)
 bool PageSystem_findSwitch(PageSystem_t *pgt, const char *name, void *args)
 {
     uint16_t i;
+    cprintln("Searching for page...");
     for (i = 0; i < pgt->numPages; ++i) {
+        cprintln("Searching...");
         if (!strcmp(pgt->pages[i].name, name)) {
+            cprintln("Found!");
             return PageSystem_switch(pgt, &pgt->pages[i], args);
         }
     }
 
+    cprintln("Cannot find the page!");
     return false;
 }
 
 bool PageSystem_switch(PageSystem_t *pgt, Page_t *page, void *args)
 {
+    cprintln("Pre switch");
     if (pgt->preSwitch) pgt->preSwitch();
     
 #ifndef PAGESYSTEM_FAST
@@ -89,17 +97,22 @@ bool PageSystem_switch(PageSystem_t *pgt, Page_t *page, void *args)
     }
 #endif
 
+    cprintln("on exit");
     if (pgt->activePage != NULL) {
         pgt->activePage->onExit();
     }
 
+    cprintln("mid switch");
     if (pgt->midSwitch) pgt->midSwitch();
     
+    cprintln("on load");
     pgt->activePage = page;
     page->onLoad(pgt->defaultParams, args);
 
+    cprintln("post switch");
     if (pgt->postSwitch) pgt->postSwitch();
 
+    cprintln("done");
     return true;
 }
 

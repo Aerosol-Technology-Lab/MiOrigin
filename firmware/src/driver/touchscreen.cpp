@@ -48,7 +48,7 @@ bool Driver::touchscreen_busy_check_interrupt(bool enable)
         xTaskCreate(
             Driver::busyInterruptFunction,
             "ts-interhnd",
-            3 * 1024,
+            5 * 1024,
             nullptr,
             1,
             &Touchscreen_cfg.busyInterruptHandler
@@ -76,6 +76,7 @@ void Driver::touchscreen_register_on_release(TouchscreenFunctionBehavior func)
 
 void Driver::busyInterruptFunction(void *args)
 {
+    // TODO REDESIGN THIS FUNCTION SO THAT ON HOLD IS ALWAYS SENT!
     bool touched = false;
     
     while (true) {

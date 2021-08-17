@@ -47,7 +47,7 @@ protected:
     DrawingWrapper &drw;
 
 public:
-    Button(DrawingWrapper &drw, name_t name="",uint16_t x=0, uint16_t y=0, uint16_t width=0, uint16_t height=0);
+    Button(DrawingWrapper &drw, name_t name="",uint16_t x=0, uint16_t y=0, uint16_t width=0, uint16_t height=0, Font_t fnt=2);
 
     void setTextColor(Color textColor);
 
@@ -64,4 +64,6 @@ public:
     void (*onHoverExit)(uint16_t x, uint16_t y, uint8_t z);
     
     void (*onRelease)(uint16_t x, uint16_t y, uint8_t z);
+
+    // Button& operator=(const Button &other);
 };

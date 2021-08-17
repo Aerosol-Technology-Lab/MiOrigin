@@ -1,3 +1,3 @@
 #include "AppPageConfig.hpp"
 
-CMXGraphics::DrawingWrapper drawingWrapper;
+DrawingWrapper drawingWrapper;
