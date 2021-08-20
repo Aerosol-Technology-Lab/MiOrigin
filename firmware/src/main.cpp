@@ -839,11 +839,11 @@ void setup()
     PageSystem_add_page(&devicePageManager, &tmpPage);
     
     PageSystem_start(&devicePageManager);
-    // PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)0);
+    PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)0);
     Serial.println("Done!");
 
     
-    PageSystem_findSwitch(&devicePageManager, DEBUG_PAGE_NAME, (void *)0);
+    // PageSystem_findSwitch(&devicePageManager, DEBUG_PAGE_NAME, (void *)0);
 
 
     #endif
