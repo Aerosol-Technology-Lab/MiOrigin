@@ -24,7 +24,7 @@
 
 // #define CHECK_FOR_FIRMWARE_UPDATE
 
-// #define WIFI_CONNECTIVITY_ENABLE
+#define WIFI_CONNECTIVITY_ENABLE
 
 /////////////////////////////////////////////////////////////////////
 /*      DEBUG MACROS - Do not turn these on except for debuggin and testing */

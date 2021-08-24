@@ -26,6 +26,8 @@ extern void loop();
     #include "wifisys/WiFiController.h"
     #include "wifisys/WiFi_WPA_Connection.h"
     #include "WiFiOTAUpdater.h"
+
+    #include "ControllerWebSocket.hpp"
 #endif
 #include <BLEDevice.h>
 #include <BLEUtils.h>
@@ -733,6 +735,8 @@ void setup()
     else {
         WiFiController.addConnection(new WiFi_WPA_Connection("I Got a Gold Fish 2.4GHz", "Charlemagne13"));
     }
+
+    if (!ControllerWebSocket->begin()) Serial.println("-> Error: Failed to start socket!");
 #endif
     
     /* Start Bluetooth */
