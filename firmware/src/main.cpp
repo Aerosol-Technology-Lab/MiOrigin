@@ -604,7 +604,7 @@ void setup()
 
             for (int j = 3; j > 0; --j) {
                 Serial.print('.');
-                vTaskDelay(1000 / 3 / portTICK_RATE_MS);
+                vTaskDelay(1000 / 3 / portTICK_PERIOD_MS);
             }
         }
 
