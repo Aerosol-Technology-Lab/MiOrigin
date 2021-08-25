@@ -100,10 +100,16 @@ void Driver::busyInterruptFunction(void *args)
                             );
 
         if (currentState) {
-            if (Touchscreen_cfg.onPress) Touchscreen_cfg.onPress();
+            if (Touchscreen_cfg.onPress) {
+                touched = true;
+                Touchscreen_cfg.onPress();
+            }
         }
         else {
-            if (Touchscreen_cfg.onRelease) Touchscreen_cfg.onRelease();
+            if (touched) {
+                touched = false;
+                if (Touchscreen_cfg.onRelease) Touchscreen_cfg.onRelease();
+            }
         }
 
         // if (currentState != touched) {
