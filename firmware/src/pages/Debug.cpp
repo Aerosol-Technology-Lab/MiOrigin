@@ -1,5 +1,6 @@
 #include "Debug.hpp"
 #include <memory>
+#include "../driver/miclone.hpp"
 #include "../utils.h"
 #include "Calibration.h"
 #include "../driver/touchscreen.h"
@@ -9,7 +10,7 @@ _Debug::_Debug()
 {
     pageArgs = nullptr;
     buttons = nullptr;
-    buttonsSize = 1;
+    buttonsSize = 2;
 }
 
 void _Debug::onStart(void *pageArgs)
@@ -25,7 +26,7 @@ void _Debug::onLoad(void *, void *args) {
     Serial.println("Not done loading debug");
 
     // placement new
-    new (DebugPage.buttons + counter) Button(drawingWrapper, "Test Button", 10, 10, 200, 300);
+    new (DebugPage.buttons + counter) Button(drawingWrapper, "START", 10, 10, 200, 300);
     DebugPage.buttons[counter].setTextColor(CMXG_WHITE);
     DebugPage.buttons[counter].setButtonColor(CMXG_RED);
     DebugPage.buttons[counter].onPress = [](uint16_t x, uint16_t y, uint8_t z) {
@@ -39,9 +40,12 @@ void _Debug::onLoad(void *, void *args) {
     };
     DebugPage.buttons[counter].onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
         Serial.printf("I was released on %dx, %dy, %dz", x, y, z);
+        Driver::miclone_start();
     };
     ++counter;
     
+    new (DebugPage.buttons + counter) Button(drawingWrapper, "STOP", 10, 10, 200, 300);
+
     Driver::tft.fillScreen(CMXG_BL_DATUM);
     Driver::touchscreen_register_on_press(DebugPage.ts_onPress);
     Driver::touchscreen_register_on_release(DebugPage.ts_onRelease);
