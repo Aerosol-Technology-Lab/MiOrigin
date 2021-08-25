@@ -175,10 +175,10 @@ void _WiFiController::keepWiFiAliveTask(void *)
         xSemaphoreGive(WiFiController.binSemaphoreWiFiAlive);
         
         if (WiFi.status() == WL_CONNECTED) {
-            vTaskDelay(1 * 60 * 1000 / portTICK_RATE_MS);
+            vTaskDelay(1 * 60 * 1000 / portTICK_PERIOD_MS);
         }
         else{
-            vTaskDelay(5 * 1000 / portTICK_RATE_MS);
+            vTaskDelay(5 * 1000 / portTICK_PERIOD_MS);
         }
     }
 
