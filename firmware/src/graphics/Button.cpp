@@ -30,8 +30,8 @@ void Button::setButtonColor(Color buttonColor)
 
 void Button::draw()
 {
-    uint16_t xmid = (x + width)  / 2;
-    uint16_t ymid = (y + height) / 2;
+    uint16_t xmid = (2 * x + width)  / 2;
+    uint16_t ymid = (2 * y + height) / 2;
     drw.drawRect(x, y, width, height, radius, buttonColor);
     drw.setTextDatum(CMXG_MC_DATUM);
     drw.setCursor(xmid, ymid, font);
