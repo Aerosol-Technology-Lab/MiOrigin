@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <FreeRTOS.h>
+#include <Stream.h>
 
 namespace Driver
 {
@@ -9,7 +10,8 @@ namespace Driver
 
     extern SemaphoreHandle_t MiCloneHandlerSemaphore;
     extern TaskHandle_t MiCloneTaskHandler;
-
+    extern Stream *_micloneStream;
+    
     typedef struct {
 
         uint16_t rate;
@@ -18,7 +20,7 @@ namespace Driver
 
     void MiCloneTask(void *args);
 
-    bool begin();
+    bool miclone_begin(Stream *stream=&Serial2);
 
     /**
      * @brief Starts the MiClone software
@@ -30,5 +32,29 @@ namespace Driver
      */
     bool miclone_start(uint16_t rate=600, uint32_t time=0);
 
+    /**
+     * @brief High level function to stop bioaersol collector. Use this function tas
+     *          the primary method to stop the collector
+     * 
+     * @return true Stop successful
+     * @return false The driver did not see that the controller is running, but a force
+     *              stop command is sent anyway
+     */
     bool miclone_stop();
+    
+    /**
+     * @brief Initializes bioaerosol collector
+     */
+    void miclone_initialize();
+
+    void miclone_send_start(uint16_t rate);
+
+    /**
+     * @brief Sends stop command to RS232. This should not normally called
+     *          and instead, you should rely on miclone_stop()
+     * 
+     * @param stopType stop type mode. Use stopType 1 when forcing a stop
+     */
+    void miclone_send_stop(uint8_t stopType=1);
+
 }
