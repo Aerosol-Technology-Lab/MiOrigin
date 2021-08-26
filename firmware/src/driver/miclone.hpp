@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <FreeRTOS.h>
 #include <Stream.h>
+#include <HardwareSerial.h>
 
 namespace Driver
 {
