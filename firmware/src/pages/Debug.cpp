@@ -5,12 +5,13 @@
 #include "Calibration.h"
 #include "../driver/touchscreen.h"
 #include "../driver/tftdisplay.h"
+#include "../pagesystem/pagesystem.h"
 
 _Debug::_Debug()
 {
     pageArgs = nullptr;
     buttons = nullptr;
-    buttonsSize = 2;
+    buttonsSize;
 }
 
 void _Debug::onStart(void *pageArgs)
@@ -56,6 +57,20 @@ void _Debug::onLoad(void *, void *args) {
     DebugPage.buttons[counter].onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
         Serial.printf("Stop button released on %dx, %dy, %dz", x, y, z);
         Driver::miclone_stop();
+    };
+    ++counter;
+
+    new (DebugPage.buttons + counter) Button(drawingWrapper, "CALIBRATE", 360, 230, 100, 50);
+    DebugPage.buttons[counter].setTextColor(CMXG_BLACK);
+    DebugPage.buttons[counter].setButtonColor(CMXG_CYAN);
+        DebugPage.buttons[counter].onPress = [](uint16_t x, uint16_t y, uint8_t z) {
+    };
+    DebugPage.buttons[counter].onHoverEnter = [](uint16_t x, uint16_t y, uint8_t z) {
+    };
+    DebugPage.buttons[counter].onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {
+    };
+    DebugPage.buttons[counter].onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
+        PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *) 0);
     };
     ++counter;
 

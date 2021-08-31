@@ -9,7 +9,8 @@ class _Debug
 private:
     void *pageArgs;
     Button *buttons;
-    size_t buttonsSize;
+    size_t buttonsSize = 3;
+    
 
 public:
     _Debug();
