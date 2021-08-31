@@ -54,6 +54,6 @@ using Font_t = uint8_t;
 #define CMXG_BR_DATUM 8 // Bottom right
 #define CMXG_L_BASELINE  9 // Left character baseline (Line the 'A' character would sit on)
 #define CMXG_C_BASELINE 10 // Centre character baseline
-#define CMX_GR_BASELINE 11 // Right character baseline
+#define CMXG_R_BASELINE 11 // Right character baseline
 
 #endif
