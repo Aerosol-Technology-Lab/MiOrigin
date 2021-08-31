@@ -26,11 +26,11 @@ void _Debug::onLoad(void *, void *args) {
     Serial.println("Not done loading debug");
 
     // placement new
-    new (DebugPage.buttons + counter) Button(drawingWrapper, "START", 10, 10, 200, 300);
+    new (DebugPage.buttons + counter) Button(drawingWrapper, "START", 360, 10, 100, 100);
     DebugPage.buttons[counter].setTextColor(CMXG_WHITE);
-    DebugPage.buttons[counter].setButtonColor(CMXG_RED);
+    DebugPage.buttons[counter].setButtonColor(CMXG_GREEN);
     DebugPage.buttons[counter].onPress = [](uint16_t x, uint16_t y, uint8_t z) {
-        Serial.printf("I was pressed on %dx, %dy, %dz", x, y, z);
+        Serial.printf("Start was pressed on %dx, %dy, %dz", x, y, z);
     };
     DebugPage.buttons[counter].onHoverEnter = [](uint16_t x, uint16_t y, uint8_t z) {
         Serial.printf("I was hovered enter on %dx, %dy, %dz", x, y, z);
@@ -44,7 +44,20 @@ void _Debug::onLoad(void *, void *args) {
     };
     ++counter;
     
-    new (DebugPage.buttons + counter) Button(drawingWrapper, "STOP", 10, 10, 200, 300);
+    new (DebugPage.buttons + counter) Button(drawingWrapper, "STOP", 360, 120, 100, 100);
+    DebugPage.buttons[counter].setTextColor(CMXG_WHITE);
+    DebugPage.buttons[counter].setButtonColor(CMXG_RED);
+        DebugPage.buttons[counter].onPress = [](uint16_t x, uint16_t y, uint8_t z) {
+    };
+    DebugPage.buttons[counter].onHoverEnter = [](uint16_t x, uint16_t y, uint8_t z) {
+    };
+    DebugPage.buttons[counter].onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {
+    };
+    DebugPage.buttons[counter].onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
+        Serial.printf("Stop button released on %dx, %dy, %dz", x, y, z);
+        Driver::miclone_stop();
+    };
+    ++counter;
 
     Driver::tft.fillScreen(CMXG_BL_DATUM);
     Driver::touchscreen_register_on_press(DebugPage.ts_onPress);
@@ -73,13 +86,24 @@ Page_t _Debug::generatePage()
 
 void _Debug::ts_onPress()
 { 
-    dev_println("PRESSED START!");
     uint16_t x, y;
     Calibration.translateFromRaw(x, y);
-    dev_println("CALIBRATION DONE!");
     for (size_t i = 0; i < DebugPage.buttonsSize; ++i) {
         DebugPage.buttons[i].performAction(x, y, 0, true);
     }
+
+    Driver::tft.setCursor(10, 10);
+    Driver::tft.setTextSize(2);
+    Driver::tft.setTextColor(TFT_CYAN);
+    Driver::tft.println("Bioaerosol Collector");
+    Driver::tft.setCursor(10, 80);
+    Driver::tft.setTextSize(2);
+    Driver::tft.setTextColor(TFT_WHITE);
+    Driver::tft.println("300 ul/min");
+    Driver::tft.setTextSize(1);
+    Driver::tft.setCursor(10, 110);
+    Driver::tft.println("Rate");
+    
     dev_println("DEBUG on press handler");
 }
 
@@ -89,7 +113,7 @@ void _Debug::ts_onRelease()
     Calibration.translateFromRaw(x, y);
 
     for (size_t i = 0; i < DebugPage.buttonsSize; ++i) {
-        DebugPage.buttons[i].performAction(x, y, 0, true);
+        DebugPage.buttons[i].performAction(x, y, 0, false);     // todo fix this!!
     }
     dev_println("DEBUG on release handler");
 }

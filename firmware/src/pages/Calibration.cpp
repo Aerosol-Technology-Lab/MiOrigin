@@ -106,35 +106,40 @@ void _Calibration::onExit()
 {
     Serial.println("-> Calibration page exit");
     Driver::touchscreen_register_on_press(nullptr);
-    Driver::touchscreen_register_on_press(nullptr);
+    Driver::touchscreen_register_on_release(nullptr);
 }
 
 void _Calibration::drawGrid()
 {
+    const uint16_t width  = Driver::tft_get_width();
+    const uint16_t height = Driver::tft_get_height();
     Driver::tft.fillScreen(TFT_BLACK);
     const uint16_t gapSize = 20;
-
     // draw columns
-    for (int i = 1; i < TFT_WIDTH / gapSize + 1; ++i) {
-        Driver::tft.drawLine(gapSize * i, 0, gapSize * i, TFT_HEIGHT, TFT_LIGHTGREY);
+    for (int i = 1; i < width / gapSize + 1; ++i) {
+        Driver::tft.drawLine(gapSize * i, 0, gapSize * i, height, TFT_LIGHTGREY);
     }
     // draw rows
-    for (int i = 1; i < TFT_HEIGHT / gapSize + 1; ++i) {
-        Driver::tft.drawLine(0, gapSize * i, TFT_WIDTH, gapSize * i, TFT_LIGHTGREY);
+    for (int i = 1; i < height / gapSize + 1; ++i) {
+        Driver::tft.drawLine(0, gapSize * i, width, gapSize * i, TFT_LIGHTGREY);
     }
 }
 
 void _Calibration::drawTarget(uint16_t x, uint16_t y, uint32_t color, uint16_t gap)
 {
-    Driver::tft.drawLine(x, 0, x, TFT_HEIGHT, color);
-    Driver::tft.drawLine(0, y, TFT_WIDTH, y, color);
+    Serial.printf("-> Line drawn information: x[%d, %d] , y[%d, %d]", x, Driver::tft_get_width(), y, Driver::tft_get_height());
+    Driver::tft.drawLine(x, 0, x, Driver::tft_get_height(), color);
+    Driver::tft.drawLine(0, y, Driver::tft_get_width(), y, color);
 }
 
 void _Calibration::drawScreen(bool touched)
 {
+    Driver::TFTClaimMutex();
     Serial.println("-> I am in the draw screen");
     const static uint16_t tGap = 20;
     static Point *points[2] = { nullptr, nullptr };
+    const uint16_t width  = Driver::tft_get_width();
+    const uint16_t height = Driver::tft_get_height();
     // static bool isCalibrated = false;
     const uint16_t &x = *Calibration.raw_x;
     const uint16_t &y = *Calibration.raw_y;
@@ -172,19 +177,19 @@ void _Calibration::drawScreen(bool touched)
         // draw second target
         else if (!points[1]) {
             Serial.println("-> Stage 5b");
-            drawTarget(TFT_WIDTH - tGap, TFT_HEIGHT - tGap);
+            drawTarget(width - tGap, height - tGap);
         }
         else {
             Serial.println("-> Stage 5c");
             // do calibration magic here
             // do x calibration
-            float mx = 1.0f * (TFT_WIDTH - tGap - tGap) / (points[1]->x - points[0]->x);
+            float mx = 1.0f * (width - tGap - tGap) / (points[1]->x - points[0]->x);
             float bx = tGap - mx * points[0]->x;
             
             dev_println("-> calibrated x");
             
             // do y calibration
-            float my = 1.0f * (TFT_HEIGHT - tGap - tGap) / (points[1]->y - points[0]->y);
+            float my = 1.0f * (height - tGap - tGap) / (points[1]->y - points[0]->y);
             float by = tGap - my * points[0]->y;
             
             dev_println("-> calibrated y");

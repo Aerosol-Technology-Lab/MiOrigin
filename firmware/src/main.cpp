@@ -35,6 +35,7 @@ extern void loop();
 #include "driver/tftdisplay.h"
 #include "driver/touchscreen.h"
 #include "driver/lipo.h"
+#include "driver/miclone.hpp"
 #include "BLE_Callback_Coms.h"
 #include "BLE_UUID.h"
 #include "utils.h"
@@ -528,13 +529,12 @@ void setup()
     Common_Init();
 
     
-    tft.init();
-    tft.setRotation(0);
+    Driver::tft_begin(1);
 
     tft.fillScreen(TFT_BLACK);
 
     Driver::touchscreen_init();
-    Driver::touchscreen_begin(*hspi, 2);
+    Driver::touchscreen_begin(*hspi, 3);
     if (!Driver::touchscreen_busy_check_interrupt(true)) {
         Serial.println("FAIL TO ENABLE TS!");
         for(;;);
@@ -719,6 +719,7 @@ void setup()
     // setup RS-232
     tft.print("-> Initializing collector port... ");
     Serial2.begin(9600, SERIAL_8N1, RS232_RX2, RS232_TX2);
+    Driver::miclone_begin();
     tft.println("SUCCESS");
 
     
@@ -807,7 +808,7 @@ void setup()
         tft.drawPixel(x, y, color);
     };
     drawingWrapper.drawRect = [](uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t radius, Color color) {
-        tft.drawRoundRect(x, y, width, height, radius, color);
+        tft.fillRect(x, y, width, height, color);
     };
     drawingWrapper.print = [](const char *str) {
         tft.print(str);
@@ -831,19 +832,19 @@ void setup()
     
     #ifndef DISABLE_CALIBRATION
     Calibration.begin(SPIFFS);
-    // Calibration.generatePage(tmpPage);
-    // PageSystem_add_page(&devicePageManager, &tmpPage);
+    Calibration.generatePage(tmpPage);
+    PageSystem_add_page(&devicePageManager, &tmpPage);
     #endif
     
     DebugPage.generatePage(tmpPage);
     PageSystem_add_page(&devicePageManager, &tmpPage);
     
-    PageSystem_start(&devicePageManager);
-    PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)0);
+    // PageSystem_start(&devicePageManager);
+    // PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)0);
     Serial.println("Done!");
 
     
-    // PageSystem_findSwitch(&devicePageManager, DEBUG_PAGE_NAME, (void *)0);
+    PageSystem_findSwitch(&devicePageManager, DEBUG_PAGE_NAME, (void *)0);
 
 
     #endif
@@ -853,30 +854,30 @@ void loop()
 {
     #ifdef ENABLE_REPORTING_SYSTEM_STATS_IN_DISPLAY
     #ifdef DEV_DEBUG
-    tft.setCursor(20, 240);
-    tft.setTextColor(TFT_GREEN, TFT_BLACK);
-    tft.println("-- Battery --");
-    tft.printf("  Voltage: %5.3f V  -  Charge Level: %5.0f%%\n", Driver::lipo.getVoltage(), Driver::lipo.getSOC() + 0.5f);
-    tft.print("  Battery State: ");
-    if (!Driver::lipo.getAlert()) {
-        tft.println("GOOD");
-    }
-    else {
-        tft.setTextColor(TFT_RED, TFT_BLACK);
-        tft.println("LOW!");
-    }
-    tft.setTextColor(TFT_GREEN);
+    // tft.setCursor(20, 240);
+    // tft.setTextColor(TFT_GREEN, TFT_BLACK);
+    // tft.println("-- Battery --");
+    // tft.printf("  Voltage: %5.3f V  -  Charge Level: %5.0f%%\n", Driver::lipo.getVoltage(), Driver::lipo.getSOC() + 0.5f);
+    // tft.print("  Battery State: ");
+    // if (!Driver::lipo.getAlert()) {
+    //     tft.println("GOOD");
+    // }
+    // else {
+    //     tft.setTextColor(TFT_RED, TFT_BLACK);
+    //     tft.println("LOW!");
+    // }
+    // tft.setTextColor(TFT_GREEN);
     
-    uint16_t x, y;
-    uint8_t z;
-    char buffer[80] = { 0 };
+    // uint16_t x, y;
+    // uint8_t z;
+    // char buffer[80] = { 0 };
 
-    ts.readData(&x, &y, &z);
-    tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    sprintf(buffer, "\nTouch Sensor: X: %4d, Y: %4d, Z: %4d\nTouched: %s\n", x, y, z, ts.touched() ? "TRUE" : "FALSE");
-    tft.print(buffer);
+    // ts.readData(&x, &y, &z);
+    // tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    // sprintf(buffer, "\nTouch Sensor: X: %4d, Y: %4d, Z: %4d\nTouched: %s\n", x, y, z, ts.touched() ? "TRUE" : "FALSE");
+    // tft.print(buffer);
 
-    tft.printf("\n RAM: %.1f%% (%.0f kB, %0.0f kB)", ESP.getFreeHeap() * 100.0f / ESP.getHeapSize(), ESP.getFreeHeap() / 1024.0f, ESP.getHeapSize() / 1024.0f);
+    // tft.printf("\n RAM: %.1f%% (%.0f kB, %0.0f kB)", ESP.getFreeHeap() * 100.0f / ESP.getHeapSize(), ESP.getFreeHeap() / 1024.0f, ESP.getHeapSize() / 1024.0f);
 
     delay(50);
 
@@ -885,13 +886,13 @@ void loop()
 
     #ifdef DEV_DEBUG
 
-    multi_heap_info_t info;
+    // multi_heap_info_t info;
     
-    heap_caps_get_info(&info, MALLOC_CAP_INTERNAL);
-    float totalRam = (info.total_allocated_bytes + info.total_free_bytes) / 1024.0f;
-    float usedRam = info.total_allocated_bytes / 1024.0f;
-    dev_printf("Percent RAM: %.0f (%.3fKB / %.3fKB)\n", usedRam / totalRam * 100.0f, usedRam, totalRam);
-    vTaskDelay(3000 / portTICK_PERIOD_MS);
+    // heap_caps_get_info(&info, MALLOC_CAP_INTERNAL);
+    // float totalRam = (info.total_allocated_bytes + info.total_free_bytes) / 1024.0f;
+    // float usedRam = info.total_allocated_bytes / 1024.0f;
+    // dev_printf("Percent RAM: %.0f (%.3fKB / %.3fKB)\n", usedRam / totalRam * 100.0f, usedRam, totalRam);
+    // vTaskDelay(3000 / portTICK_PERIOD_MS);
     
     #endif
 }
