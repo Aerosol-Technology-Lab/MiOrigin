@@ -31,7 +31,7 @@ namespace Driver
      * @return true 
      * @return false 
      */
-    bool miclone_start(uint16_t rate=600, uint32_t time=0);
+    bool miclone_start(uint16_t rate=300, uint32_t time=0);
 
     /**
      * @brief High level function to stop bioaersol collector. Use this function tas
