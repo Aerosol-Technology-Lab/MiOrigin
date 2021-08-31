@@ -51,19 +51,6 @@ void Button::performAction(uint16_t x, uint16_t y, uint8_t z,bool pressed)
 
     state.previousClickState = pressed;
     state.previousInBoundsState = hit;
-    /*
-    
-    bool hit = pressed && inBounds(x, y);
-
-    // todo: refactor this code so that hit is in an if statement
-    if (onPress      &&  hit            && !state.previousClickState  ) onPress(x, y, z);
-    if (onHoverEnter &&  hit                                ) onHoverEnter(x, y, z);
-    if (onHoverExit  && !hit && pressed &&  state.previousInBoundsState) onHoverExit(x, y, z);
-    if (onRelease    && !hit            &&  state.previousInBoundsState) onRelease(x, y, z);
-
-    state.previousClickState = pressed;
-    state.previousInBoundsState = hit;
-    */
 }
 
 // Button& Button::operator=(const Button &other)
