@@ -14,8 +14,6 @@ Button::Button(DrawingWrapper &drw, name_t name ,uint16_t x, uint16_t y, uint16_
     strncpy(this->name, name, sizeof(this->name));
     
     #endif
-    
-    state.raw = 0;
 }
 
 void Button::setTextColor(Color color)
@@ -39,18 +37,20 @@ void Button::draw()
     drw.print(name);
 }
 
-// todo fix this
 void Button::performAction(uint16_t x, uint16_t y, uint8_t z,bool pressed)
 {
+    static bool previousClickState = false;
+    static bool previousInBoundsState = false;
+
     bool hit = inBounds(x, y);
 
-    if (onPress         && pressed  && hit  && !state.previousClickState  ) onPress(x, y, z);
+    if (onPress         && pressed  && hit  && previousClickState  ) onPress(x, y, z);
     if (onHoverEnter    && pressed  && hit                                ) onHoverEnter(x, y, z);
-    if (onHoverExit     && pressed  && !hit && state.previousInBoundsState) onHoverExit(x, y, z);
+    if (onHoverExit     && pressed  && !hit && previousInBoundsState) onHoverExit(x, y, z);
     if (onRelease       && !pressed && hit                                ) onRelease(x, y, z);
 
-    state.previousClickState = pressed;
-    state.previousInBoundsState = hit;
+    previousClickState = pressed;
+    previousInBoundsState = hit;
 }
 
 // Button& Button::operator=(const Button &other)

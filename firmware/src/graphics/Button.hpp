@@ -28,15 +28,6 @@ private:
     std::string name;
     #endif
 
-    union {
-        struct {
-            bool previousClickState : 1;
-            bool previousInBoundsState :1;
-            uint8_t reserved :6;
-        };
-        uint8_t raw;
-    } state;
-
 protected:
 
     Font_t font;

@@ -11,7 +11,7 @@ _Debug::_Debug()
 {
     pageArgs = nullptr;
     buttons = nullptr;
-    buttonsSize;
+    // buttonsSize;
 }
 
 void _Debug::onStart(void *pageArgs)
@@ -74,6 +74,8 @@ void _Debug::onLoad(void *, void *args) {
     };
     ++counter;
 
+    DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &DebugPage.flowRateValue, 20, 80, 180, 40, "Flow Rate", "ul/min");
+
     Driver::tft.fillScreen(CMXG_BL_DATUM);
     Driver::touchscreen_register_on_press(DebugPage.ts_onPress);
     Driver::touchscreen_register_on_release(DebugPage.ts_onRelease);
@@ -81,6 +83,7 @@ void _Debug::onLoad(void *, void *args) {
     Serial.println("Done loading debug");
     
     for (size_t i = 0; i < DebugPage.buttonsSize; ++i) DebugPage.buttons[i].draw();
+    DebugPage.flowRate->draw();
 }
 
 void _Debug::generatePage(Page_t &page)
@@ -106,6 +109,7 @@ void _Debug::ts_onPress()
     for (size_t i = 0; i < DebugPage.buttonsSize; ++i) {
         DebugPage.buttons[i].performAction(x, y, 0, true);
     }
+    DebugPage.flowRate->performAction(x, y, 0, true);
 
     Driver::tft.setCursor(10, 10);
     Driver::tft.setTextSize(2);
@@ -114,10 +118,10 @@ void _Debug::ts_onPress()
     Driver::tft.setCursor(10, 80);
     Driver::tft.setTextSize(2);
     Driver::tft.setTextColor(TFT_WHITE);
-    Driver::tft.println("300 ul/min");
-    Driver::tft.setTextSize(1);
-    Driver::tft.setCursor(10, 110);
-    Driver::tft.println("Rate");
+    // Driver::tft.println("300 ul/min");
+    // Driver::tft.setTextSize(1);
+    // Driver::tft.setCursor(10, 110);
+    // Driver::tft.println("Rate");
     
     dev_println("DEBUG on press handler");
 }
@@ -130,6 +134,9 @@ void _Debug::ts_onRelease()
     for (size_t i = 0; i < DebugPage.buttonsSize; ++i) {
         DebugPage.buttons[i].performAction(x, y, 0, false);     // todo fix this!!
     }
+
+    DebugPage.flowRate->performAction(x, y, 0, false);
+    
     dev_println("DEBUG on release handler");
 }
 
@@ -147,6 +154,13 @@ void _Debug::onExit()
         free(DebugPage.buttons);
         DebugPage.buttons = nullptr;
     }
+
+    delete DebugPage.flowRate;
+    DebugPage.flowRate = nullptr;
 }
 
+int32_t _Debug::flowRateValue = 300;
+
 _Debug DebugPage;
+
+

@@ -39,4 +39,6 @@ struct DrawingWrapper
      * @param background background color
      */
     void (*setTextColor)(Color foreground, Color background);
+
+    void (*setScreenColor)(Color color);
 };

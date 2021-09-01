@@ -6,4 +6,5 @@
     #include "DrawingWrapper.hpp"
     #include "BoundedArea.hpp"
     #include "Button.hpp"
+    #include "NumberFieldComponent.hpp"
 // }

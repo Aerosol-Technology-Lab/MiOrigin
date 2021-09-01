@@ -10,7 +10,8 @@ private:
     void *pageArgs;
     Button *buttons;
     size_t buttonsSize = 3;
-    
+    NumberFieldComponent *flowRate;
+    static int32_t flowRateValue;
 
 public:
     _Debug();
