@@ -11,7 +11,9 @@ private:
     Button *buttons;
     size_t buttonsSize = 3;
     NumberFieldComponent *flowRate;
+    NumberFieldComponent *timerComponent;
     static int32_t flowRateValue;
+    static int32_t timerValue;
 
 public:
     _Debug();

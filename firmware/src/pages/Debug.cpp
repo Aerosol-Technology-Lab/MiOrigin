@@ -41,7 +41,7 @@ void _Debug::onLoad(void *, void *args) {
     };
     DebugPage.buttons[counter].onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
         Serial.printf("I was released on %dx, %dy, %dz", x, y, z);
-        Driver::miclone_start();
+        Driver::miclone_start(DebugPage.flowRateValue, DebugPage.timerValue);
     };
     ++counter;
     
@@ -60,7 +60,8 @@ void _Debug::onLoad(void *, void *args) {
     };
     ++counter;
 
-    new (DebugPage.buttons + counter) Button(drawingWrapper, "CALIBRATE", 360, 230, 100, 50);
+    // new (DebugPage.buttons + counter) Button(drawingWrapper, "CALIBRATE", 360, 230, 100, 50);
+    new (DebugPage.buttons + counter) Button(drawingWrapper, "Initialize", 360, 230, 100, 50);
     DebugPage.buttons[counter].setTextColor(CMXG_BLACK);
     DebugPage.buttons[counter].setButtonColor(CMXG_CYAN);
         DebugPage.buttons[counter].onPress = [](uint16_t x, uint16_t y, uint8_t z) {
@@ -74,7 +75,8 @@ void _Debug::onLoad(void *, void *args) {
     };
     ++counter;
 
-    DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &DebugPage.flowRateValue, 20, 80, 180, 40, "Flow Rate", "ul/min");
+    DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &DebugPage.flowRateValue, 20, 80, 250, 40, "Flow Rate", "ul/min");
+    DebugPage.timerComponent = new NumberFieldComponent(drawingWrapper, &DebugPage.timerValue, 20, 160, 250, 40, "Timer", "min:sec");
 
     Driver::tft.fillScreen(CMXG_BL_DATUM);
     Driver::touchscreen_register_on_press(DebugPage.ts_onPress);
@@ -84,6 +86,7 @@ void _Debug::onLoad(void *, void *args) {
     
     for (size_t i = 0; i < DebugPage.buttonsSize; ++i) DebugPage.buttons[i].draw();
     DebugPage.flowRate->draw();
+    DebugPage.timerComponent->draw();
 }
 
 void _Debug::generatePage(Page_t &page)
@@ -157,9 +160,13 @@ void _Debug::onExit()
 
     delete DebugPage.flowRate;
     DebugPage.flowRate = nullptr;
+
+    delete DebugPage.timerComponent;
+    DebugPage.timerComponent = nullptr;
 }
 
 int32_t _Debug::flowRateValue = 300;
+int32_t _Debug::timerValue = 15 * 60 * 1000;
 
 _Debug DebugPage;
 

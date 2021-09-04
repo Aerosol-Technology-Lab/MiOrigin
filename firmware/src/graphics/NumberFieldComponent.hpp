@@ -5,6 +5,7 @@
 
 #include "BoundedArea.hpp"
 #include "DrawingWrapper.hpp"
+#include "../pagesystem/page.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -15,6 +16,7 @@ private:
     int32_t *value;
     char label[GRAPHICS_NUMBERFIELDCOMPONENT_LABEL_SIZE];
     char postfix[GRAPHICS_NUMBERFIELDCOMPONENT_POSTFIX_SIZE];
+    char returnPageName[PAGE_NAME_SIZE];
     
 public:
     NumberFieldComponent(DrawingWrapper &drw,

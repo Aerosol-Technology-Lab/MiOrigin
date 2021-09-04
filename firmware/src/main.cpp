@@ -825,6 +825,9 @@ void setup()
     drawingWrapper.setTextColor = [](Color foreground, Color background) {
         tft.setTextColor(foreground, background);
     };
+    drawingWrapper.fillScreen = [](Color color) {
+        tft.fillScreen(color);
+    };
 
     Page_t tmpPage;
     

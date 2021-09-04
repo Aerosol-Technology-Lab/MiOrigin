@@ -1,4 +1,6 @@
 #include "NumberFieldComponent.hpp"
+#include "../pages/NumberFieldPage.hpp"
+#include "../pagesystem/pagesystem.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -60,5 +62,14 @@ void NumberFieldComponent::performAction(uint16_t x, uint16_t y, uint8_t z,bool 
 
 void NumberFieldComponent::onRelease(uint16_t x, uint16_t y, uint8_t z)
 {
+    _NumberFieldPage::Props_t *props = new _NumberFieldPage::Props_t;
+    strncpy(props->label, label, GRAPHICS_NUMBERFIELDCOMPONENT_LABEL_SIZE);
+    strncpy(props->postfix, postfix, GRAPHICS_NUMBERFIELDCOMPONENT_POSTFIX_SIZE);
+    strncpy(props->returnPageName, returnPageName, PAGE_NAME_SIZE);
+    props->value = value;
+
+    assert(false && "Implement this");
+    // PageSystem_switch(NumberFieldPage::page);
+    
     Serial.println("-> Number Field Component Released!");
 }
