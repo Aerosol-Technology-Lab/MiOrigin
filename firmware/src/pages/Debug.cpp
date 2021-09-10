@@ -26,6 +26,10 @@ void _Debug::onLoad(void *, void *args) {
 
     Serial.println("Not done loading debug");
 
+    // limits possible flow rates
+    if      (DebugPage.flowRateValue > DEBUG_MAX_FLOW_RATE) DebugPage.flowRateValue = DEBUG_MAX_FLOW_RATE;
+    else if (DebugPage.flowRateValue < DEBUG_MIN_FLOW_RATE) DebugPage.flowRateValue = DEBUG_MIN_FLOW_RATE;
+
     // placement new
     new (DebugPage.buttons + counter) Button(drawingWrapper, "START", 360, 10, 100, 100);
     DebugPage.buttons[counter].setTextColor(CMXG_WHITE);
@@ -77,7 +81,7 @@ void _Debug::onLoad(void *, void *args) {
     ++counter;
 
     /* Initialize Flow Rate Timer */
-    DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &(DebugPage.flowRateValue), 20, 80, 250, 40, "Flow Rate", "ul/min");
+    DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &(DebugPage.flowRateValue), 20, 80, 250, 40, "Flow Rate\0", "ul/min");
     const char *returnPageName = "debug-page";
     DebugPage.flowRate->setReturnPageName(returnPageName, strlen(returnPageName));
     DebugPage.flowRate->setProperty(

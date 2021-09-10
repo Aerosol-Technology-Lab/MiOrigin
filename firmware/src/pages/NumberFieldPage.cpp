@@ -53,15 +53,15 @@ void _NumberFieldPage::onLoad(void *, void *args)
         uint16_t nX = x + ((i - 1) % 3) * (width + gap);
         uint16_t nY = y + ((i - 1) / 3) * (width + gap);
         NumberFieldPage.buttons[i] = new Button(drawingWrapper, buffer, nX, nY, width, width);
-        NumberFieldPage.buttons[i]->setTextColor(CMXG_WHITE);
-        NumberFieldPage.buttons[i]->setButtonColor(CMXG_CYAN);
     }
 
     Serial.println("-> Stage 3");
 
 
     // I know this is ugly but this removes complex data passing
-    #define NUMBERFIELDPAGE_GENERATE_BUTTONS(i)                                             \
+    #define NUMBERFIELDPAGE_GENERATE_BUTTONS(i) \
+    NumberFieldPage.buttons[i]->setTextColor(CMXG_BLACK);                                   \
+    NumberFieldPage.buttons[i]->setButtonColor(CMXG_CYAN);                                  \
     NumberFieldPage.buttons[i]->setButtonSize(3);                                           \
     NumberFieldPage.buttons[i]->onPress = [](uint16_t x, uint16_t y, uint8_t z) {           \
     };                                                                                      \
@@ -94,8 +94,6 @@ void _NumberFieldPage::onLoad(void *, void *args)
         uint16_t nX = x + (1) * (width + gap);
         uint16_t nY = y + (3) * (width + gap);
         NumberFieldPage.buttons[0] = new Button(drawingWrapper, buffer, nX, nY, width, width);
-        NumberFieldPage.buttons[0]->setTextColor(CMXG_WHITE);
-        NumberFieldPage.buttons[0]->setButtonColor(CMXG_CYAN);
         NUMBERFIELDPAGE_GENERATE_BUTTONS(0);
     }
     #undef NUMBERFIELDPAGE_GENERATE_BUTTONS
@@ -128,7 +126,7 @@ void _NumberFieldPage::onLoad(void *, void *args)
         uint16_t nY = y + (3) * (width + gap);
         NumberFieldPage.buttons[11] = new Button(drawingWrapper, buffer, nX, nY, width, width);
         NumberFieldPage.buttons[11]->setButtonSize(3);
-        NumberFieldPage.buttons[11]->setTextColor(CMXG_WHITE);
+        NumberFieldPage.buttons[11]->setTextColor(CMXG_BLACK);
         NumberFieldPage.buttons[11]->setButtonColor(CMXG_GREEN);
         NumberFieldPage.buttons[11]->onPress = [](uint16_t x, uint16_t y, uint8_t z) {            
         };                                                                                      
@@ -219,8 +217,9 @@ void _NumberFieldPage::ts_onRelease()
 
 void _NumberFieldPage::drawValue()
 {
+    // draws text box
     const uint16_t x = 20;
-    const uint16_t y = 30;
+    const uint16_t y = 40;
     const uint16_t width = 210;
     const uint16_t height = 40;
     const uint16_t gap = 5;
@@ -233,11 +232,25 @@ void _NumberFieldPage::drawValue()
         strcpy(buffer, "------");
     }
 
-    // draw
+    // draw value
     drawingWrapper.drawRect(x, y, width, height, 0, CMXG_WHITE);
     drawingWrapper.drawRect(x + gap, y + gap, width - 2 * gap, height - 2 * gap, 0, CMXG_BLACK);
-    drawingWrapper.setCursor(x + gap + 3, y + gap + 3, 2);
-    drawingWrapper.print(buffer);
+    drawingWrapper.setTextSize(2);
+    drawingWrapper.setTextDatum(CMXG_CR_DATUM);
+    drawingWrapper.setTextColor(CMXG_WHITE, CMXG_WHITE);
+    drawingWrapper.drawString(buffer, x + width - gap - 3, y + height / 2);
+
+    // draws labels
+    drawingWrapper.setTextSize(2);
+    const uint16_t yLabel = 20;
+    drawingWrapper.drawString(NumberFieldPage.props->label, x, yLabel);
+
+
+    // draw units
+    drawingWrapper.setTextSize(1);
+    const uint16_t yUnits = y + height + 3;
+    drawingWrapper.setTextDatum(CMXG_TR_DATUM);
+    drawingWrapper.drawString(NumberFieldPage.props->postfix, x + width - gap - 3, yUnits);
 }
 
 _NumberFieldPage NumberFieldPage;

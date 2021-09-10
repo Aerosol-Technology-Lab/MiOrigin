@@ -4,6 +4,9 @@
 
 #define DEBUG_PAGE_NAME "debug-page"
 
+#define DEBUG_MAX_FLOW_RATE 1000
+#define DEBUG_MIN_FLOW_RATE   50
+
 class _Debug
 {
 private:

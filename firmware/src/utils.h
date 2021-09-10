@@ -93,6 +93,8 @@ static void lower(char *buffer, size_t size = std::numeric_limits<size_t>::max()
     }
 }
 
+bool convert_MS2HMSF_format(char *buffer, size_t size, uint32_t time);
+
 namespace utils
 {
     int stoi(const std::string &str);
