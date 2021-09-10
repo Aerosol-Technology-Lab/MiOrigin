@@ -112,6 +112,13 @@ void Driver::busyInterruptFunction(void *args)
             }
         }
 
+        // Run post digitizer action once
+        if (postDigitizerAction) {
+            postDigitizerAction(postDigitizerArgs);
+            postDigitizerAction = nullptr;
+            postDigitizerArgs = nullptr;
+        }
+
         // if (currentState != touched) {
             
         //     touched = currentState;
@@ -162,4 +169,7 @@ void Driver::busyInterruptFunction(void *args)
 namespace Driver
 {
     XPT2046_Touchscreen ts(TCH_CS);
+
+    void (*postDigitizerAction)(void **) = nullptr;
+    void **postDigitizerArgs = nullptr;
 }

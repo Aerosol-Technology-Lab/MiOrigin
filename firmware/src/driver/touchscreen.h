@@ -13,6 +13,9 @@ namespace Driver
 {
     extern XPT2046_Touchscreen ts;
 
+    extern void (*postDigitizerAction)(void **);
+    extern void **postDigitizerArgs;
+
     typedef void (*TouchscreenFunctionBehavior)();
 
     enum TouchscreenState : int8_t {
