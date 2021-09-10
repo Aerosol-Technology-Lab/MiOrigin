@@ -3,6 +3,7 @@
 #define GRAPHICS_NUMBERFIELDCOMPONENT_LABEL_SIZE 10
 #define GRAPHICS_NUMBERFIELDCOMPONENT_POSTFIX_SIZE 10
 
+#include "NumberFieldDefs.hpp"
 #include "BoundedArea.hpp"
 #include "DrawingWrapper.hpp"
 #include "../pagesystem/page.h"
@@ -13,12 +14,20 @@ class NumberFieldComponent : public BoundedArea
 {
 private:
     DrawingWrapper &drw;
-    int32_t *value;
+    void *value;
     char label[GRAPHICS_NUMBERFIELDCOMPONENT_LABEL_SIZE];
     char postfix[GRAPHICS_NUMBERFIELDCOMPONENT_POSTFIX_SIZE];
     char returnPageName[PAGE_NAME_SIZE];
     
+    NumberFieldDefs::ChangeValue_f changeValue;
+    // void (*changeValue)(char c);
+    NumberFieldDefs::GetValue_f getValue;
+    // void (*getValue)(char *buffer, size_t size);
+    
+    
 public:
+    static Page_t page;
+    
     NumberFieldComponent(DrawingWrapper &drw,
                          int32_t *value, 
                          uint16_t x=0, 
@@ -28,6 +37,8 @@ public:
                          const char *label="",
                          const char *postfix=""
                          );
+    
+    void setProperty(NumberFieldDefs::ChangeValue_f changeValue, NumberFieldDefs::GetValue_f getValue);
     
     void draw();
 
@@ -40,4 +51,7 @@ public:
     // void (*onHoverExit)(uint16_t x, uint16_t y, uint8_t z);
     
     void onRelease(uint16_t x, uint16_t y, uint8_t z);
+
+private:
+    void setPropsFromCurrent(NumberFieldDefs::Props_t &props);
 };

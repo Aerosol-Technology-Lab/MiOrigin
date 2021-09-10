@@ -1,28 +1,23 @@
 #pragma once
 
+#include "../graphics/NumberFieldDefs.hpp"
 #include "../pagesystem/page.h"
+#include "../graphics/Button.hpp"
 #include <stdint.h>
 
 #define PAGES_NUMBERFIELDPAGE_NAME "numfield"
-#define PAGES_NUMBERFIELDPAGE_LABEL_SIZE 10
-#define PAGES_NUMBERFIELDPAGE_POSTFIX_SIZE 10
+
 class _NumberFieldPage
 {
-public:
-    typedef struct {
-        int32_t *value;
-        char label[PAGES_NUMBERFIELDPAGE_LABEL_SIZE];
-        char postfix[PAGES_NUMBERFIELDPAGE_LABEL_SIZE];
-        char returnPageName[PAGE_NAME_SIZE];
-    } Props_t;
-
 private:
-    Props_t *props;
+    NumberFieldDefs::Props_t *props;
+
+    size_t numButtons = 13;
+    Button *buttons;
 
 public:
-    static Page_t page;
-
     _NumberFieldPage();
+
 
     static void onStart(void *);
     static void onLoad(void *, void *);

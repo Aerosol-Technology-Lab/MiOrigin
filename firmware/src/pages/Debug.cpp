@@ -75,7 +75,36 @@ void _Debug::onLoad(void *, void *args) {
     };
     ++counter;
 
+    /* Initialize Flow Rate Timer */
     DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &DebugPage.flowRateValue, 20, 80, 250, 40, "Flow Rate", "ul/min");
+    DebugPage.flowRate->setProperty(
+        [](void *_props, uint8_t c) -> void {
+
+            NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t*>(_props);
+            int32_t &flowRate = *reinterpret_cast<int32_t*>(props.value);
+
+            if (c < 0) {
+                flowRate /= 10;
+            }
+            else if (c < 10) {
+                flowRate = flowRate * 10 + c;
+            }
+            else {
+                // do nothing
+            }
+        },
+        [](void *_props, char *buffer, size_t size) -> void {
+
+            NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t*>(_props);
+            int32_t &flowRate = *reinterpret_cast<int32_t*>(props.value);
+
+            char numBuff[16];
+            sprintf(numBuff, "%d", flowRate);
+
+            strncpy(buffer, numBuff, std::min(sizeof(numBuff), size));
+        }
+        );
+    
     DebugPage.timerComponent = new NumberFieldComponent(drawingWrapper, &DebugPage.timerValue, 20, 160, 250, 40, "Timer", "min:sec");
 
     Driver::tft.fillScreen(CMXG_BL_DATUM);
@@ -86,7 +115,7 @@ void _Debug::onLoad(void *, void *args) {
     
     for (size_t i = 0; i < DebugPage.buttonsSize; ++i) DebugPage.buttons[i].draw();
     DebugPage.flowRate->draw();
-    DebugPage.timerComponent->draw();
+    // DebugPage.timerComponent->draw(); // todo enable timer component
 }
 
 void _Debug::generatePage(Page_t &page)
@@ -138,7 +167,7 @@ void _Debug::ts_onRelease()
         DebugPage.buttons[i].performAction(x, y, 0, false);     // todo fix this!!
     }
 
-    DebugPage.flowRate->performAction(x, y, 0, false);
+    if (DebugPage.flowRate) DebugPage.flowRate->performAction(x, y, 0, false);
     
     dev_println("DEBUG on release handler");
 }
