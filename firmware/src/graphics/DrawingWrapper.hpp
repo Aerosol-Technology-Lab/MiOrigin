@@ -18,11 +18,15 @@ struct DrawingWrapper
 
     void (*drawRect)(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t radius, Color color);
     
+    void (*setTextSize)(uint8_t size);
+    
     void (*print)(const char *str);
 
     void (*println)(const char *str);
 
     void (*printf)(const char *str, ...);
+
+    void (*drawString)(const char *str, uint32_t  x, uint32_t  y);
 
     void (*setCursor)(uint16_t x, uint16_t y, uint8_t font);
 

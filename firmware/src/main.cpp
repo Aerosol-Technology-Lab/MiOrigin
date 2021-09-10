@@ -828,6 +828,12 @@ void setup()
     drawingWrapper.fillScreen = [](Color color) {
         tft.fillScreen(color);
     };
+    drawingWrapper.setTextSize = [](uint8_t size) {
+        tft.setTextSize(size);
+    };
+    drawingWrapper.drawString = [](const char *str, uint32_t x, uint32_t y) {
+        tft.drawString(str, x, y);
+    };
 
     Page_t tmpPage;
     
