@@ -31,16 +31,17 @@ void _Debug::onLoad(void *, void *args) {
     DebugPage.buttons[counter].setTextColor(CMXG_WHITE);
     DebugPage.buttons[counter].setButtonColor(CMXG_GREEN);
     DebugPage.buttons[counter].onPress = [](uint16_t x, uint16_t y, uint8_t z) {
-        Serial.printf("Start was pressed on %dx, %dy, %dz", x, y, z);
+        // Serial.printf("Start was pressed on %dx, %dy, %dz", x, y, z);
     };
     DebugPage.buttons[counter].onHoverEnter = [](uint16_t x, uint16_t y, uint8_t z) {
-        Serial.printf("I was hovered enter on %dx, %dy, %dz", x, y, z);
+        // Serial.printf("I was hovered enter on %dx, %dy, %dz", x, y, z);
     };
     DebugPage.buttons[counter].onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {
-        Serial.printf("I was hovered exit on %dx, %dy, %dz", x, y, z);
+        // Serial.printf("I was hovered exit on %dx, %dy, %dz", x, y, z);
     };
     DebugPage.buttons[counter].onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
-        Serial.printf("I was released on %dx, %dy, %dz", x, y, z);
+        // Serial.printf("I was released on %dx, %dy, %dz", x, y, z);
+        Serial.printf("Starting MiClone with %d ul/min flow rate and %d ms", DebugPage.flowRateValue, DebugPage.timerValue);
         Driver::miclone_start(DebugPage.flowRateValue, DebugPage.timerValue);
     };
     ++counter;
@@ -76,12 +77,16 @@ void _Debug::onLoad(void *, void *args) {
     ++counter;
 
     /* Initialize Flow Rate Timer */
-    DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &DebugPage.flowRateValue, 20, 80, 250, 40, "Flow Rate", "ul/min");
+    DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &(DebugPage.flowRateValue), 20, 80, 250, 40, "Flow Rate", "ul/min");
+    const char *returnPageName = "debug-page";
+    DebugPage.flowRate->setReturnPageName(returnPageName, strlen(returnPageName));
     DebugPage.flowRate->setProperty(
-        [](void *_props, uint8_t c) -> void {
+        [](void *_props, int8_t c) -> void {
 
             NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t*>(_props);
-            int32_t &flowRate = *reinterpret_cast<int32_t*>(props.value);
+            int32_t &flowRate = **reinterpret_cast<int32_t**>(props.value);     // why does this happen???
+
+            Serial.printf("The flow rate before change is: %d\n", flowRate);
 
             if (c < 0) {
                 flowRate /= 10;
@@ -92,6 +97,9 @@ void _Debug::onLoad(void *, void *args) {
             else {
                 // do nothing
             }
+
+            Serial.println("Things did change");
+            Serial.printf("The flow rate is: %d", flowRate);
         },
         [](void *_props, char *buffer, size_t size) -> void {
 
@@ -107,15 +115,18 @@ void _Debug::onLoad(void *, void *args) {
     
     DebugPage.timerComponent = new NumberFieldComponent(drawingWrapper, &DebugPage.timerValue, 20, 160, 250, 40, "Timer", "min:sec");
 
-    Driver::tft.fillScreen(CMXG_BL_DATUM);
-    Driver::touchscreen_register_on_press(DebugPage.ts_onPress);
-    Driver::touchscreen_register_on_release(DebugPage.ts_onRelease);
     
     Serial.println("Done loading debug");
     
+    drawingWrapper.fillScreen(CMXG_BL_DATUM);
+    drawingWrapper.setTextSize(1);
     for (size_t i = 0; i < DebugPage.buttonsSize; ++i) DebugPage.buttons[i].draw();
     DebugPage.flowRate->draw();
     // DebugPage.timerComponent->draw(); // todo enable timer component
+
+
+    Driver::touchscreen_register_on_press(DebugPage.ts_onPress);
+    Driver::touchscreen_register_on_release(DebugPage.ts_onRelease);
 }
 
 void _Debug::generatePage(Page_t &page)
@@ -163,6 +174,7 @@ void _Debug::ts_onRelease()
     uint16_t x, y;
     Calibration.translateFromRaw(x, y);
 
+    drawingWrapper.setTextSize(1);
     for (size_t i = 0; i < DebugPage.buttonsSize; ++i) {
         DebugPage.buttons[i].performAction(x, y, 0, false);     // todo fix this!!
     }

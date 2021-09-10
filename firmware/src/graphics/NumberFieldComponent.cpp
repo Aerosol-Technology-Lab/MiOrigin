@@ -11,7 +11,7 @@
 #endif
 
 NumberFieldComponent::NumberFieldComponent(DrawingWrapper &drw,
-                                           int32_t *value, 
+                                           void *value, 
                                            uint16_t x, 
                                            uint16_t y, 
                                            uint16_t width, 
@@ -31,6 +31,11 @@ void NumberFieldComponent::setProperty(NumberFieldDefs::ChangeValue_f changeValu
 {
     this->changeValue = changeValue;;
     this->getValue = getValue;
+}
+
+void NumberFieldComponent::setReturnPageName(const char *name, size_t size)
+{
+    strncpy(returnPageName, name, std::min(size, sizeof(returnPageName)));
 }
 
 void NumberFieldComponent::draw()
@@ -60,8 +65,8 @@ void NumberFieldComponent::draw()
 
 void NumberFieldComponent::performAction(uint16_t x, uint16_t y, uint8_t z,bool pressed)
 {
-    static bool previousClickState = false;
-    static bool previousInBoundsState = false;
+    // static bool previousClickState = false;
+    // static bool previousInBoundsState = false;
 
     bool hit = inBounds(x, y);
 
@@ -70,8 +75,8 @@ void NumberFieldComponent::performAction(uint16_t x, uint16_t y, uint8_t z,bool 
     // if (onHoverExit     && pressed  && !hit && previousInBoundsState) onHoverExit(x, y, z);
     if (!pressed && hit                                ) onRelease(x, y, z);
 
-    previousClickState = pressed;
-    previousInBoundsState = hit;
+    // previousClickState = pressed;
+    // previousInBoundsState = hit;
 }
 
 void NumberFieldComponent::onRelease(uint16_t x, uint16_t y, uint8_t z)

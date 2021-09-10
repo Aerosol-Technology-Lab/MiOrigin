@@ -34,6 +34,7 @@ protected:
     uint32_t radius;
     Color textColor;
     Color buttonColor;
+    uint8_t buttonSize = 1;
 
     DrawingWrapper &drw;
 
@@ -43,6 +44,8 @@ public:
     void setTextColor(Color textColor);
 
     void setButtonColor(Color buttonColor);
+    
+    void setButtonSize(uint8_t size);
     
     void draw();
 
