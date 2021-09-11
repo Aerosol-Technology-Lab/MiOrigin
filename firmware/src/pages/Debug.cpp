@@ -35,17 +35,12 @@ void _Debug::onLoad(void *, void *args) {
     DebugPage.buttons[counter].setTextColor(CMXG_WHITE);
     DebugPage.buttons[counter].setButtonColor(CMXG_GREEN);
     DebugPage.buttons[counter].onPress = [](uint16_t x, uint16_t y, uint8_t z) {
-        // Serial.printf("Start was pressed on %dx, %dy, %dz", x, y, z);
     };
     DebugPage.buttons[counter].onHoverEnter = [](uint16_t x, uint16_t y, uint8_t z) {
-        // Serial.printf("I was hovered enter on %dx, %dy, %dz", x, y, z);
     };
     DebugPage.buttons[counter].onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {
-        // Serial.printf("I was hovered exit on %dx, %dy, %dz", x, y, z);
     };
     DebugPage.buttons[counter].onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
-        // Serial.printf("I was released on %dx, %dy, %dz", x, y, z);
-        Serial.printf("Starting MiClone with %d ul/min flow rate and %d ms", DebugPage.flowRateValue, DebugPage.timerValue);
         Driver::miclone_start(DebugPage.flowRateValue, DebugPage.timerValue);
     };
     ++counter;
@@ -60,7 +55,6 @@ void _Debug::onLoad(void *, void *args) {
     DebugPage.buttons[counter].onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {
     };
     DebugPage.buttons[counter].onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
-        Serial.printf("Stop button released on %dx, %dy, %dz", x, y, z);
         Driver::miclone_stop();
     };
     ++counter;
@@ -81,7 +75,7 @@ void _Debug::onLoad(void *, void *args) {
     ++counter;
 
     /* Initialize Flow Rate Timer */
-    DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &(DebugPage.flowRateValue), 20, 80, 250, 40, "Flow Rate\0", "ul/min");
+    DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &(DebugPage.flowRateValue), 20, 80, 250, 40, "Flow Rate", "ul/min");
     const char *returnPageName = "debug-page";
     DebugPage.flowRate->setReturnPageName(returnPageName, strlen(returnPageName));
     DebugPage.flowRate->setProperty(
@@ -89,8 +83,6 @@ void _Debug::onLoad(void *, void *args) {
 
             NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t*>(_props);
             int32_t &flowRate = **reinterpret_cast<int32_t**>(props.value);     // why does this happen???
-
-            Serial.printf("The flow rate before change is: %d\n", flowRate);
 
             if (c < 0) {
                 flowRate /= 10;
@@ -101,9 +93,6 @@ void _Debug::onLoad(void *, void *args) {
             else {
                 // do nothing
             }
-
-            Serial.println("Things did change");
-            Serial.printf("The flow rate is: %d", flowRate);
         },
         [](void *_props, char *buffer, size_t size) -> void {
 
@@ -118,14 +107,50 @@ void _Debug::onLoad(void *, void *args) {
         );
     
     DebugPage.timerComponent = new NumberFieldComponent(drawingWrapper, &DebugPage.timerValue, 20, 160, 250, 40, "Timer", "min:sec");
+    DebugPage.timerComponent->setReturnPageName(returnPageName, strlen(returnPageName));
+    DebugPage.timerComponent->setProperty(
+        [](void *_props, int8_t c) -> void {
 
-    
-    Serial.println("Done loading debug");
+            NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t*>(_props);
+            int32_t &timer = **reinterpret_cast<int32_t**>(props.value);     // why does this happen???
+
+            if (c < 0) {
+                timer /= 10;
+            }
+            else if (c < 10) {
+                timer = timer * 10 + c;
+            }
+            else {
+                // do nothing
+            }
+        },
+        [](void *_props, char *buffer, size_t size) -> void {
+
+            NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t*>(_props);
+            int32_t &timer = *reinterpret_cast<int32_t*>(props.value);
+
+            char numBuff[16];
+            sprintf(numBuff, "%d", timer);
+
+            strncpy(buffer, numBuff, std::min(sizeof(numBuff), size));
+        }
+        );
+
+
+    Driver::tft.setCursor(10, 10);
+    Driver::tft.setTextSize(2);
+    Driver::tft.setTextColor(TFT_CYAN);
+    Driver::tft.println("Bioaerosol Collector");
+    Driver::tft.setCursor(10, 80);
+    Driver::tft.setTextSize(2);
+    Driver::tft.setTextColor(TFT_WHITE);
+
     
     drawingWrapper.fillScreen(CMXG_BL_DATUM);
     drawingWrapper.setTextSize(1);
     for (size_t i = 0; i < DebugPage.buttonsSize; ++i) DebugPage.buttons[i].draw();
     DebugPage.flowRate->draw();
+    DebugPage.timerComponent->draw();
     // DebugPage.timerComponent->draw(); // todo enable timer component
 
 
@@ -153,22 +178,14 @@ void _Debug::ts_onPress()
 { 
     uint16_t x, y;
     Calibration.translateFromRaw(x, y);
-    for (size_t i = 0; i < DebugPage.buttonsSize; ++i) {
-        DebugPage.buttons[i].performAction(x, y, 0, true);
-    }
-    DebugPage.flowRate->performAction(x, y, 0, true);
+    if (DebugPage.buttons) {
 
-    Driver::tft.setCursor(10, 10);
-    Driver::tft.setTextSize(2);
-    Driver::tft.setTextColor(TFT_CYAN);
-    Driver::tft.println("Bioaerosol Collector");
-    Driver::tft.setCursor(10, 80);
-    Driver::tft.setTextSize(2);
-    Driver::tft.setTextColor(TFT_WHITE);
-    // Driver::tft.println("300 ul/min");
-    // Driver::tft.setTextSize(1);
-    // Driver::tft.setCursor(10, 110);
-    // Driver::tft.println("Rate");
+        for (size_t i = 0; i < DebugPage.buttonsSize; ++i) {
+            DebugPage.buttons[i].performAction(x, y, 0, true);
+        }
+    }
+    if (DebugPage.flowRate) DebugPage.flowRate->performAction(x, y, 0, true);
+    if (DebugPage.timerComponent) DebugPage.timerComponent->performAction(x, y, 0, false);
     
     dev_println("DEBUG on press handler");
 }
@@ -179,11 +196,15 @@ void _Debug::ts_onRelease()
     Calibration.translateFromRaw(x, y);
 
     drawingWrapper.setTextSize(1);
-    for (size_t i = 0; i < DebugPage.buttonsSize; ++i) {
-        DebugPage.buttons[i].performAction(x, y, 0, false);     // todo fix this!!
+    if (DebugPage.buttons) {
+
+        for (size_t i = 0; i < DebugPage.buttonsSize; ++i) {
+            DebugPage.buttons[i].performAction(x, y, 0, false);     // todo fix this!!
+        }
     }
 
     if (DebugPage.flowRate) DebugPage.flowRate->performAction(x, y, 0, false);
+    if (DebugPage.timerComponent) DebugPage.timerComponent->performAction(x, y, 0, false);
     
     dev_println("DEBUG on release handler");
 }

@@ -242,8 +242,8 @@ void _NumberFieldPage::drawValue()
 
     // draws labels
     drawingWrapper.setTextSize(2);
-    const uint16_t yLabel = 20;
-    drawingWrapper.drawString(NumberFieldPage.props->label, x, yLabel);
+    drawingWrapper.setTextDatum(CMXG_BL_DATUM);
+    drawingWrapper.drawString(NumberFieldPage.props->label, x, y - 3);
 
 
     // draw units
