@@ -10,7 +10,9 @@
 _Debug::_Debug()
 {
     pageArgs = nullptr;
-    buttons = nullptr;
+    for (auto *&button : buttons) {
+        button = nullptr;
+    }
     // buttonsSize;
 }
 
@@ -22,7 +24,6 @@ void _Debug::onStart(void *pageArgs)
 void _Debug::onLoad(void *, void *args) {
 
     size_t counter = 0;
-    DebugPage.buttons = reinterpret_cast<Button *>(malloc(sizeof(Button) * DebugPage.buttonsSize));
 
     Serial.println("Not done loading debug");
 
@@ -31,45 +32,45 @@ void _Debug::onLoad(void *, void *args) {
     else if (DebugPage.flowRateValue < DEBUG_MIN_FLOW_RATE) DebugPage.flowRateValue = DEBUG_MIN_FLOW_RATE;
 
     // placement new
-    new (DebugPage.buttons + counter) Button(drawingWrapper, "START", 360, 10, 100, 100);
-    DebugPage.buttons[counter].setTextColor(CMXG_WHITE);
-    DebugPage.buttons[counter].setButtonColor(CMXG_GREEN);
-    DebugPage.buttons[counter].onPress = [](uint16_t x, uint16_t y, uint8_t z) {
+    DebugPage.buttons[counter] = new Button(drawingWrapper, "START", 360, 10, 100, 100);
+    DebugPage.buttons[counter]->setTextColor(CMXG_WHITE);
+    DebugPage.buttons[counter]->setButtonColor(CMXG_GREEN);
+    DebugPage.buttons[counter]->onPress = [](uint16_t x, uint16_t y, uint8_t z) {
     };
-    DebugPage.buttons[counter].onHoverEnter = [](uint16_t x, uint16_t y, uint8_t z) {
+    DebugPage.buttons[counter]->onHoverEnter = [](uint16_t x, uint16_t y, uint8_t z) {
     };
-    DebugPage.buttons[counter].onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {
+    DebugPage.buttons[counter]->onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {
     };
-    DebugPage.buttons[counter].onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
+    DebugPage.buttons[counter]->onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
         Driver::miclone_start(DebugPage.flowRateValue, DebugPage.timerValue);
     };
     ++counter;
     
-    new (DebugPage.buttons + counter) Button(drawingWrapper, "STOP", 360, 120, 100, 100);
-    DebugPage.buttons[counter].setTextColor(CMXG_WHITE);
-    DebugPage.buttons[counter].setButtonColor(CMXG_RED);
-        DebugPage.buttons[counter].onPress = [](uint16_t x, uint16_t y, uint8_t z) {
+    DebugPage.buttons[counter] = new Button(drawingWrapper, "STOP", 360, 120, 100, 100);
+    DebugPage.buttons[counter]->setTextColor(CMXG_WHITE);
+    DebugPage.buttons[counter]->setButtonColor(CMXG_RED);
+        DebugPage.buttons[counter]->onPress = [](uint16_t x, uint16_t y, uint8_t z) {
     };
-    DebugPage.buttons[counter].onHoverEnter = [](uint16_t x, uint16_t y, uint8_t z) {
+    DebugPage.buttons[counter]->onHoverEnter = [](uint16_t x, uint16_t y, uint8_t z) {
     };
-    DebugPage.buttons[counter].onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {
+    DebugPage.buttons[counter]->onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {
     };
-    DebugPage.buttons[counter].onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
+    DebugPage.buttons[counter]->onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
         Driver::miclone_stop();
     };
     ++counter;
 
     // new (DebugPage.buttons + counter) Button(drawingWrapper, "CALIBRATE", 360, 230, 100, 50);
-    new (DebugPage.buttons + counter) Button(drawingWrapper, "Initialize", 360, 230, 100, 50);
-    DebugPage.buttons[counter].setTextColor(CMXG_BLACK);
-    DebugPage.buttons[counter].setButtonColor(CMXG_CYAN);
-        DebugPage.buttons[counter].onPress = [](uint16_t x, uint16_t y, uint8_t z) {
+    DebugPage.buttons[counter] = new Button(drawingWrapper, "Initialize", 360, 230, 100, 50);
+    DebugPage.buttons[counter]->setTextColor(CMXG_BLACK);
+    DebugPage.buttons[counter]->setButtonColor(CMXG_CYAN);
+        DebugPage.buttons[counter]->onPress = [](uint16_t x, uint16_t y, uint8_t z) {
     };
-    DebugPage.buttons[counter].onHoverEnter = [](uint16_t x, uint16_t y, uint8_t z) {
+    DebugPage.buttons[counter]->onHoverEnter = [](uint16_t x, uint16_t y, uint8_t z) {
     };
-    DebugPage.buttons[counter].onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {
+    DebugPage.buttons[counter]->onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {
     };
-    DebugPage.buttons[counter].onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
+    DebugPage.buttons[counter]->onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
         PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *) 0);
     };
     ++counter;
@@ -167,7 +168,7 @@ void _Debug::onLoad(void *, void *args) {
     
     drawingWrapper.fillScreen(CMXG_BL_DATUM);
     drawingWrapper.setTextSize(1);
-    for (size_t i = 0; i < DebugPage.buttonsSize; ++i) DebugPage.buttons[i].draw();
+    for (size_t i = 0; i < DEBUG_NUM_BUTTONS; ++i) DebugPage.buttons[i]->draw();
     DebugPage.flowRate->draw();
     DebugPage.timerComponent->draw();
     // DebugPage.timerComponent->draw(); // todo enable timer component
@@ -199,8 +200,8 @@ void _Debug::ts_onPress()
     Calibration.translateFromRaw(x, y);
     if (DebugPage.buttons) {
 
-        for (size_t i = 0; i < DebugPage.buttonsSize; ++i) {
-            DebugPage.buttons[i].performAction(x, y, 0, true);
+        for (size_t i = 0; i < DEBUG_NUM_BUTTONS; ++i) {
+            DebugPage.buttons[i]->performAction(x, y, 0, true);
         }
     }
     if (DebugPage.flowRate) DebugPage.flowRate->performAction(x, y, 0, true);
@@ -217,8 +218,8 @@ void _Debug::ts_onRelease()
     drawingWrapper.setTextSize(1);
     if (DebugPage.buttons) {
 
-        for (size_t i = 0; i < DebugPage.buttonsSize; ++i) {
-            DebugPage.buttons[i].performAction(x, y, 0, false);     // todo fix this!!
+        for (size_t i = 0; i < DEBUG_NUM_BUTTONS; ++i) {
+            DebugPage.buttons[i]->performAction(x, y, 0, false);     // todo fix this!!
         }
     }
 
@@ -233,14 +234,10 @@ void _Debug::onExit()
     Driver::touchscreen_register_on_press(nullptr);
     Driver::touchscreen_register_on_release(nullptr);
     
-    if (DebugPage.buttons) {
+    for (Button *&button : DebugPage.buttons) {
 
-        for (size_t i = 0; i < DebugPage.buttonsSize; ++i) {
-            // manually call destructor on allocated memory
-            DebugPage.buttons[i].~Button();
-        }
-        free(DebugPage.buttons);
-        DebugPage.buttons = nullptr;
+        delete button;
+        button = nullptr;
     }
 
     delete DebugPage.flowRate;

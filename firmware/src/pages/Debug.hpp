@@ -7,12 +7,13 @@
 #define DEBUG_MAX_FLOW_RATE 1000
 #define DEBUG_MIN_FLOW_RATE   50
 
+#define DEBUG_NUM_BUTTONS      3
+
 class _Debug
 {
 private:
     void *pageArgs;
-    Button *buttons;
-    size_t buttonsSize = 3;
+    Button *buttons[DEBUG_NUM_BUTTONS];
     NumberFieldComponent *flowRate;
     NumberFieldComponent *timerComponent;
     static int32_t flowRateValue;
