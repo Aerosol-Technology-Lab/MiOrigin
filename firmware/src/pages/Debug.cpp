@@ -81,24 +81,30 @@ void _Debug::onLoad(void *, void *args) {
     const char *returnPageNameFlowRate = "debug-page";
     DebugPage.flowRate->setReturnPageName(returnPageNameFlowRate, strlen(returnPageNameFlowRate));
     DebugPage.flowRate->setProperty(
-        [](void *_props, int8_t c) -> void {
+        [](void *_props, int8_t c) -> void
+        {
 
             NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t*>(_props);
             int32_t &flowRate = **reinterpret_cast<int32_t**>(props.value);     // why does this happen???
 
-            if (c < 0) {
+            if (c < 0)
+            {
                 flowRate /= 10;
             }
-            else if (c < 10) {
+            else if (c < 10)
+            {
                 flowRate = flowRate * 10 + c;
             }
-            else {
+            else
+            {
                 // do nothing
             }
 
-            if (flowRate > 999999 || flowRate < 0) flowRate = 999999;
+            if (flowRate > 999999 || flowRate < 0)
+                flowRate = 999999;
         },
-        [](void *_props, char *buffer, size_t size) -> void {
+        [](void *_props, char *buffer, size_t size) -> void
+        {
 
             NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t*>(_props);
             int32_t &flowRate = *reinterpret_cast<int32_t*>(props.value);
@@ -107,9 +113,15 @@ void _Debug::onLoad(void *, void *args) {
             sprintf(numBuff, "%d", flowRate);
 
             strncpy(buffer, numBuff, std::min(sizeof(numBuff), size));
+        },
+        [](void *_props) -> void {
+            
+            NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t *>(_props);
+            int32_t &flowRate = **reinterpret_cast<int32_t**>(props.value);     // why does this happen???
+            flowRate = 0;
         }
         );
-    
+
     DebugPage.timerMinComponent = new NumberFieldComponent(drawingWrapper, &(DebugPage.timerMinValue), 20, 160, 250, 40, "Timer", "min");
     const char *returnPageNameTimer = "debug-page\0";
     DebugPage.timerMinComponent->setReturnPageName(returnPageNameTimer, strlen(returnPageNameTimer));
@@ -141,6 +153,12 @@ void _Debug::onLoad(void *, void *args) {
             sprintf(numBuff, "%d", timer);
 
             strncpy(buffer, numBuff, std::min(sizeof(numBuff), size));
+        },
+        [](void *_props) -> void {
+            
+            NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t *>(_props);
+            int32_t &timer = **reinterpret_cast<int32_t**>(props.value);     // why does this happen???
+            timer = 0;
         }
         );
 
@@ -176,6 +194,12 @@ void _Debug::onLoad(void *, void *args) {
             sprintf(numBuff, "%d", timer);
 
             strncpy(buffer, numBuff, std::min(sizeof(numBuff), size));
+        },
+        [](void *_props) -> void {
+            
+            NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t *>(_props);
+            int32_t &timer = **reinterpret_cast<int32_t**>(props.value);     // why does this happen???
+            timer = 0;
         }
         );
 

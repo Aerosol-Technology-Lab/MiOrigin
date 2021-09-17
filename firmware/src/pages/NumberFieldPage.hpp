@@ -13,7 +13,7 @@ private:
     NumberFieldDefs::Props_t *props;
 
     const size_t numButtons = 12;
-    Button *buttons[12] = { 0 };
+    Button *buttons[13] = { 0 };
 
 public:
     _NumberFieldPage();

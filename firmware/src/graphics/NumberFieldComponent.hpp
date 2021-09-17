@@ -20,10 +20,10 @@ private:
     char returnPageName[PAGE_NAME_SIZE] = { 0 };
     
     NumberFieldDefs::ChangeValue_f changeValue;
-    // void (*changeValue)(char c);
+
     NumberFieldDefs::GetValue_f getValue;
-    // void (*getValue)(char *buffer, size_t size);
-    
+
+    NumberFieldDefs::ClearValue_f clearValue;
     
 public:
     static Page_t page;
@@ -38,7 +38,7 @@ public:
                          const char *postfix=""
                          );
     
-    void setProperty(NumberFieldDefs::ChangeValue_f changeValue, NumberFieldDefs::GetValue_f getValue);
+    void setProperty(NumberFieldDefs::ChangeValue_f changeValue, NumberFieldDefs::GetValue_f getValue, NumberFieldDefs::ClearValue_f clearValue=nullptr);
     
     void setReturnPageName(const char *buffer, size_t size);
     

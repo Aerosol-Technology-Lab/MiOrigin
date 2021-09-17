@@ -27,10 +27,11 @@ NumberFieldComponent::NumberFieldComponent(DrawingWrapper &drw,
     strncpy(this->label, label, GRAPHICS_NUMBERFIELDCOMPONENT_LABEL_SIZE - 1);
 }
 
-void NumberFieldComponent::setProperty(NumberFieldDefs::ChangeValue_f changeValue, NumberFieldDefs::GetValue_f getValue)
+void NumberFieldComponent::setProperty(NumberFieldDefs::ChangeValue_f changeValue, NumberFieldDefs::GetValue_f getValue, NumberFieldDefs::ClearValue_f clearValue)
 {
-    this->changeValue = changeValue;;
+    this->changeValue = changeValue;
     this->getValue = getValue;
+    this->clearValue = clearValue;
 }
 
 void NumberFieldComponent::setReturnPageName(const char *name, size_t size)
@@ -112,6 +113,7 @@ void NumberFieldComponent::setPropsFromCurrent(NumberFieldDefs::Props_t &props)
     props.value = value;
     props.changeValue = changeValue;
     props.getValue = getValue;
+    props.clearValue = clearValue;
 }
 
 Page_t NumberFieldComponent::page;

@@ -11,6 +11,7 @@ namespace NumberFieldDefs
 {
     typedef void (*ChangeValue_f)(void *props, int8_t c);
     typedef void (*GetValue_f)(void *props, char * buffer, size_t size);
+    typedef void (*ClearValue_f)(void *_props);
 
     typedef struct {
         void *value;
@@ -21,5 +22,6 @@ namespace NumberFieldDefs
 
         ChangeValue_f changeValue;
         GetValue_f getValue;
+        ClearValue_f clearValue;
     } Props_t;
 }

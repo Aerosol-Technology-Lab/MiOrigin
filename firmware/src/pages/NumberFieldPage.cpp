@@ -15,10 +15,13 @@ void _NumberFieldPage::draw()
 {
         
     drawValue();
-    for (size_t i = 0; i < sizeof(buttons) / sizeof(buttons[0]); ++i) {
-        Serial.printf("Drawing button %d\n", i);
+    // only draw keypad
+    for (size_t i = 0; i < sizeof(buttons) / sizeof(buttons[0]) - 1; ++i) {
         NumberFieldPage.buttons[i]->draw();
     }
+
+    // draw clear button if it exists
+    if (NumberFieldPage.buttons[12]) NumberFieldPage.buttons[12]->draw();
 }
 
 void _NumberFieldPage::onStart(void *_)
@@ -151,6 +154,26 @@ void _NumberFieldPage::onLoad(void *, void *args)
             };
         };
     }
+
+    // clear button
+    if (NumberFieldPage.props->clearValue) {
+        const char *buffer = "CLEAR";
+        NumberFieldPage.buttons[12] = new Button(drawingWrapper, buffer, 20, 130, 210, 80);
+        NumberFieldPage.buttons[12]->setButtonSize(2);
+        NumberFieldPage.buttons[12]->setTextColor(CMXG_WHITE);
+        NumberFieldPage.buttons[12]->setButtonColor(CMXG_RED);
+        NumberFieldPage.buttons[12]->onPress = [](uint16_t x, uint16_t y, uint8_t z) {            
+        };                                                                                      
+        NumberFieldPage.buttons[12]->onHoverEnter = [](uint16_t x, uint16_t y, uint8_t z) {     
+        };                                                                                      
+        NumberFieldPage.buttons[12]->onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {      
+        };                                                                                      
+        NumberFieldPage.buttons[12]->onRelease = [](uint16_t x, uint16_t y, uint8_t z) {        
+            NumberFieldPage.props->clearValue(&NumberFieldPage.props);
+            NumberFieldPage.draw();
+        };
+    }
+    
     Serial.println("-> Stage 5");
 
     draw();
@@ -199,7 +222,7 @@ void _NumberFieldPage::ts_onPress()
     uint16_t x, y;
     Calibration.translateFromRaw(x, y);
 
-        for (size_t i = 0; i < NumberFieldPage.numButtons; ++i) {
+        for (size_t i = 0; i < sizeof(NumberFieldPage.buttons) / sizeof(NumberFieldPage.buttons[0]); ++i) {
         NumberFieldPage.buttons[i]->performAction(x, y, 0, true);
         NumberFieldPage.buttons[i]->draw();
     }
@@ -210,7 +233,7 @@ void _NumberFieldPage::ts_onRelease()
     uint16_t x, y;
     Calibration.translateFromRaw(x, y);
 
-    for (size_t i = 0; i < NumberFieldPage.numButtons; ++i) {
+    for (size_t i = 0; i < sizeof(NumberFieldPage.buttons) / sizeof(NumberFieldPage.buttons[0]); ++i) {
         if (NumberFieldPage.buttons[i]) {
 
             NumberFieldPage.buttons[i]->performAction(x, y, 0, false);
