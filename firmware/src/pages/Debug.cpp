@@ -42,7 +42,8 @@ void _Debug::onLoad(void *, void *args) {
     DebugPage.buttons[counter]->onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {
     };
     DebugPage.buttons[counter]->onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
-        Driver::miclone_start(DebugPage.flowRateValue, DebugPage.timerValue);
+        uint32_t time = (DebugPage.timerMinValue * 60 + DebugPage.timerSecValue) * 1000;
+        Driver::miclone_start(DebugPage.flowRateValue, DebugPage.timerMinValue);
     };
     ++counter;
     
@@ -109,48 +110,70 @@ void _Debug::onLoad(void *, void *args) {
         }
         );
     
-    DebugPage.timerComponent = new NumberFieldComponent(drawingWrapper, &(DebugPage.timerValue), 20, 160, 250, 40, "Timer", "min:sec");
+    DebugPage.timerMinComponent = new NumberFieldComponent(drawingWrapper, &(DebugPage.timerMinValue), 20, 160, 250, 40, "Timer", "min");
     const char *returnPageNameTimer = "debug-page\0";
-    DebugPage.timerComponent->setReturnPageName(returnPageNameTimer, strlen(returnPageNameTimer));
-    DebugPage.timerComponent->setProperty(
+    DebugPage.timerMinComponent->setReturnPageName(returnPageNameTimer, strlen(returnPageNameTimer));
+    DebugPage.timerMinComponent->setProperty(
         [](void *_props, int8_t c) -> void {
 
             NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t*>(_props);
             int32_t &timer = **reinterpret_cast<int32_t**>(props.value);     // why does this happen???
 
-            char buffer[12];
-            convert_MS2HMSF_format(buffer, sizeof(buffer) / sizeof(buffer[0]), timer);
-
-            // shift everything to the right, hard coded for performance
             if (c < 0) {
-
-                buffer[7] = buffer[6];
-                buffer[6] = buffer[4];
-                buffer[4] = buffer[3];
-                buffer[3] = buffer[1];
-                buffer[1] = buffer[0];
-                buffer[0] = '0';
+                timer /= 10;
             }
-            else if (c <= 9) {
-
-                buffer[0] = buffer[1];
-                buffer[1] = buffer[3];
-                buffer[3] = buffer[4];
-                buffer[4] = buffer[6];
-                buffer[6] = buffer[7];
-                buffer[7] = '0' + c;
+            else if (c < 10) {
+                timer = timer * 10 + c;
+            }
+            else {
+                // do nothing
             }
 
-            timer = atoi(buffer) * 60 * 60 * 1000 + atoi(buffer + 3) * 60 * 1000 + atoi(buffer + 6) * 1000;
+            if (timer > 999999 || timer < 0) timer = 999999;
         },
         [](void *_props, char *buffer, size_t size) -> void {
 
             NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t*>(_props);
             int32_t &timer = *reinterpret_cast<int32_t*>(props.value);
 
+
             char numBuff[16];
-            // sprintf(numBuff, "%d", timer);
-            convert_MS2HMSF_format(numBuff, sizeof(numBuff) / sizeof(numBuff[0]), timer);
+            sprintf(numBuff, "%d", timer);
+
+            strncpy(buffer, numBuff, std::min(sizeof(numBuff), size));
+        }
+        );
+
+    DebugPage.timerSecComponent = new NumberFieldComponent(drawingWrapper, &(DebugPage.timerSecValue), 20, 210, 250, 40, "Timer", "sec");
+    DebugPage.timerSecComponent->setReturnPageName(returnPageNameTimer, strlen(returnPageNameTimer));
+    DebugPage.timerSecComponent->setProperty(
+        [](void *_props, int8_t c) -> void {
+
+            NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t*>(_props);
+            int32_t &timer = **reinterpret_cast<int32_t**>(props.value);     // why does this happen???
+
+            if (c < 0) {
+                timer /= 10;
+            }
+            else if (c < 10) {
+                timer = timer * 10 + c;
+            }
+            else {
+                // do nothing
+            }
+
+            // bounds check
+            if (timer < 0)       timer = 0;
+            else if (timer > 60) timer = 60;
+        },
+        [](void *_props, char *buffer, size_t size) -> void {
+
+            NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t*>(_props);
+            int32_t &timer = *reinterpret_cast<int32_t*>(props.value);
+
+
+            char numBuff[16];
+            sprintf(numBuff, "%d", timer);
 
             strncpy(buffer, numBuff, std::min(sizeof(numBuff), size));
         }
@@ -170,8 +193,8 @@ void _Debug::onLoad(void *, void *args) {
     drawingWrapper.setTextSize(1);
     for (size_t i = 0; i < DEBUG_NUM_BUTTONS; ++i) DebugPage.buttons[i]->draw();
     DebugPage.flowRate->draw();
-    DebugPage.timerComponent->draw();
-    // DebugPage.timerComponent->draw(); // todo enable timer component
+    DebugPage.timerMinComponent->draw();
+    DebugPage.timerSecComponent->draw();
 
 
     Driver::touchscreen_register_on_press(DebugPage.ts_onPress);
@@ -205,7 +228,8 @@ void _Debug::ts_onPress()
         }
     }
     if (DebugPage.flowRate) DebugPage.flowRate->performAction(x, y, 0, true);
-    if (DebugPage.timerComponent) DebugPage.timerComponent->performAction(x, y, 0, false);
+    if (DebugPage.timerMinComponent) DebugPage.timerMinComponent->performAction(x, y, 0, false);
+    if (DebugPage.timerSecComponent) DebugPage.timerSecComponent->performAction(x, y, 0, false);
     
     dev_println("DEBUG on press handler");
 }
@@ -224,7 +248,8 @@ void _Debug::ts_onRelease()
     }
 
     if (DebugPage.flowRate) DebugPage.flowRate->performAction(x, y, 0, false);
-    if (DebugPage.timerComponent) DebugPage.timerComponent->performAction(x, y, 0, false);
+    if (DebugPage.timerSecComponent) DebugPage.timerSecComponent->performAction(x, y, 0, false);
+    if (DebugPage.timerMinComponent) DebugPage.timerMinComponent->performAction(x, y, 0, false);
     
     dev_println("DEBUG on release handler");
 }
@@ -240,15 +265,26 @@ void _Debug::onExit()
         button = nullptr;
     }
 
-    delete DebugPage.flowRate;
-    DebugPage.flowRate = nullptr;
+    if (DebugPage.flowRate) {
 
-    delete DebugPage.timerComponent;
-    DebugPage.timerComponent = nullptr;
+        delete DebugPage.flowRate;
+        DebugPage.flowRate = nullptr;
+    }
+
+    if (DebugPage.timerMinComponent) {
+        delete DebugPage.timerMinComponent;
+        DebugPage.timerMinComponent = nullptr;
+    }
+
+    if (DebugPage.timerSecComponent) {
+        delete DebugPage.timerSecComponent;
+        DebugPage.timerSecComponent = nullptr;
+    }
 }
 
 int32_t _Debug::flowRateValue = 300;
-int32_t _Debug::timerValue = 15 * 60 * 1000;
+int32_t _Debug::timerMinValue = 15 * 60 * 1000;
+int32_t _Debug::timerSecValue = 0;
 
 _Debug DebugPage;
 

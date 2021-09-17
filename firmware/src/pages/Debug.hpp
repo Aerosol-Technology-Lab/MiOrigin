@@ -15,9 +15,11 @@ private:
     void *pageArgs;
     Button *buttons[DEBUG_NUM_BUTTONS];
     NumberFieldComponent *flowRate;
-    NumberFieldComponent *timerComponent;
+    NumberFieldComponent *timerMinComponent;
+    NumberFieldComponent *timerSecComponent;
     static int32_t flowRateValue;
-    static int32_t timerValue;
+    static int32_t timerMinValue;
+    static int32_t timerSecValue;
 
 public:
     _Debug();
