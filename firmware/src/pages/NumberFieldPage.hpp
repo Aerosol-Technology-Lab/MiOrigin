@@ -12,12 +12,13 @@ class _NumberFieldPage
 private:
     NumberFieldDefs::Props_t *props;
 
-    size_t numButtons = 13;
-    Button *buttons;
+    const size_t numButtons = 12;
+    Button *buttons[12] = { 0 };
 
 public:
     _NumberFieldPage();
 
+    static void draw();
 
     static void onStart(void *);
     static void onLoad(void *, void *);
@@ -29,6 +30,10 @@ public:
     static void ts_onPress();
     static void ts_onRelease();
     // static void generatePage(Page_t &page)
+
+
+private:
+    static void drawValue();
 };
 
 extern _NumberFieldPage NumberFieldPage;

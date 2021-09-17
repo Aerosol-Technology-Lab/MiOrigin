@@ -15,9 +15,9 @@ class NumberFieldComponent : public BoundedArea
 private:
     DrawingWrapper &drw;
     void *value;
-    char label[GRAPHICS_NUMBERFIELDCOMPONENT_LABEL_SIZE];
-    char postfix[GRAPHICS_NUMBERFIELDCOMPONENT_POSTFIX_SIZE];
-    char returnPageName[PAGE_NAME_SIZE];
+    char label[GRAPHICS_NUMBERFIELDCOMPONENT_LABEL_SIZE]  = { 0 };
+    char postfix[GRAPHICS_NUMBERFIELDCOMPONENT_POSTFIX_SIZE]  = { 0 };
+    char returnPageName[PAGE_NAME_SIZE] = { 0 };
     
     NumberFieldDefs::ChangeValue_f changeValue;
     // void (*changeValue)(char c);
@@ -27,9 +27,9 @@ private:
     
 public:
     static Page_t page;
-    
+
     NumberFieldComponent(DrawingWrapper &drw,
-                         int32_t *value, 
+                         void *value, 
                          uint16_t x=0, 
                          uint16_t y=0, 
                          uint16_t width=0, 
@@ -39,6 +39,8 @@ public:
                          );
     
     void setProperty(NumberFieldDefs::ChangeValue_f changeValue, NumberFieldDefs::GetValue_f getValue);
+    
+    void setReturnPageName(const char *buffer, size_t size);
     
     void draw();
 

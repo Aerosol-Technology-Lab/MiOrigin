@@ -26,15 +26,21 @@ void Button::setButtonColor(Color buttonColor)
     this->buttonColor = buttonColor;
 }
 
+void Button::setButtonSize(uint8_t size)
+{
+    this->buttonSize = size;
+}
+
 void Button::draw()
 {
     uint16_t xmid = (2 * x + width)  / 2;
     uint16_t ymid = (2 * y + height) / 2;
     drw.drawRect(x, y, width, height, radius, buttonColor);
+    drw.setTextSize(buttonSize);
     drw.setTextDatum(CMXG_MC_DATUM);
-    drw.setCursor(xmid, ymid, font);
+    drw.setTextFont(CMXG_FONT_PRIMARY);
     drw.setTextColor(textColor, textColor);
-    drw.print(name);
+    drw.drawString(name, xmid, ymid);
 }
 
 void Button::performAction(uint16_t x, uint16_t y, uint8_t z,bool pressed)

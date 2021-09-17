@@ -9,7 +9,7 @@
 
 namespace NumberFieldDefs
 {
-    typedef void (*ChangeValue_f)(void *props, uint8_t c);
+    typedef void (*ChangeValue_f)(void *props, int8_t c);
     typedef void (*GetValue_f)(void *props, char * buffer, size_t size);
 
     typedef struct {

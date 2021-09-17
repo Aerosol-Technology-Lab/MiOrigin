@@ -828,6 +828,15 @@ void setup()
     drawingWrapper.fillScreen = [](Color color) {
         tft.fillScreen(color);
     };
+    drawingWrapper.setTextSize = [](uint8_t size) {
+        tft.setTextSize(size);
+    };
+    drawingWrapper.drawString = [](const char *str, uint32_t x, uint32_t y) {
+        tft.drawString(str, x, y);
+    };
+    drawingWrapper.setTextFont = [](uint8_t font) {
+        tft.setTextFont(font);
+    };
 
     Page_t tmpPage;
     
@@ -848,7 +857,6 @@ void setup()
 
     
     PageSystem_findSwitch(&devicePageManager, DEBUG_PAGE_NAME, (void *)0);
-
 
     #endif
 }

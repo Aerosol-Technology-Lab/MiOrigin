@@ -56,4 +56,8 @@ using Font_t = uint8_t;
 #define CMXG_C_BASELINE 10 // Centre character baseline
 #define CMXG_R_BASELINE 11 // Right character baseline
 
+#define CMXG_FONT_PRIMARY       2
+#define CMXG_FONT_SECONDARY     1
+#define CMXG_FONT_DIGITAL       7
+
 #endif
