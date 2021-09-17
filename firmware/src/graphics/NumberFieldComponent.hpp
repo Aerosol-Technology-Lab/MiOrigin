@@ -15,9 +15,9 @@ class NumberFieldComponent : public BoundedArea
 private:
     DrawingWrapper &drw;
     void *value;
-    char label[GRAPHICS_NUMBERFIELDCOMPONENT_LABEL_SIZE];
-    char postfix[GRAPHICS_NUMBERFIELDCOMPONENT_POSTFIX_SIZE];
-    char returnPageName[PAGE_NAME_SIZE];
+    char label[GRAPHICS_NUMBERFIELDCOMPONENT_LABEL_SIZE]  = { 0 };
+    char postfix[GRAPHICS_NUMBERFIELDCOMPONENT_POSTFIX_SIZE]  = { 0 };
+    char returnPageName[PAGE_NAME_SIZE] = { 0 };
     
     NumberFieldDefs::ChangeValue_f changeValue;
     // void (*changeValue)(char c);

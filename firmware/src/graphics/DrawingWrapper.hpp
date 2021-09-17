@@ -44,5 +44,7 @@ struct DrawingWrapper
      */
     void (*setTextColor)(Color foreground, Color background);
 
+    void (*setTextFont)(uint8_t font);
+
     void (*fillScreen)(Color color);
 };

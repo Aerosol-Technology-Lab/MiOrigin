@@ -38,7 +38,7 @@ void Button::draw()
     drw.drawRect(x, y, width, height, radius, buttonColor);
     drw.setTextSize(buttonSize);
     drw.setTextDatum(CMXG_MC_DATUM);
-    // drw.setCursor(xmid, ymid, font);
+    drw.setTextFont(CMXG_FONT_PRIMARY);
     drw.setTextColor(textColor, textColor);
     drw.drawString(name, xmid, ymid);
 }

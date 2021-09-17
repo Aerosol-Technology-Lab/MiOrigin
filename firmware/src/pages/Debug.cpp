@@ -76,8 +76,8 @@ void _Debug::onLoad(void *, void *args) {
 
     /* Initialize Flow Rate Timer */
     DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &(DebugPage.flowRateValue), 20, 80, 250, 40, "Flow Rate", "ul/min");
-    const char *returnPageName = "debug-page";
-    DebugPage.flowRate->setReturnPageName(returnPageName, strlen(returnPageName));
+    const char *returnPageNameFlowRate = "debug-page";
+    DebugPage.flowRate->setReturnPageName(returnPageNameFlowRate, strlen(returnPageNameFlowRate));
     DebugPage.flowRate->setProperty(
         [](void *_props, int8_t c) -> void {
 
@@ -93,6 +93,8 @@ void _Debug::onLoad(void *, void *args) {
             else {
                 // do nothing
             }
+
+            if (flowRate > 999999 || flowRate < 0) flowRate = 999999;
         },
         [](void *_props, char *buffer, size_t size) -> void {
 
@@ -106,23 +108,39 @@ void _Debug::onLoad(void *, void *args) {
         }
         );
     
-    DebugPage.timerComponent = new NumberFieldComponent(drawingWrapper, &DebugPage.timerValue, 20, 160, 250, 40, "Timer", "min:sec");
-    DebugPage.timerComponent->setReturnPageName(returnPageName, strlen(returnPageName));
+    DebugPage.timerComponent = new NumberFieldComponent(drawingWrapper, &(DebugPage.timerValue), 20, 160, 250, 40, "Timer", "min:sec");
+    const char *returnPageNameTimer = "debug-page\0";
+    DebugPage.timerComponent->setReturnPageName(returnPageNameTimer, strlen(returnPageNameTimer));
     DebugPage.timerComponent->setProperty(
         [](void *_props, int8_t c) -> void {
 
             NumberFieldDefs::Props_t &props = *reinterpret_cast<NumberFieldDefs::Props_t*>(_props);
             int32_t &timer = **reinterpret_cast<int32_t**>(props.value);     // why does this happen???
 
+            char buffer[12];
+            convert_MS2HMSF_format(buffer, sizeof(buffer) / sizeof(buffer[0]), timer);
+
+            // shift everything to the right, hard coded for performance
             if (c < 0) {
-                timer /= 10;
+
+                buffer[7] = buffer[6];
+                buffer[6] = buffer[4];
+                buffer[4] = buffer[3];
+                buffer[3] = buffer[1];
+                buffer[1] = buffer[0];
+                buffer[0] = '0';
             }
-            else if (c < 10) {
-                timer = timer * 10 + c;
+            else if (c <= 9) {
+
+                buffer[0] = buffer[1];
+                buffer[1] = buffer[3];
+                buffer[3] = buffer[4];
+                buffer[4] = buffer[6];
+                buffer[6] = buffer[7];
+                buffer[7] = '0' + c;
             }
-            else {
-                // do nothing
-            }
+
+            timer = atoi(buffer) * 60 * 60 * 1000 + atoi(buffer + 3) * 60 * 1000 + atoi(buffer + 6) * 1000;
         },
         [](void *_props, char *buffer, size_t size) -> void {
 
@@ -130,7 +148,8 @@ void _Debug::onLoad(void *, void *args) {
             int32_t &timer = *reinterpret_cast<int32_t*>(props.value);
 
             char numBuff[16];
-            sprintf(numBuff, "%d", timer);
+            // sprintf(numBuff, "%d", timer);
+            convert_MS2HMSF_format(numBuff, sizeof(numBuff) / sizeof(numBuff[0]), timer);
 
             strncpy(buffer, numBuff, std::min(sizeof(numBuff), size));
         }

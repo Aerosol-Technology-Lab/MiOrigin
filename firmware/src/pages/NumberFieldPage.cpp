@@ -142,6 +142,10 @@ void _NumberFieldPage::onLoad(void *, void *args)
             Driver::postDigitizerArgs[2] = NumberFieldPage.props->returnPageArgs;
             Driver::postDigitizerAction = [](void **args) {
                 
+                char buffer[64] = { 0 };
+                strncpy(buffer, reinterpret_cast<char *>(args[1]), sizeof(buffer) - 1);
+                Serial.printf("The page name switch is: %s", buffer);
+                
                 PageSystem_findSwitch(reinterpret_cast<PageSystem_t *>(args[0]), reinterpret_cast<char *>(args[1]), args[2]);
                 delete[] args;
             };

@@ -4,12 +4,13 @@ bool convert_MS2HMSF_format(char *buffer, size_t size, uint32_t time)
 {
     if (size < 9) return false;
 
+    time /= 1000;
     uint8_t sec = time % 60;
     time /= 60;
     uint8_t min = time % 60;
     time /= 60;
     uint8_t hr  = time % 60;
-    sprintf(buffer, "%d:%d:%d", hr, min, sec);
+    sprintf(buffer, "%02d:%02d:%02d", hr, min, sec);
     
     return true;
 }
