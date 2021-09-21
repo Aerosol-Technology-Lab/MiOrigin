@@ -493,6 +493,20 @@ void firmwareUpdateCheckerTask(void *params)
 }
 #endif
 
+void writeToMiCloneLog(const char *str, size_t lineno=0)
+{
+    File f = SD.open("miclone.log", "w+");
+    f.seek(f.size());
+
+    if (lineno) {
+
+        const char separator[] =": ";
+        f.write(lineno);
+        f.write((const uint8_t *)separator, sizeof(separator));
+    }
+    f.write((const uint8_t *)str, strlen(str));
+    f.close();
+}
 
 void setup()
 {
@@ -769,8 +783,9 @@ void setup()
 
     tft.println("=== DONE! Everything initialized ===");
 
-    File f = SD.open(MICLONE_LOG_FILENAME, "w");
-    f.println("\n ------ Session Started -----");
+    File f = SD.open(MICLONE_LOG_FILENAME, "w+");
+    f.seek(f.size());
+    f.write((const uint8_t *)"\n ------ Session Started -----", 33);
     f.close();
 
     // encryption
@@ -800,6 +815,8 @@ void setup()
     Serial.println((char *)encrypted);
     Serial.print("Decrypted string: ");
     Serial.print((const char *)decrypted);
+
+    writeToMiCloneLog("Encryption Algorithms done\n");
 
     #ifndef DISABLE_PAGE_SYSTEM
 
@@ -839,6 +856,8 @@ void setup()
     };
 
     Page_t tmpPage;
+    
+    writeToMiCloneLog("After setting drawing wrapper.", __LINE__);
     
     PageSystem_init(&devicePageManager);
     

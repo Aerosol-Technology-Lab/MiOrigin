@@ -4,10 +4,13 @@
 #include <FreeRTOS.h>
 #include "../config.h"
 
+#ifdef DEV_DEBUG
+#include "utils.h"
+#endif
+
 namespace Driver
 {
-    const char *MICLONE_FORMAT = "/1ZJ0J0J2M3000J6gV3000IP3000V%dOD3000GJ2M15000J0R\r\n";
-
+    const char *MICLONE_FORMAT  = "/1ZJ0J0J3M3000J7gV3000IP3000V%dOD3000GJ3M15000J0R\r\n";
     void MiCloneTask(void *args)
     {
         #ifdef SAFE_CODE
@@ -89,6 +92,10 @@ namespace Driver
     void miclone_send_start(uint16_t rate)
     {
         _micloneStream->printf(MICLONE_FORMAT, rate / 5);
+        #ifdef DEV_DEBUG
+        Serial.printf("Starting milone with rate %d and val %d", rate, rate/5);
+        Serial.printf(MICLONE_FORMAT, rate / 5);
+        #endif
     }
     
     void miclone_send_stop(uint8_t stopType)
