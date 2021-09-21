@@ -10,6 +10,7 @@
         "string.h": "c",
         "pagesystem.h": "c",
         "arduino.h": "c",
-        "utils.h": "c"
+        "utils.h": "c",
+        "sd.h": "c"
     }
 }
