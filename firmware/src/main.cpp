@@ -495,7 +495,7 @@ void firmwareUpdateCheckerTask(void *params)
 
 void writeToMiCloneLog(const char *str, size_t lineno=0)
 {
-    File f = SD.open("miclone.log", "w+");
+    File f = SD.open("/miclone.log", "w+");
     f.seek(f.size());
 
     if (lineno) {
