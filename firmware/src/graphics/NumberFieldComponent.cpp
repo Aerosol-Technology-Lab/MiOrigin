@@ -45,8 +45,6 @@ void NumberFieldComponent::draw()
     const int offset = 3;
     drw.drawRect(x, y, width, height, 0, CMXG_WHITE);
     drw.drawRect(x + offset, y + offset, width - 2 * offset, height - 2 * offset, 0, CMXG_BLACK);
-    drw.setCursor(x + offset, y + offset, 2);
-    drw.setTextColor(CMXG_WHITE, CMXG_WHITE);
     
     #ifdef SAFE_CODE
     assert(getValue && "Get Value is not initialized for this Nuberfield Component");
@@ -56,9 +54,14 @@ void NumberFieldComponent::draw()
     NumberFieldDefs::Props_t props;
     setPropsFromCurrent(props);
     getValue(&props, buffer, sizeof(buffer));
-    drw.print(buffer);
+    drw.setTextColor(CMXG_WHITE, CMXG_WHITE);
+    drw.setTextFont(CMXG_FONT_PRIMARY);
+    drw.setTextSize(2);
+    drw.setTextDatum(CMXG_CL_DATUM);
+    drw.drawString(buffer, x + offset + 4, y + height / 2);
 
     if (strnlen(label, GRAPHICS_NUMBERFIELDCOMPONENT_LABEL_SIZE)) {
+        drw.setTextSize(1);
         drw.setTextColor(CMXG_WHITE, CMXG_BLACK);
         drw.setCursor(x + 3, y + height, 2);
         drw.print(label);

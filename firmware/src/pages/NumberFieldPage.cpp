@@ -158,7 +158,7 @@ void _NumberFieldPage::onLoad(void *, void *args)
     // clear button
     if (NumberFieldPage.props->clearValue) {
         const char *buffer = "CLEAR";
-        NumberFieldPage.buttons[12] = new Button(drawingWrapper, buffer, 20, 130, 210, 80);
+        NumberFieldPage.buttons[12] = new Button(drawingWrapper, buffer, 20, 220, 210, 80);
         NumberFieldPage.buttons[12]->setButtonSize(2);
         NumberFieldPage.buttons[12]->setTextColor(CMXG_WHITE);
         NumberFieldPage.buttons[12]->setButtonColor(CMXG_RED);

@@ -33,7 +33,8 @@ void _Debug::onLoad(void *, void *args) {
 
     // placement new
     DebugPage.buttons[counter] = new Button(drawingWrapper, "START", 360, 10, 100, 100);
-    DebugPage.buttons[counter]->setTextColor(CMXG_WHITE);
+    DebugPage.buttons[counter]->setButtonSize(2);
+    DebugPage.buttons[counter]->setTextColor(CMXG_BLACK);
     DebugPage.buttons[counter]->setButtonColor(CMXG_GREEN);
     DebugPage.buttons[counter]->onPress = [](uint16_t x, uint16_t y, uint8_t z) {
     };
@@ -48,6 +49,7 @@ void _Debug::onLoad(void *, void *args) {
     ++counter;
     
     DebugPage.buttons[counter] = new Button(drawingWrapper, "STOP", 360, 120, 100, 100);
+    DebugPage.buttons[counter]->setButtonSize(2);
     DebugPage.buttons[counter]->setTextColor(CMXG_WHITE);
     DebugPage.buttons[counter]->setButtonColor(CMXG_RED);
         DebugPage.buttons[counter]->onPress = [](uint16_t x, uint16_t y, uint8_t z) {
@@ -72,12 +74,13 @@ void _Debug::onLoad(void *, void *args) {
     DebugPage.buttons[counter]->onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {
     };
     DebugPage.buttons[counter]->onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
-        PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *) 0);
+        // PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *) 0);
+        // todo: implement this
     };
     ++counter;
 
     /* Initialize Flow Rate Timer */
-    DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &(DebugPage.flowRateValue), 20, 80, 250, 40, "Flow Rate", "ul/min");
+    DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &(DebugPage.flowRateValue), 20, 80, 120, 40, "Flow Rate", "ul/min");
     const char *returnPageNameFlowRate = "debug-page";
     DebugPage.flowRate->setReturnPageName(returnPageNameFlowRate, strlen(returnPageNameFlowRate));
     DebugPage.flowRate->setProperty(
@@ -122,7 +125,7 @@ void _Debug::onLoad(void *, void *args) {
         }
         );
 
-    DebugPage.timerMinComponent = new NumberFieldComponent(drawingWrapper, &(DebugPage.timerMinValue), 20, 160, 250, 40, "Timer", "min");
+    DebugPage.timerMinComponent = new NumberFieldComponent(drawingWrapper, &(DebugPage.timerMinValue), 20, 160, 80, 40, "Minutes", "min");
     const char *returnPageNameTimer = "debug-page\0";
     DebugPage.timerMinComponent->setReturnPageName(returnPageNameTimer, strlen(returnPageNameTimer));
     DebugPage.timerMinComponent->setProperty(
@@ -162,7 +165,7 @@ void _Debug::onLoad(void *, void *args) {
         }
         );
 
-    DebugPage.timerSecComponent = new NumberFieldComponent(drawingWrapper, &(DebugPage.timerSecValue), 20, 210, 250, 40, "Timer", "sec");
+    DebugPage.timerSecComponent = new NumberFieldComponent(drawingWrapper, &(DebugPage.timerSecValue), 105, 160, 44, 40, "Sec", "sec");
     DebugPage.timerSecComponent->setReturnPageName(returnPageNameTimer, strlen(returnPageNameTimer));
     DebugPage.timerSecComponent->setProperty(
         [](void *_props, int8_t c) -> void {
@@ -204,6 +207,7 @@ void _Debug::onLoad(void *, void *args) {
         );
 
 
+    drawingWrapper.fillScreen(CMXG_BL_DATUM);
     Driver::tft.setCursor(10, 10);
     Driver::tft.setTextSize(2);
     Driver::tft.setTextColor(TFT_CYAN);
@@ -213,7 +217,6 @@ void _Debug::onLoad(void *, void *args) {
     Driver::tft.setTextColor(TFT_WHITE);
 
     
-    drawingWrapper.fillScreen(CMXG_BL_DATUM);
     drawingWrapper.setTextSize(1);
     for (size_t i = 0; i < DEBUG_NUM_BUTTONS; ++i) DebugPage.buttons[i]->draw();
     DebugPage.flowRate->draw();
@@ -252,8 +255,8 @@ void _Debug::ts_onPress()
         }
     }
     if (DebugPage.flowRate) DebugPage.flowRate->performAction(x, y, 0, true);
-    if (DebugPage.timerMinComponent) DebugPage.timerMinComponent->performAction(x, y, 0, false);
-    if (DebugPage.timerSecComponent) DebugPage.timerSecComponent->performAction(x, y, 0, false);
+    if (DebugPage.timerMinComponent) DebugPage.timerMinComponent->performAction(x, y, 0, true);
+    if (DebugPage.timerSecComponent) DebugPage.timerSecComponent->performAction(x, y, 0, true);
     
     dev_println("DEBUG on press handler");
 }
@@ -307,8 +310,8 @@ void _Debug::onExit()
 }
 
 int32_t _Debug::flowRateValue = 300;
-int32_t _Debug::timerMinValue = 15 * 60 * 1000;
-int32_t _Debug::timerSecValue = 0;
+int32_t _Debug::timerMinValue =  15;
+int32_t _Debug::timerSecValue =   0;
 
 _Debug DebugPage;
 
