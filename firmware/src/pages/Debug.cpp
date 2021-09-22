@@ -44,7 +44,7 @@ void _Debug::onLoad(void *, void *args) {
     };
     DebugPage.buttons[counter]->onRelease = [](uint16_t x, uint16_t y, uint8_t z) {
         uint32_t time = (DebugPage.timerMinValue * 60 + DebugPage.timerSecValue) * 1000;
-        Driver::miclone_start(DebugPage.flowRateValue, DebugPage.timerMinValue);
+        Driver::miclone_start(DebugPage.flowRateValue, time);
     };
     ++counter;
     
