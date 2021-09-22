@@ -1,4 +1,5 @@
 // if true, compile factory firmware instead
+#include "config.h"
 #ifdef FACTORY
 
 #ifndef FACTORY_CPP
