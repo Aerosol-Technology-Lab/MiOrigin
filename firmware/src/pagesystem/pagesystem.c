@@ -123,7 +123,7 @@ void PageSystem_execute_switch(PageSystem_t *pgt)
         
         cprintln("on load");
         pgt->activePage = pgt->stagedPage;
-        pgt->activePage->onLoad(pgt->defaultParams, pgt->stagedArgs);
+        pgt->activePage->onLoad(pgt->defaultParams, pgt->stagedArgs);   // error: the error seems to be caused by the shared pointer... problems switching
         pgt->stagedPage = NULL;
         pgt->stagedArgs = NULL;
 
