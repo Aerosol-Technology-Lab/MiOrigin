@@ -48,7 +48,7 @@ bool Driver::touchscreen_busy_check_interrupt(bool enable)
         xTaskCreate(
             Driver::busyInterruptFunction,
             "ts-interhnd",
-            5 * 1024,
+            7 * 1024,
             nullptr,
             1,
             &Touchscreen_cfg.busyInterruptHandler
@@ -115,8 +115,7 @@ void Driver::busyInterruptFunction(void *args)
         // Run post digitizer action once
         if (postDigitizerAction) {
             postDigitizerAction(postDigitizerArgs);
-            postDigitizerAction = nullptr;
-            postDigitizerArgs = nullptr;
+            delay(100);
         }
 
         // if (currentState != touched) {
@@ -170,6 +169,6 @@ namespace Driver
 {
     XPT2046_Touchscreen ts(TCH_CS);
 
-    void (*postDigitizerAction)(void **) = nullptr;
-    void **postDigitizerArgs = nullptr;
+    void (*postDigitizerAction)(void *) = nullptr;
+    void *postDigitizerArgs = nullptr;
 }

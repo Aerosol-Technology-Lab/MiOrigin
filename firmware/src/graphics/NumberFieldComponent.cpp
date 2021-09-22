@@ -37,7 +37,7 @@ void NumberFieldComponent::setProperty(NumberFieldDefs::ChangeValue_f changeValu
 void NumberFieldComponent::setReturnPageName(const char *name, size_t size)
 {
     strncpy(returnPageName, name, std::min(size, sizeof(returnPageName)));
-    Serial.printf("Page name is: %s and the returnPageName is: %d\n", name, returnPageName);
+    Serial.printf("Page name is: %s and the returnPageName is: %s\n", name, returnPageName);
 }
 
 void NumberFieldComponent::draw()
@@ -95,15 +95,17 @@ void NumberFieldComponent::onRelease(uint16_t x, uint16_t y, uint8_t z)
     // PageSystem_switch(NumberFieldPage::page);
     NumberFieldPage.generatePage(page);
 
-    Driver::postDigitizerArgs = reinterpret_cast<void **>(malloc(sizeof(void *) * 3));
-    Driver::postDigitizerArgs[0] = &devicePageManager;
-    Driver::postDigitizerArgs[1] = &page;
-    Driver::postDigitizerArgs[2] = props;
-    Driver::postDigitizerAction = [](void **args) {
+    PageSystem_switch(&devicePageManager, &page, props);
 
-        PageSystem_switch(reinterpret_cast<PageSystem_t *>(args[0]), reinterpret_cast<Page_t *>(args[1]), args[2]);
-        delete[] args;
-    };
+    // Driver::postDigitizerArgs = reinterpret_cast<void **>(malloc(sizeof(void *) * 3));
+    // Driver::postDigitizerArgs[0] = &devicePageManager;
+    // Driver::postDigitizerArgs[1] = &page;
+    // Driver::postDigitizerArgs[2] = props;
+    // Driver::postDigitizerAction = [](void **args) {
+
+    //     PageSystem_switch(reinterpret_cast<PageSystem_t *>(args[0]), reinterpret_cast<Page_t *>(args[1]), args[2]);
+    //     delete[] args;
+    // };
     
     Serial.println("-> Number Field Component Released!");
 }

@@ -4,6 +4,7 @@
 #include "AppPageConfig.hpp"
 #include "../driver/touchscreen.h"
 #include "../graphics/Button.hpp"
+#include "../config.h"
 #include <assert.h>
 
 _NumberFieldPage::_NumberFieldPage()
@@ -30,12 +31,15 @@ void _NumberFieldPage::onStart(void *_)
 void _NumberFieldPage::onLoad(void *, void *args)
 {
     #ifdef SAFE_CODE
-    assert(args != nullptr);
+    if (args == nullptr) {
+        assert(false && "Arguments passed to numberfield is null");
+    }
     #endif // SAFE_CODE
 
     Serial.println("-> Stage 1");
 
     NumberFieldPage.props = reinterpret_cast<NumberFieldDefs::Props_t *>(args);
+    Serial.printf("Name of return page is: %s", NumberFieldPage.props->returnPageName);
     drawingWrapper.fillScreen(CMXG_BLACK);
 
     // create buttons
@@ -138,20 +142,22 @@ void _NumberFieldPage::onLoad(void *, void *args)
         NumberFieldPage.buttons[11]->onHoverExit = [](uint16_t x, uint16_t y, uint8_t z) {      
         };                                                                                      
         NumberFieldPage.buttons[11]->onRelease = [](uint16_t x, uint16_t y, uint8_t z) {        
+            
+            PageSystem_findSwitch(&devicePageManager, NumberFieldPage.props->returnPageName, NumberFieldPage.props->returnPageArgs);
             // todo this might be problamatic because props is private
-            Driver::postDigitizerArgs = new void*[3];
-            Driver::postDigitizerArgs[0] = &devicePageManager;
-            Driver::postDigitizerArgs[1] = NumberFieldPage.props->returnPageName;
-            Driver::postDigitizerArgs[2] = NumberFieldPage.props->returnPageArgs;
-            Driver::postDigitizerAction = [](void **args) {
-                
-                char buffer[64] = { 0 };
-                strncpy(buffer, reinterpret_cast<char *>(args[1]), sizeof(buffer) - 1);
-                Serial.printf("The page name switch is: %s", buffer);
-                
-                PageSystem_findSwitch(reinterpret_cast<PageSystem_t *>(args[0]), reinterpret_cast<char *>(args[1]), args[2]);
-                delete[] args;
-            };
+            // Driver::postDigitizerArgs = new void*[3];
+            // Driver::postDigitizerArgs[0] = &devicePageManager;
+            // Driver::postDigitizerArgs[1] = NumberFieldPage.props->returnPageName;
+            // Driver::postDigitizerArgs[2] = NumberFieldPage.props->returnPageArgs;
+            // Driver::postDigitizerAction = [](void **args) {
+                // 
+                // char buffer[64] = { 0 };
+                // strncpy(buffer, reinterpret_cast<char *>(args[1]), sizeof(buffer) - 1);
+                // Serial.printf("The page name switch is: %s", buffer);
+                // 
+                // PageSystem_findSwitch(reinterpret_cast<PageSystem_t *>(args[0]), reinterpret_cast<char *>(args[1]), args[2]);
+                // delete[] args;
+            // };
         };
     }
 

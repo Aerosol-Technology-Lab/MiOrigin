@@ -81,7 +81,7 @@ void _Debug::onLoad(void *, void *args) {
 
     /* Initialize Flow Rate Timer */
     DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &(DebugPage.flowRateValue), 20, 80, 120, 40, "Flow Rate", "ul/min");
-    const char *returnPageNameFlowRate = "debug-page";
+    const char returnPageNameFlowRate[] = "debug-page";
     DebugPage.flowRate->setReturnPageName(returnPageNameFlowRate, strlen(returnPageNameFlowRate));
     DebugPage.flowRate->setProperty(
         [](void *_props, int8_t c) -> void
@@ -126,7 +126,7 @@ void _Debug::onLoad(void *, void *args) {
         );
 
     DebugPage.timerMinComponent = new NumberFieldComponent(drawingWrapper, &(DebugPage.timerMinValue), 20, 160, 80, 40, "Minutes", "min");
-    const char *returnPageNameTimer = "debug-page\0";
+    const char returnPageNameTimer[] = "debug-page";
     DebugPage.timerMinComponent->setReturnPageName(returnPageNameTimer, strlen(returnPageNameTimer));
     DebugPage.timerMinComponent->setProperty(
         [](void *_props, int8_t c) -> void {

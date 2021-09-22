@@ -36,6 +36,7 @@ extern void loop();
 #include "driver/touchscreen.h"
 #include "driver/lipo.h"
 #include "driver/miclone.hpp"
+#include "MutexRAII.hpp"
 #include "BLE_Callback_Coms.h"
 #include "BLE_UUID.h"
 #include "utils.h"
@@ -52,6 +53,9 @@ extern void loop();
 #include "pagesystem/pageoptions.h"
 #include "pages/Calibration.h"
 #include "pages/Debug.hpp"
+
+// tests
+#include "test/post_setup.hpp"
 
 // extract arduino core props
 #if CONFIG_FREERTOS_UNICORE
@@ -70,6 +74,8 @@ TaskHandle_t usbcHandler = nullptr;
 BLE_Callback_Coms callbackComs;
 
 PageSystem_t devicePageManager;
+
+SemaphoreHandle_t graphicsMutex;
 
 using Driver::tft;
 
@@ -547,6 +553,13 @@ void setup()
 
     tft.fillScreen(TFT_BLACK);
 
+    
+    // touchscreen post digitizer action
+    Driver::postDigitizerArgs = &devicePageManager;
+    Driver::postDigitizerAction = [](void *args) -> void {
+
+        PageSystem_execute_switch(&devicePageManager);
+    };
     Driver::touchscreen_init();
     Driver::touchscreen_begin(*hspi, 3);
     if (!Driver::touchscreen_busy_check_interrupt(true)) {
@@ -821,43 +834,57 @@ void setup()
     #ifndef DISABLE_PAGE_SYSTEM
 
     /* Initialize Graphics Wrapper for Page System */
+    graphicsMutex = xSemaphoreCreateMutex();
+    assert(graphicsMutex);
     drawingWrapper.drawPixel = [](uint16_t x, uint16_t y, Color color) {
+        MutexRAII m(graphicsMutex);
         tft.drawPixel(x, y, color);
     };
     drawingWrapper.drawRect = [](uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t radius, Color color) {
+        MutexRAII m(graphicsMutex);
         tft.fillRect(x, y, width, height, color);
     };
     drawingWrapper.print = [](const char *str) {
+        MutexRAII m(graphicsMutex);
         tft.print(str);
     };
     drawingWrapper.println = [](const char *str) {
+        MutexRAII m(graphicsMutex);
         tft.println(str);
     };
     drawingWrapper.setCursor = [](uint16_t x, uint16_t y, uint8_t font) {
+        MutexRAII m(graphicsMutex);
         tft.setCursor(x, y, font);
     };
     drawingWrapper.setTextDatum = [](uint8_t d) {
+        MutexRAII m(graphicsMutex);
         tft.setTextDatum(d);
     };
     drawingWrapper.setTextColor = [](Color foreground, Color background) {
+        MutexRAII m(graphicsMutex);
         tft.setTextColor(foreground, background);
     };
     drawingWrapper.fillScreen = [](Color color) {
+        MutexRAII m(graphicsMutex);
         tft.fillScreen(color);
     };
     drawingWrapper.setTextSize = [](uint8_t size) {
+        MutexRAII m(graphicsMutex);
         tft.setTextSize(size);
     };
     drawingWrapper.drawString = [](const char *str, uint32_t x, uint32_t y) {
+        MutexRAII m(graphicsMutex);
         tft.drawString(str, x, y);
     };
     drawingWrapper.setTextFont = [](uint8_t font) {
+        MutexRAII m(graphicsMutex);
         tft.setTextFont(font);
     };
 
     Page_t tmpPage;
     
     writeToMiCloneLog("After setting drawing wrapper.", __LINE__);
+
     
     PageSystem_init(&devicePageManager);
     
@@ -876,7 +903,14 @@ void setup()
 
     
     PageSystem_findSwitch(&devicePageManager, DEBUG_PAGE_NAME, (void *)0);
+    PageSystem_execute_switch(&devicePageManager);
 
+    #endif
+
+
+    // Post setup test
+    #ifdef POST_SETUP_TEST
+    postSetupTest();
     #endif
 }
 
