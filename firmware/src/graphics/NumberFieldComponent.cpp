@@ -36,8 +36,11 @@ void NumberFieldComponent::setProperty(NumberFieldDefs::ChangeValue_f changeValu
 
 void NumberFieldComponent::setReturnPageName(const char *name, size_t size)
 {
-    strncpy(returnPageName, name, std::min(size, sizeof(returnPageName)));
+    // error: fix this
+    strncpy(returnPageName, name, std::min(size, sizeof(returnPageName) - 1));
+    delay(80);
     Serial.printf("Page name is: %s and the returnPageName is: %s\n", name, returnPageName);
+    delay(80);
 }
 
 void NumberFieldComponent::draw()

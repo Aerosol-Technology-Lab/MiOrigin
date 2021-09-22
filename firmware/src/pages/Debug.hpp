@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AppPageConfig.hpp"
+#include <memory>
 
 #define DEBUG_PAGE_NAME "debug-page"
 
@@ -13,10 +14,10 @@ class _Debug
 {
 private:
     void *pageArgs;
-    Button *buttons[DEBUG_NUM_BUTTONS];
-    NumberFieldComponent *flowRate;
-    NumberFieldComponent *timerMinComponent;
-    NumberFieldComponent *timerSecComponent;
+    std::shared_ptr<Button> buttons[DEBUG_NUM_BUTTONS];
+    std::shared_ptr<NumberFieldComponent> flowRate;
+    std::shared_ptr<NumberFieldComponent> timerMinComponent;
+    std::shared_ptr<NumberFieldComponent> timerSecComponent;
     static int32_t flowRateValue;
     static int32_t timerMinValue;
     static int32_t timerSecValue;

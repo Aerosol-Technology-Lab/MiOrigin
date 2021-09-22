@@ -10,7 +10,7 @@
 _Debug::_Debug()
 {
     pageArgs = nullptr;
-    for (auto *&button : buttons) {
+    for (auto &button : buttons) {
         button = nullptr;
     }
     // buttonsSize;
@@ -32,7 +32,7 @@ void _Debug::onLoad(void *, void *args) {
     else if (DebugPage.flowRateValue < DEBUG_MIN_FLOW_RATE) DebugPage.flowRateValue = DEBUG_MIN_FLOW_RATE;
 
     // placement new
-    DebugPage.buttons[counter] = new Button(drawingWrapper, "START", 360, 10, 100, 100);
+    DebugPage.buttons[counter] = std::make_shared<Button>(drawingWrapper, "START", 360, 10, 100, 100);
     DebugPage.buttons[counter]->setButtonSize(2);
     DebugPage.buttons[counter]->setTextColor(CMXG_BLACK);
     DebugPage.buttons[counter]->setButtonColor(CMXG_GREEN);
@@ -48,7 +48,7 @@ void _Debug::onLoad(void *, void *args) {
     };
     ++counter;
     
-    DebugPage.buttons[counter] = new Button(drawingWrapper, "STOP", 360, 120, 100, 100);
+    DebugPage.buttons[counter] = std::make_shared<Button>(drawingWrapper, "STOP", 360, 120, 100, 100);
     DebugPage.buttons[counter]->setButtonSize(2);
     DebugPage.buttons[counter]->setTextColor(CMXG_WHITE);
     DebugPage.buttons[counter]->setButtonColor(CMXG_RED);
@@ -64,7 +64,7 @@ void _Debug::onLoad(void *, void *args) {
     ++counter;
 
     // new (DebugPage.buttons + counter) Button(drawingWrapper, "CALIBRATE", 360, 230, 100, 50);
-    DebugPage.buttons[counter] = new Button(drawingWrapper, "Initialize", 360, 230, 100, 50);
+    DebugPage.buttons[counter] = std::make_shared<Button>(drawingWrapper, "Initialize", 360, 230, 100, 50);
     DebugPage.buttons[counter]->setTextColor(CMXG_BLACK);
     DebugPage.buttons[counter]->setButtonColor(CMXG_CYAN);
         DebugPage.buttons[counter]->onPress = [](uint16_t x, uint16_t y, uint8_t z) {
@@ -80,7 +80,7 @@ void _Debug::onLoad(void *, void *args) {
     ++counter;
 
     /* Initialize Flow Rate Timer */
-    DebugPage.flowRate = new NumberFieldComponent(drawingWrapper, &(DebugPage.flowRateValue), 20, 80, 120, 40, "Flow Rate", "ul/min");
+    DebugPage.flowRate = std::make_shared<NumberFieldComponent>(drawingWrapper, &(DebugPage.flowRateValue), 20, 80, 120, 40, "Flow Rate", "ul/min");
     const char returnPageNameFlowRate[] = "debug-page";
     DebugPage.flowRate->setReturnPageName(returnPageNameFlowRate, strlen(returnPageNameFlowRate));
     DebugPage.flowRate->setProperty(
@@ -125,8 +125,8 @@ void _Debug::onLoad(void *, void *args) {
         }
         );
 
-    DebugPage.timerMinComponent = new NumberFieldComponent(drawingWrapper, &(DebugPage.timerMinValue), 20, 160, 80, 40, "Minutes", "min");
-    const char returnPageNameTimer[] = "debug-page";
+    DebugPage.timerMinComponent = std::make_shared<NumberFieldComponent>(drawingWrapper, &(DebugPage.timerMinValue), 20, 160, 80, 40, "Minutes", "min");
+    const char returnPageNameTimer[] = "debug-page\0";
     DebugPage.timerMinComponent->setReturnPageName(returnPageNameTimer, strlen(returnPageNameTimer));
     DebugPage.timerMinComponent->setProperty(
         [](void *_props, int8_t c) -> void {
@@ -165,7 +165,7 @@ void _Debug::onLoad(void *, void *args) {
         }
         );
 
-    DebugPage.timerSecComponent = new NumberFieldComponent(drawingWrapper, &(DebugPage.timerSecValue), 105, 160, 44, 40, "Sec", "sec");
+    DebugPage.timerSecComponent = std::make_shared<NumberFieldComponent>(drawingWrapper, &(DebugPage.timerSecValue), 105, 160, 44, 40, "Sec", "sec");
     DebugPage.timerSecComponent->setReturnPageName(returnPageNameTimer, strlen(returnPageNameTimer));
     DebugPage.timerSecComponent->setProperty(
         [](void *_props, int8_t c) -> void {
@@ -208,13 +208,13 @@ void _Debug::onLoad(void *, void *args) {
 
 
     drawingWrapper.fillScreen(CMXG_BL_DATUM);
-    Driver::tft.setCursor(10, 10);
-    Driver::tft.setTextSize(2);
-    Driver::tft.setTextColor(TFT_CYAN);
-    Driver::tft.println("Bioaerosol Collector");
-    Driver::tft.setCursor(10, 80);
-    Driver::tft.setTextSize(2);
-    Driver::tft.setTextColor(TFT_WHITE);
+    // Driver::tft.setCursor(10, 10);
+    // Driver::tft.setTextSize(2);
+    // Driver::tft.setTextColor(TFT_CYAN);
+    // Driver::tft.println("Bioaerosol Collector");
+    // Driver::tft.setCursor(10, 80);
+    // Driver::tft.setTextSize(2);
+    // Driver::tft.setTextColor(TFT_WHITE);
 
     
     drawingWrapper.setTextSize(1);
@@ -286,27 +286,27 @@ void _Debug::onExit()
     Driver::touchscreen_register_on_press(nullptr);
     Driver::touchscreen_register_on_release(nullptr);
     
-    for (Button *&button : DebugPage.buttons) {
+    // for (Button *&button : DebugPage.buttons) {
 
-        delete button;
-        button = nullptr;
-    }
+    //     delete button;
+    //     button = nullptr;
+    // }
 
-    if (DebugPage.flowRate) {
+    // if (DebugPage.flowRate) {
 
-        delete DebugPage.flowRate;
-        DebugPage.flowRate = nullptr;
-    }
+    //     delete DebugPage.flowRate;
+    //     DebugPage.flowRate = nullptr;
+    // }
 
-    if (DebugPage.timerMinComponent) {
-        delete DebugPage.timerMinComponent;
-        DebugPage.timerMinComponent = nullptr;
-    }
+    // if (DebugPage.timerMinComponent) {
+    //     delete DebugPage.timerMinComponent;
+    //     DebugPage.timerMinComponent = nullptr;
+    // }
 
-    if (DebugPage.timerSecComponent) {
-        delete DebugPage.timerSecComponent;
-        DebugPage.timerSecComponent = nullptr;
-    }
+    // if (DebugPage.timerSecComponent) {
+    //     delete DebugPage.timerSecComponent;
+    //     DebugPage.timerSecComponent = nullptr;
+    // }
 }
 
 int32_t _Debug::flowRateValue = 300;

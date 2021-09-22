@@ -45,13 +45,22 @@ bool Driver::touchscreen_busy_check_interrupt(bool enable)
 
     if (enable && Touchscreen_cfg.interruptPin < 0 && !Touchscreen_cfg.busyInterruptHandler) {
 
-        xTaskCreate(
-            Driver::busyInterruptFunction,
-            "ts-interhnd",
+        // xTaskCreate(
+        //     Driver::busyInterruptFunction,
+        //     "ts-interhnd",
+        //     7 * 1024,
+        //     nullptr,
+        //     1,
+        //     &Touchscreen_cfg.busyInterruptHandler
+        // );
+        xTaskCreatePinnedToCore(
+            busyInterruptFunction,
+            "ts-inter",
             7 * 1024,
             nullptr,
             1,
-            &Touchscreen_cfg.busyInterruptHandler
+            &Touchscreen_cfg.busyInterruptHandler,
+            1
         );
         return true;
     }
