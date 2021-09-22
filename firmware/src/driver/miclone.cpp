@@ -14,10 +14,10 @@ namespace Driver
     void MiCloneTask(void *args)
     {
         #ifdef SAFE_CODE
-        if (!args) {
-            assert(false && "TODO: Implement this");
-            vTaskDelete()
-        }
+        // if (!args) {
+            // assert(false && "TODO: Implement this");
+            // vTaskDelete()
+        // }
         #endif
 
         MiCloneData_t micloneData = *reinterpret_cast<MiCloneData_t *>(args);
