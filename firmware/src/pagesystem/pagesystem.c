@@ -82,38 +82,57 @@ bool PageSystem_findSwitch(PageSystem_t *pgt, const char *name, void *args)
         }
     }
 
+    if (name) {
+
+        char buffer[32] = { 0 };
+        strncpy(buffer, name, sizeof(buffer) / sizeof(buffer[0]) - 1);
+        char msg[64];
+        sprintf(msg, "Cannot find the page \"%sbuffer\"", buffer);
+        cprintln(msg);
+    }
+
     cprintln("Cannot find the page!");
     return false;
 }
 
 bool PageSystem_switch(PageSystem_t *pgt, Page_t *page, void *args)
 {
-    cprintln("Pre switch");
-    if (pgt->preSwitch) pgt->preSwitch();
-    
-#ifndef PAGESYSTEM_FAST
-    if (page == NULL) {
-        return PAGESYSTEM_FAIL;
+    pgt->stagedPage = page;
+    pgt->stagedArgs = args;
+}
+
+void PageSystem_execute_switch(PageSystem_t *pgt)
+{
+    if (pgt->stagedPage) {
+        cprintln("Pre switch");
+        if (pgt->preSwitch) pgt->preSwitch();
+        
+        #ifndef PAGESYSTEM_FAST
+        if (page == NULL) {
+            return PAGESYSTEM_FAIL;
+        }
+        #endif
+
+        cprintln("on exit");
+        if (pgt->activePage != NULL) {
+            pgt->activePage->onExit();
+        }
+
+        cprintln("mid switch");
+        if (pgt->midSwitch) pgt->midSwitch();
+        
+        cprintln("on load");
+        pgt->activePage = pgt->stagedPage;
+        pgt->activePage->onLoad(pgt->defaultParams, pgt->stagedArgs);   // error: the error seems to be caused by the shared pointer... problems switching
+        pgt->stagedPage = NULL;
+        pgt->stagedArgs = NULL;
+
+        cprintln("post switch");
+        if (pgt->postSwitch) pgt->postSwitch();
+
+        cprintln("done");
+        return true;
     }
-#endif
-
-    cprintln("on exit");
-    if (pgt->activePage != NULL) {
-        pgt->activePage->onExit();
-    }
-
-    cprintln("mid switch");
-    if (pgt->midSwitch) pgt->midSwitch();
-    
-    cprintln("on load");
-    pgt->activePage = page;
-    page->onLoad(pgt->defaultParams, args);
-
-    cprintln("post switch");
-    if (pgt->postSwitch) pgt->postSwitch();
-
-    cprintln("done");
-    return true;
 }
 
 void PageSystem_end(PageSystem_t *pgt)

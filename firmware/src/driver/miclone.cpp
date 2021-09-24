@@ -4,17 +4,20 @@
 #include <FreeRTOS.h>
 #include "../config.h"
 
+#ifdef DEV_DEBUG
+#include "utils.h"
+#endif
+
 namespace Driver
 {
-    const char *MICLONE_FORMAT = "/1ZJ0J0J2M3000J6gV3000IP3000V%dOD3000GJ2M15000J0R\r\n";
-
+    const char *MICLONE_FORMAT  = "/1ZJ0J0J3M3000J7gV3000IP3000V%dOD3000GJ3M15000J0R\r\n";
     void MiCloneTask(void *args)
     {
         #ifdef SAFE_CODE
-        if (!args) {
-            assert(false && "TODO: Implement this");
-            vTaskDelete()
-        }
+        // if (!args) {
+            // assert(false && "TODO: Implement this");
+            // vTaskDelete()
+        // }
         #endif
 
         MiCloneData_t micloneData = *reinterpret_cast<MiCloneData_t *>(args);
@@ -26,8 +29,8 @@ namespace Driver
         
         miclone_send_stop(0);
         xSemaphoreTake(MiCloneHandlerSemaphore, portMAX_DELAY);
-        TaskHandle_t thisTask = MiCloneTaskHandler;
-        MiCloneTaskHandler = nullptr;
+        TaskHandle_t thisTask = _MiCloneTaskHandler;
+        _MiCloneTaskHandler = nullptr;
 
         xSemaphoreGive(MiCloneHandlerSemaphore);
         
@@ -48,7 +51,7 @@ namespace Driver
         xSemaphoreTake(MiCloneHandlerSemaphore, portMAX_DELAY);
         
         // task handler exists, so it's already started
-        if (MiCloneTaskHandler) {
+        if (_MiCloneTaskHandler) {
             xSemaphoreGive(MiCloneHandlerSemaphore);
             return false;
         }
@@ -57,13 +60,14 @@ namespace Driver
         micloneData->rate = rate;
         micloneData->time = time;
         
-        xTaskCreate(MiCloneTask,
-                    "miclone-tsk",
-                    1024,
-                    micloneData,
-                    1,
-                    &MiCloneTaskHandler
-                    );
+        _MiCloneTaskHandler = xTaskCreateStatic(MiCloneTask,
+                          "miclone-tsk",
+                          MICLONE_STACK_SIZE,
+                          micloneData,
+                          1,
+                          _MiCloneStack,
+                          &_MiCloneTaskBuffer
+        );
 
         xSemaphoreGive(MiCloneHandlerSemaphore);
         return true;
@@ -74,9 +78,10 @@ namespace Driver
         // nothing for now
         xSemaphoreTake(MiCloneHandlerSemaphore, portMAX_DELAY);
 
-        if (MiCloneTaskHandler) {
-            vTaskDelete(MiCloneTaskHandler);
-            MiCloneTaskHandler = nullptr;
+        if (_MiCloneTaskHandler) {
+            vTaskSuspend(_MiCloneTaskHandler);
+            vTaskDelete(_MiCloneTaskHandler);
+            _MiCloneTaskHandler = nullptr;
             miclone_send_stop(0);
         }
         else {
@@ -89,6 +94,10 @@ namespace Driver
     void miclone_send_start(uint16_t rate)
     {
         _micloneStream->printf(MICLONE_FORMAT, rate / 5);
+        #ifdef DEV_DEBUG
+        Serial.printf("Starting milone with rate %d and val %d", rate, rate/5);
+        Serial.printf(MICLONE_FORMAT, rate / 5);
+        #endif
     }
     
     void miclone_send_stop(uint8_t stopType)
@@ -107,6 +116,9 @@ namespace Driver
     }
     
     SemaphoreHandle_t MiCloneHandlerSemaphore = nullptr;
-    TaskHandle_t MiCloneTaskHandler = nullptr;
     Stream *_micloneStream = nullptr;
+
+    TaskHandle_t _MiCloneTaskHandler = nullptr;
+    StaticTask_t _MiCloneTaskBuffer;
+    StackType_t _MiCloneStack[ MICLONE_STACK_SIZE ];
 }

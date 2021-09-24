@@ -39,6 +39,8 @@ typedef struct {
     uint16_t numPages;
     
     Page_t *activePage;
+    Page_t *stagedPage;
+    void   *stagedArgs;
 
     bool started;
 
@@ -85,6 +87,8 @@ extern bool PageSystem_findSwitch(PageSystem_t *pgt, const char *name, void *arg
  * @return PageSystem_state 
  */
 extern bool PageSystem_switch(PageSystem_t *pgt, Page_t *page, void *args);
+
+extern void PageSystem_execute_switch(PageSystem_t *pgt);
 
 /**
  * @brief Cleans up PageSystem_t resources. Once this is is called, the PageSystem

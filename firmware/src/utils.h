@@ -2,6 +2,9 @@
 
 #include <Arduino.h>
 #include <string>
+#ifdef DEV_DEBUG
+#include <SD.h>
+#endif
 
 #ifdef __cplusplus
 extern "C"
@@ -18,13 +21,24 @@ extern "C"
 #endif
 
 #ifdef DEV_DEBUG
+
+
     #define dev_print(mess)         Serial.print(mess)
     #define dev_println(mess)       Serial.println(mess)
     #define dev_printf(mess, ...)   Serial.printf(mess, ##__VA_ARGS__)
+    #define dev_file(mess)          {                                           \
+                                        File f = SD.open("debug.log", "a+");    \
+                                        f.seek(f.size());                       \
+                                        const char separator[] = "[LOG]: ";     \
+                                        f.write(separator, sizeof(separator));  \
+                                        f.write(mess, strlen(mess));            \
+                                        f.close();                              \
+                                    }                                           
 #elif
     #define dev_print(mess)
     #define dev_println(mess)
     #define dev_printf(mess, ...)
+    #define dev_file(mess)
 #endif
 
 #define hexchar2byte(h) ((h >= '0') && (h <= '9') ? (h - '0') : ((h - 'a') + 10))

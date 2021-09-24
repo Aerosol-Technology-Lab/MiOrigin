@@ -1,22 +1,26 @@
 #pragma once
 
 #include "AppPageConfig.hpp"
+#include <memory>
 
 #define DEBUG_PAGE_NAME "debug-page"
 
 #define DEBUG_MAX_FLOW_RATE 1000
 #define DEBUG_MIN_FLOW_RATE   50
 
+#define DEBUG_NUM_BUTTONS      3
+
 class _Debug
 {
 private:
     void *pageArgs;
-    Button *buttons;
-    size_t buttonsSize = 3;
-    NumberFieldComponent *flowRate;
-    NumberFieldComponent *timerComponent;
+    std::shared_ptr<Button> buttons[DEBUG_NUM_BUTTONS];
+    std::shared_ptr<NumberFieldComponent> flowRate;
+    std::shared_ptr<NumberFieldComponent> timerMinComponent;
+    std::shared_ptr<NumberFieldComponent> timerSecComponent;
     static int32_t flowRateValue;
-    static int32_t timerValue;
+    static int32_t timerMinValue;
+    static int32_t timerSecValue;
 
 public:
     _Debug();
