@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../graphics/Toggle.hpp"
 #include "AppPageConfig.hpp"
 #include <memory>
 
@@ -21,6 +22,9 @@ private:
     Button *button_start;
     Button *button_stop;
     Button *button_initialize;
+
+    // toggles
+    Toggle sampleWasteToggle;
 
     int32_t flowRateValue;
     int32_t timerMinValue;

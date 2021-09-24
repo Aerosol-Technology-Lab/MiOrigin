@@ -158,6 +158,7 @@ _Home::_Home()
         }
         );
 
+    new (&sampleWasteToggle) Toggle(drawingWrapper, 48, 248 , 25, 14, CMXG_CYAN);
 }
 
 void _Home::onStart(void *pageArgs)
@@ -185,8 +186,12 @@ void _Home::onLoad(void *, void *args)
     drawingWrapper.setTextFont(2);
     drawingWrapper.setTextSize(2);
     drawingWrapper.setTextDatum(CMXG_TL_DATUM);
-    drawingWrapper.drawString("HOME: Bioaerosol Collector", 10, 10);
+    drawingWrapper.drawString("Bioaerosol Collector", 10, 10);
 
+    drawingWrapper.setTextSize(1);
+    drawingWrapper.setTextDatum(CMXG_CL_DATUM);
+    drawingWrapper.setTextColor(CMXG_WHITE, CMXG_WHITE);
+    drawingWrapper.drawString("Sample / Waste", 80, 248);
 
     drawingWrapper.setTextSize(1);
     Home.button_start->draw();
@@ -195,6 +200,7 @@ void _Home::onLoad(void *, void *args)
     Home.component_flowRate.draw();
     Home.component_timerMinComponent.draw();
     Home.component_timerSecComponent.draw();
+    Home.sampleWasteToggle.draw();
 
     Driver::touchscreen_register_on_press(Home.ts_onPress);
     Driver::touchscreen_register_on_release(Home.ts_onRelease);
@@ -233,6 +239,7 @@ void _Home::ts_onPress()
     Home.component_flowRate.performAction(x, y, 0, true);
     Home.component_timerMinComponent.performAction(x, y, 0, true);
     Home.component_timerSecComponent.performAction(x, y, 0, true);
+    Home.sampleWasteToggle.performAction(x, y, 0, true);
 
     dev_println("MAIN on press handler");
 }
@@ -248,6 +255,7 @@ void _Home::ts_onRelease()
     Home.component_flowRate.performAction(x, y, 0, false);
     Home.component_timerMinComponent.performAction(x, y, 0, false);
     Home.component_timerSecComponent.performAction(x, y, 0, false);
+    Home.sampleWasteToggle.performAction(x, y, 0, false);
 
     dev_println("MAIN on release handler");
 }
