@@ -46,7 +46,7 @@ size_t readUntilEnd(char *buffer, size_t bufferSize, Stream &stream)
     // block until first byte is read
     Serial.print("@ Stage 1");
     while (!Serial.available()) {
-        vTaskDelay(100 / portTICK_RATE_MS);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 
     
@@ -89,7 +89,7 @@ void Common_USBC_Handler(void *params)
             // process if there's data in the buffer
             if (strlen(buffer)) {
 
-                if (!strcmp(buffer, "!update-firmware"));
+                if (!strcmp(buffer, "!update-firmware")) { }
                 // Serial.readBytes
                 // todo
                 #ifdef OTA0

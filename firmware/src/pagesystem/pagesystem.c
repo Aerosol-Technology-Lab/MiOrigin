@@ -1,5 +1,13 @@
-#include "pagesystem/pagesystem.h"
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+#include "pagesystem.h"
 #include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include "cpp_wrapper.h"
 
 void PageSystem_init(PageSystem_t *pgt)
 {
@@ -17,7 +25,17 @@ void PageSystem_init(PageSystem_t *pgt)
     pgt->postSwitch     = NULL;
 }
 
-PageSystem_state PageSystem_add_page(PageSystem_t *pgt, Page_t *page)
+void PageSystem_start(PageSystem_t *pgt)
+{
+    size_t i;
+    for (i = 0; i < pgt->numPages; ++i) {
+        cprintln("Hello");
+        if (pgt->pages[i].onStart) pgt->pages[i].onStart(pgt->defaultParams);
+    }
+    pgt->started = true;
+}
+
+bool PageSystem_add_page(PageSystem_t *pgt, Page_t *page)
 {
 #ifdef DYNAMIC_PAGES
     // todo fix this while loop because it is inefficient
@@ -37,51 +55,84 @@ PageSystem_state PageSystem_add_page(PageSystem_t *pgt, Page_t *page)
 #else
     
     if (pgt->numPages >= MAX_PAGES) {
-        return PAGESYSTEM_FAIL;
+        cprintln("Error: Cannot add anymore pages!");
+        return false;
     }
 #endif
 
     pgt->pages[pgt->numPages] = *page;
-    ++pgt->numPages;
+    ++(pgt->numPages);
     
+    if (pgt->started && page->onStart) {
+        page->onStart(pgt->defaultParams);
+    }
 
-    return PAGESYSTEM_SUCESS;
+    return true;
 }
 
-PageSystem_state PageSystem_findSwitch(PageSystem_t *pgt, char *name, void *args)
+bool PageSystem_findSwitch(PageSystem_t *pgt, const char *name, void *args)
 {
     uint16_t i;
+    cprintln("Searching for page...");
     for (i = 0; i < pgt->numPages; ++i) {
+        cprintln("Searching...");
         if (!strcmp(pgt->pages[i].name, name)) {
+            cprintln("Found!");
             return PageSystem_switch(pgt, &pgt->pages[i], args);
         }
     }
 
-    return PAGESYSTEM_FAIL;
+    if (name) {
+
+        char buffer[32] = { 0 };
+        strncpy(buffer, name, sizeof(buffer) / sizeof(buffer[0]) - 1);
+        char msg[64];
+        sprintf(msg, "Cannot find the page \"%sbuffer\"", buffer);
+        cprintln(msg);
+    }
+
+    cprintln("Cannot find the page!");
+    return false;
 }
 
-PageSystem_state PageSystem_switch(PageSystem_t *pgt, Page_t *page, void *args)
+bool PageSystem_switch(PageSystem_t *pgt, Page_t *page, void *args)
 {
-    if (pgt->preSwitch) pgt->preSwitch();
-    
-#ifndef PAGESYSTEM_FAST
-    if (page == NULL) {
-        return PAGESYSTEM_FAIL;
+    pgt->stagedPage = page;
+    pgt->stagedArgs = args;
+}
+
+void PageSystem_execute_switch(PageSystem_t *pgt)
+{
+    if (pgt->stagedPage) {
+        cprintln("Pre switch");
+        if (pgt->preSwitch) pgt->preSwitch();
+        
+        #ifndef PAGESYSTEM_FAST
+        if (page == NULL) {
+            return PAGESYSTEM_FAIL;
+        }
+        #endif
+
+        cprintln("on exit");
+        if (pgt->activePage != NULL) {
+            pgt->activePage->onExit();
+        }
+
+        cprintln("mid switch");
+        if (pgt->midSwitch) pgt->midSwitch();
+        
+        cprintln("on load");
+        pgt->activePage = pgt->stagedPage;
+        pgt->activePage->onLoad(pgt->defaultParams, pgt->stagedArgs);   // error: the error seems to be caused by the shared pointer... problems switching
+        pgt->stagedPage = NULL;
+        pgt->stagedArgs = NULL;
+
+        cprintln("post switch");
+        if (pgt->postSwitch) pgt->postSwitch();
+
+        cprintln("done");
+        return true;
     }
-#endif
-
-    if (pgt->activePage != NULL) {
-        pgt->activePage->onExit();
-    }
-
-    if (pgt->midSwitch) pgt->midSwitch();
-    
-    pgt->activePage = page;
-    page->onLoad(pgt->defaultParams, args);
-
-    if (pgt->postSwitch) pgt->postSwitch();
-
-    return PAGESYSTEM_SUCESS;
 }
 
 void PageSystem_end(PageSystem_t *pgt)
@@ -90,3 +141,7 @@ void PageSystem_end(PageSystem_t *pgt)
     free(pages);
 #endif
 }
+
+#ifdef __cplusplus
+}
+#endif

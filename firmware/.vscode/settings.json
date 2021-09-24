@@ -6,6 +6,11 @@
     "idf.port": "/dev/ttyUSB0",
     "files.associations": {
         "tft_espi_generic.c": "cpp",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "string.h": "c",
+        "pagesystem.h": "c",
+        "arduino.h": "c",
+        "utils.h": "c",
+        "sd.h": "c"
     }
 }

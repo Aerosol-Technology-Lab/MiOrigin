@@ -10,6 +10,11 @@ void Driver::touchscreen_init()
     Touchscreen_cfg.onPress = nullptr;
     Touchscreen_cfg.onRelease = nullptr;
     Touchscreen_cfg.busyInterruptHandler = nullptr;
+    Touchscreen_cfg.point.x = 0;
+    Touchscreen_cfg.point.y = 0;
+    Touchscreen_cfg.point.z = 0;
+    Touchscreen_cfg.staged.onPress = nullptr;
+    Touchscreen_cfg.staged.onRelease = nullptr;
 }
 
 void Driver::touchscreen_begin(SPIClass &spi, uint8_t rotation, bool enableInterrupts, uint8_t interruptPin)
@@ -29,19 +34,35 @@ void Driver::touchscreen_begin(SPIClass &spi, uint8_t rotation, bool enableInter
     
 }
 
+void Driver::touchscreen_get_raw_points(const uint16_t **x, const uint16_t **y, const uint8_t **z)
+{
+    *x = &Driver::Touchscreen_cfg.point.x;
+    *y = &Driver::Touchscreen_cfg.point.y;
+    *z = &Driver::Touchscreen_cfg.point.z;
+}
+
 bool Driver::touchscreen_busy_check_interrupt(bool enable)
 {
     if (Touchscreen_cfg.interruptPin >= 0) return false;
 
     if (enable && Touchscreen_cfg.interruptPin < 0 && !Touchscreen_cfg.busyInterruptHandler) {
 
-        xTaskCreate(
+        // xTaskCreate(
+        //     Driver::busyInterruptFunction,
+        //     "ts-interhnd",
+        //     7 * 1024,
+        //     nullptr,
+        //     1,
+        //     &Touchscreen_cfg.busyInterruptHandler
+        // );
+        xTaskCreatePinnedToCore(
             busyInterruptFunction,
-            "ts-interhnd",
-            1024,
+            "ts-inter",
+            7 * 1024,
             nullptr,
             1,
-            &Touchscreen_cfg.busyInterruptHandler
+            &Touchscreen_cfg.busyInterruptHandler,
+            1
         );
         return true;
     }
@@ -56,22 +77,35 @@ bool Driver::touchscreen_busy_check_interrupt(bool enable)
 
 void Driver::touchscreen_register_on_press(TouchscreenFunctionBehavior func)
 {
-    Touchscreen_cfg.onPress = func;
+    Touchscreen_cfg.staged.onPress = func;
 }
 
 void Driver::touchscreen_register_on_release(TouchscreenFunctionBehavior func)
 {
-    Touchscreen_cfg.onRelease = func;
+    Touchscreen_cfg.staged.onRelease = func;
+}
+
+void Driver::touchscreen_apply_staged()
+{
+    if (Touchscreen_cfg.staged.onPress) {
+        Touchscreen_cfg.onPress = Touchscreen_cfg.staged.onPress;
+        Touchscreen_cfg.staged.onPress = nullptr;
+    }
+    if (Touchscreen_cfg.staged.onRelease) {
+        Touchscreen_cfg.onRelease = Touchscreen_cfg.staged.onRelease;
+        Touchscreen_cfg.staged.onRelease= nullptr;
+    }
 }
 
 void Driver::busyInterruptFunction(void *args)
 {
+    // TODO REDESIGN THIS FUNCTION SO THAT ON HOLD IS ALWAYS SENT!
     bool touched = false;
     
     while (true) {
         bool currentState = ts.touched();
-
-#ifdef DRIVER_TS_ENABLE_DEBUG_PRINTnamespace Driver
+        
+        #ifdef DRIVER_TS_ENABLE_DEBUG_PRINT
 
         if (currentState) {
             
@@ -81,30 +115,33 @@ void Driver::busyInterruptFunction(void *args)
             Serial.println("-> Nothing. I feel nothing at all...");
         }
 
-#endif
+        #endif
 
-        if (currentState != touched) {
-            
-            uint16_t x, y;
-            uint8_t z;
-            ts.readData(&x, &y, &z);
+        Driver::ts.readData(&Touchscreen_cfg.point.x,
+                            &Touchscreen_cfg.point.y,
+                            &Touchscreen_cfg.point.z
+                            );
 
-            touched = currentState;
-            if (touched) {
-                if (!Touchscreen_cfg.onPress) {
-                    vTaskDelay(1000 / portTICK_PERIOD_MS);
-                    continue;
-                }
+        if (currentState) {
+            if (Touchscreen_cfg.onPress) {
+                touched = true;
                 Touchscreen_cfg.onPress();
             }
-            else {
-                if (!Touchscreen_cfg.onRelease) {
-                    vTaskDelay(1000 / portTICK_PERIOD_MS);
-                    continue;
-                }
-                Touchscreen_cfg.onRelease();
+        }
+        else {
+            if (touched) {
+                touched = false;
+                if (Touchscreen_cfg.onRelease) Touchscreen_cfg.onRelease();
             }
         }
+
+        // Run post digitizer action once
+        if (postDigitizerAction) {
+            postDigitizerAction(postDigitizerArgs);
+            delay(100);
+        }
+
+        touchscreen_apply_staged();
 
         vTaskDelay(DRIVER_TS_CHECK_INTERVAL / portTICK_PERIOD_MS);
     }
@@ -113,4 +150,7 @@ void Driver::busyInterruptFunction(void *args)
 namespace Driver
 {
     XPT2046_Touchscreen ts(TCH_CS);
+
+    void (*postDigitizerAction)(void *) = nullptr;
+    void *postDigitizerArgs = nullptr;
 }

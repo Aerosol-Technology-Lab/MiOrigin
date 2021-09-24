@@ -1,5 +1,20 @@
 #include "utils.h"
 
+bool convert_MS2HMSF_format(char *buffer, size_t size, uint32_t time)
+{
+    if (size < 9) return false;
+
+    time /= 1000;
+    uint8_t sec = time % 60;
+    time /= 60;
+    uint8_t min = time % 60;
+    time /= 60;
+    uint8_t hr  = time % 60;
+    sprintf(buffer, "%02d:%02d:%02d", hr, min, sec);
+    
+    return true;
+}
+
 void utils::hexchar2bin(const char *str, uint8_t *buff, size_t length)
 {
     size_t numToProcess = std::min(strlen(str), length * 2);

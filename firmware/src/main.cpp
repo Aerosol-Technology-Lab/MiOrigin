@@ -32,8 +32,11 @@ extern void loop();
 #include <BLEServer.h>
 #include <ArduinoJson.h>
 #include <TFT_eSPI.h>
+#include "driver/tftdisplay.h"
 #include "driver/touchscreen.h"
 #include "driver/lipo.h"
+#include "driver/miclone.hpp"
+#include "MutexRAII.hpp"
 #include "BLE_Callback_Coms.h"
 #include "BLE_UUID.h"
 #include "utils.h"
@@ -41,6 +44,19 @@ extern void loop();
 #include "rom/md5_hash.h"
 #include <hwcrypto/aes.h>
 #include <mbedtls/rsa.h>
+#include <string>
+
+// pages
+#include "graphics/Graphics.hpp"
+#include "pages/AppPageConfig.hpp"
+#include "pagesystem/pagesystem.h"
+#include "pagesystem/pageoptions.h"
+#include "pages/Calibration.h"
+#include "pages/Debug.hpp"
+#include "pages/Home.hpp"
+
+// tests
+#include "test/post_setup.hpp"
 
 // extract arduino core props
 #if CONFIG_FREERTOS_UNICORE
@@ -58,7 +74,11 @@ TaskHandle_t usbcHandler = nullptr;
 
 BLE_Callback_Coms callbackComs;
 
-TFT_eSPI tft;
+PageSystem_t devicePageManager;
+
+SemaphoreHandle_t graphicsMutex;
+
+using Driver::tft;
 
 using Driver::ts;
 
@@ -259,6 +279,26 @@ void handleUSBC(void *parameters = nullptr)
                             Serial.println("Error: Partition is booting to something else! It is neither factory or firmware (ota0)");
                         }
                     }
+                    else if (!strcmp(command, "touchscreen")) {
+                        assert(false && "This command is not working.");    // possible causes is a bug in the nextSubstring function
+                        dev_println("=> Processing touchscreen command...");
+                        offset = nextSubString(message.c_str(), offset, message.length(), command, sizeof(command));
+                        if (!offset) continue;
+                        if (strcmp(command, "rotate")) continue;        // this is in a separate if statement for future reference
+
+                        dev_println("=> Processing rotation sub command...");
+                        offset = nextSubString(message.c_str(), offset, message.length(), command, sizeof(command));
+                        if (!offset) continue;
+
+                        if (command[0] >= '0' && command[0] < '9') {
+                            int rotation = atoi(command);
+                            Driver::ts.setRotation(rotation);
+                            Serial.printf("-> Rotation set to %d\n", rotation % 4);
+                        }
+                        else {
+                            Serial.println("-> Cannot process request because the arguments passed is invalid");
+                        }
+                    }
                     else if (!strcmp(command, "device-name")) {
                         Serial.print("-> Device Name: ");
                         Serial.println(DevinceInfo.deviceName);
@@ -271,6 +311,7 @@ void handleUSBC(void *parameters = nullptr)
                             sprintf(sendBuffer, "name %s size %08X", f.name(), f.size());
                             Serial.print(sendBuffer);
                             Serial.write(f);
+                            f.close();
                         }
                         else {
                             Serial.println("Error: Cannot find device info file. Flash new filesystem image");
@@ -459,6 +500,20 @@ void firmwareUpdateCheckerTask(void *params)
 }
 #endif
 
+void writeToMiCloneLog(const char *str, size_t lineno=0)
+{
+    File f = SD.open("/miclone.log", "w+");
+    f.seek(f.size());
+
+    if (lineno) {
+
+        const char separator[] =": ";
+        f.write(lineno);
+        f.write((const uint8_t *)separator, sizeof(separator));
+    }
+    f.write((const uint8_t *)str, strlen(str));
+    f.close();
+}
 
 void setup()
 {
@@ -495,13 +550,19 @@ void setup()
     Common_Init();
 
     
-    tft.init();
-    tft.setRotation(0);
+    Driver::tft_begin(1);
 
     tft.fillScreen(TFT_BLACK);
 
+    
+    // touchscreen post digitizer action
+    Driver::postDigitizerArgs = &devicePageManager;
+    Driver::postDigitizerAction = [](void *args) -> void {
+
+        PageSystem_execute_switch(&devicePageManager);
+    };
     Driver::touchscreen_init();
-    Driver::touchscreen_begin(*hspi);
+    Driver::touchscreen_begin(*hspi, 3);
     if (!Driver::touchscreen_busy_check_interrupt(true)) {
         Serial.println("FAIL TO ENABLE TS!");
         for(;;);
@@ -571,7 +632,7 @@ void setup()
 
             for (int j = 3; j > 0; --j) {
                 Serial.print('.');
-                vTaskDelay(1000 / 3 / portTICK_RATE_MS);
+                vTaskDelay(1000 / 3 / portTICK_PERIOD_MS);
             }
         }
 
@@ -686,6 +747,7 @@ void setup()
     // setup RS-232
     tft.print("-> Initializing collector port... ");
     Serial2.begin(9600, SERIAL_8N1, RS232_RX2, RS232_TX2);
+    Driver::miclone_begin();
     tft.println("SUCCESS");
 
     
@@ -735,8 +797,9 @@ void setup()
 
     tft.println("=== DONE! Everything initialized ===");
 
-    File f = SD.open(MICLONE_LOG_FILENAME, "w");
-    f.println("\n ------ Session Started -----");
+    File f = SD.open(MICLONE_LOG_FILENAME, "w+");
+    f.seek(f.size());
+    f.write((const uint8_t *)"\n ------ Session Started -----", 33);
     f.close();
 
     // encryption
@@ -766,38 +829,143 @@ void setup()
     Serial.println((char *)encrypted);
     Serial.print("Decrypted string: ");
     Serial.print((const char *)decrypted);
+
+    writeToMiCloneLog("Encryption Algorithms done\n");
+
+    #ifndef DISABLE_PAGE_SYSTEM
+
+    /* Initialize Graphics Wrapper for Page System */
+    graphicsMutex = xSemaphoreCreateMutex();
+    assert(graphicsMutex);
+    drawingWrapper.drawPixel = [](uint16_t x, uint16_t y, Color color) {
+        MutexRAII m(graphicsMutex);
+        tft.drawPixel(x, y, color);
+    };
+    drawingWrapper.drawRect = [](uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t radius, Color color) {
+        MutexRAII m(graphicsMutex);
+        tft.fillRect(x, y, width, height, color);
+    };
+    drawingWrapper.print = [](const char *str) {
+        MutexRAII m(graphicsMutex);
+        tft.print(str);
+    };
+    drawingWrapper.println = [](const char *str) {
+        MutexRAII m(graphicsMutex);
+        tft.println(str);
+    };
+    drawingWrapper.setCursor = [](uint16_t x, uint16_t y, uint8_t font) {
+        MutexRAII m(graphicsMutex);
+        tft.setCursor(x, y, font);
+    };
+    drawingWrapper.setTextDatum = [](uint8_t d) {
+        MutexRAII m(graphicsMutex);
+        tft.setTextDatum(d);
+    };
+    drawingWrapper.setTextColor = [](Color foreground, Color background) {
+        MutexRAII m(graphicsMutex);
+        tft.setTextColor(foreground, background);
+    };
+    drawingWrapper.fillScreen = [](Color color) {
+        MutexRAII m(graphicsMutex);
+        tft.fillScreen(color);
+    };
+    drawingWrapper.setTextSize = [](uint8_t size) {
+        MutexRAII m(graphicsMutex);
+        tft.setTextSize(size);
+    };
+    drawingWrapper.drawString = [](const char *str, uint32_t x, uint32_t y) {
+        MutexRAII m(graphicsMutex);
+        tft.drawString(str, x, y);
+    };
+    drawingWrapper.setTextFont = [](uint8_t font) {
+        MutexRAII m(graphicsMutex);
+        tft.setTextFont(font);
+    };
+    drawingWrapper.drawCircle = [](uint16_t x, uint16_t y, uint16_t r, Color color) {
+        MutexRAII m(graphicsMutex);
+        tft.fillCircle(x, y, r, color);
+    };
+
+    Page_t tmpPage;
+    
+    writeToMiCloneLog("After setting drawing wrapper.", __LINE__);
+
+    
+    PageSystem_init(&devicePageManager);
+    
+    #ifndef DISABLE_CALIBRATION
+    Calibration.begin(SPIFFS);
+    Calibration.generatePage(tmpPage);
+    PageSystem_add_page(&devicePageManager, &tmpPage);
+    #endif
+    
+    DebugPage.generatePage(tmpPage);
+    PageSystem_add_page(&devicePageManager, &tmpPage);
+    
+    Home.generatePage(tmpPage);
+    PageSystem_add_page(&devicePageManager, &tmpPage);
+    
+    PageSystem_start(&devicePageManager);
+    // PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)0);
+    Serial.println("Done!");
+
+    
+    PageSystem_findSwitch(&devicePageManager, HOME_PAGE_NAME, (void *)0);
+    PageSystem_execute_switch(&devicePageManager);
+
+    #endif
+
+
+    // Post setup test
+    #ifdef POST_SETUP_TEST
+    postSetupTest();
+    #endif
 }
 
 void loop()
 {
+    #ifdef ENABLE_REPORTING_SYSTEM_STATS_IN_DISPLAY
     #ifdef DEV_DEBUG
-    tft.setCursor(20, 240);
-    tft.setTextColor(TFT_GREEN, TFT_BLACK);
-    tft.println("-- Battery --");
-    tft.printf("  Voltage: %5.3f V  -  Charge Level: %5.0f%%\n", Driver::lipo.getVoltage(), Driver::lipo.getSOC() + 0.5f);
-    tft.print("  Battery State: ");
-    if (!Driver::lipo.getAlert()) {
-        tft.println("GOOD");
-    }
-    else {
-        tft.setTextColor(TFT_RED, TFT_BLACK);
-        tft.println("LOW!");
-    }
-    tft.setTextColor(TFT_GREEN);
+    // tft.setCursor(20, 240);
+    // tft.setTextColor(TFT_GREEN, TFT_BLACK);
+    // tft.println("-- Battery --");
+    // tft.printf("  Voltage: %5.3f V  -  Charge Level: %5.0f%%\n", Driver::lipo.getVoltage(), Driver::lipo.getSOC() + 0.5f);
+    // tft.print("  Battery State: ");
+    // if (!Driver::lipo.getAlert()) {
+    //     tft.println("GOOD");
+    // }
+    // else {
+    //     tft.setTextColor(TFT_RED, TFT_BLACK);
+    //     tft.println("LOW!");
+    // }
+    // tft.setTextColor(TFT_GREEN);
     
-    uint16_t x, y;
-    uint8_t z;
-    char buffer[80] = { 0 };
+    // uint16_t x, y;
+    // uint8_t z;
+    // char buffer[80] = { 0 };
 
-    ts.readData(&x, &y, &z);
-    tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    sprintf(buffer, "\nTouch Sensor: X: %4d, Y: %4d, Z: %4d\nTouched: %s\n", x, y, z, ts.touched() ? "TRUE" : "FALSE");
-    tft.print(buffer);
+    // ts.readData(&x, &y, &z);
+    // tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    // sprintf(buffer, "\nTouch Sensor: X: %4d, Y: %4d, Z: %4d\nTouched: %s\n", x, y, z, ts.touched() ? "TRUE" : "FALSE");
+    // tft.print(buffer);
 
-    tft.printf("\n RAM: %.1f%% (%.0f kB, %0.0f kB)", ESP.getFreeHeap() * 100.0f / ESP.getHeapSize(), ESP.getFreeHeap() / 1024.0f, ESP.getHeapSize() / 1024.0f);
+    // tft.printf("\n RAM: %.1f%% (%.0f kB, %0.0f kB)", ESP.getFreeHeap() * 100.0f / ESP.getHeapSize(), ESP.getFreeHeap() / 1024.0f, ESP.getHeapSize() / 1024.0f);
 
     delay(50);
 
+    #endif
+    #endif
+
+    #ifdef DEV_DEBUG
+
+    multi_heap_info_t info;
+    
+    heap_caps_get_info(&info, MALLOC_CAP_INTERNAL);
+    float totalRam = (info.total_allocated_bytes + info.total_free_bytes) / 1024.0f;
+    float usedRam = info.total_allocated_bytes / 1024.0f;
+    dev_printf("Percent RAM: %.0f (%.3fKB / %.3fKB)\n", usedRam / totalRam * 100.0f, usedRam, totalRam);
+    vTaskDelay(3000 / portTICK_PERIOD_MS);
+    
     #endif
 }
 

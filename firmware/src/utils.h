@@ -2,8 +2,46 @@
 
 #include <Arduino.h>
 #include <string>
+#ifdef DEV_DEBUG
+#include <SD.h>
+#endif
 
-#define hexchar2byte(h) h >= '0' && h <= '9' ? h - '0' : h - 'a' + 10
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+#ifdef ESP32
+// usage static const char[4096] IROM_VAR = "... contents ...";
+// refer: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/memory-types.html
+#define IROM_VAR __attribute__((section(".irom.text")))     // does this actually work?
+
+#else
+#define IROM_VAR
+#endif
+
+#ifdef DEV_DEBUG
+
+
+    #define dev_print(mess)         Serial.print(mess)
+    #define dev_println(mess)       Serial.println(mess)
+    #define dev_printf(mess, ...)   Serial.printf(mess, ##__VA_ARGS__)
+    #define dev_file(mess)          {                                           \
+                                        File f = SD.open("debug.log", "a+");    \
+                                        f.seek(f.size());                       \
+                                        const char separator[] = "[LOG]: ";     \
+                                        f.write(separator, sizeof(separator));  \
+                                        f.write(mess, strlen(mess));            \
+                                        f.close();                              \
+                                    }                                           
+#elif
+    #define dev_print(mess)
+    #define dev_println(mess)
+    #define dev_printf(mess, ...)
+    #define dev_file(mess)
+#endif
+
+#define hexchar2byte(h) ((h >= '0') && (h <= '9') ? (h - '0') : ((h - 'a') + 10))
 
 #define generateIV(buffer, length) esp_fill_random((uint8_t *) buffer, length)
 
@@ -69,9 +107,15 @@ static void lower(char *buffer, size_t size = std::numeric_limits<size_t>::max()
     }
 }
 
+bool convert_MS2HMSF_format(char *buffer, size_t size, uint32_t time);
+
 namespace utils
 {
     int stoi(const std::string &str);
 
     void hexchar2bin(const char *str, uint8_t *buff, size_t length);
 }
+
+#ifdef __cplusplus
+}       // extern "C"
+#endif
