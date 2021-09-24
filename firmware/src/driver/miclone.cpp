@@ -29,8 +29,8 @@ namespace Driver
         
         miclone_send_stop(0);
         xSemaphoreTake(MiCloneHandlerSemaphore, portMAX_DELAY);
-        TaskHandle_t thisTask = MiCloneTaskHandler;
-        MiCloneTaskHandler = nullptr;
+        TaskHandle_t thisTask = _MiCloneTaskHandler;
+        _MiCloneTaskHandler = nullptr;
 
         xSemaphoreGive(MiCloneHandlerSemaphore);
         
@@ -51,7 +51,7 @@ namespace Driver
         xSemaphoreTake(MiCloneHandlerSemaphore, portMAX_DELAY);
         
         // task handler exists, so it's already started
-        if (MiCloneTaskHandler) {
+        if (_MiCloneTaskHandler) {
             xSemaphoreGive(MiCloneHandlerSemaphore);
             return false;
         }
@@ -60,13 +60,14 @@ namespace Driver
         micloneData->rate = rate;
         micloneData->time = time;
         
-        xTaskCreate(MiCloneTask,
-                    "miclone-tsk",
-                    1024,
-                    micloneData,
-                    1,
-                    &MiCloneTaskHandler
-                    );
+        _MiCloneTaskHandler = xTaskCreateStatic(MiCloneTask,
+                          "miclone-tsk",
+                          MICLONE_STACK_SIZE,
+                          micloneData,
+                          1,
+                          _MiCloneStack,
+                          &_MiCloneTaskBuffer
+        );
 
         xSemaphoreGive(MiCloneHandlerSemaphore);
         return true;
@@ -77,9 +78,10 @@ namespace Driver
         // nothing for now
         xSemaphoreTake(MiCloneHandlerSemaphore, portMAX_DELAY);
 
-        if (MiCloneTaskHandler) {
-            vTaskDelete(MiCloneTaskHandler);
-            MiCloneTaskHandler = nullptr;
+        if (_MiCloneTaskHandler) {
+            vTaskSuspend(_MiCloneTaskHandler);
+            vTaskDelete(_MiCloneTaskHandler);
+            _MiCloneTaskHandler = nullptr;
             miclone_send_stop(0);
         }
         else {
@@ -114,6 +116,9 @@ namespace Driver
     }
     
     SemaphoreHandle_t MiCloneHandlerSemaphore = nullptr;
-    TaskHandle_t MiCloneTaskHandler = nullptr;
     Stream *_micloneStream = nullptr;
+
+    TaskHandle_t _MiCloneTaskHandler = nullptr;
+    StaticTask_t _MiCloneTaskBuffer;
+    StackType_t _MiCloneStack[ MICLONE_STACK_SIZE ];
 }

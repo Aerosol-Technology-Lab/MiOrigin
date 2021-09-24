@@ -5,13 +5,19 @@
 #include <Stream.h>
 #include <HardwareSerial.h>
 
+#define MICLONE_STACK_SIZE 2 * 1024
+
 namespace Driver
 {
     extern const char *MICLONE_FORMAT;
 
     extern SemaphoreHandle_t MiCloneHandlerSemaphore;
-    extern TaskHandle_t MiCloneTaskHandler;
     extern Stream *_micloneStream;
+    
+    // task information
+    extern TaskHandle_t _MiCloneTaskHandler;
+    extern StaticTask_t _MiCloneTaskBuffer;
+    extern StackType_t _MiCloneStack[ MICLONE_STACK_SIZE ];
     
     typedef struct {
 
