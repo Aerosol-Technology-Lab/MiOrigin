@@ -10,7 +10,9 @@
 
 namespace Driver
 {
-    const char *MICLONE_FORMAT  = "/1ZJ0J0J3M3000J7gV3000IP3000V%dOD3000GJ3M15000J0R\r\n";
+    const char *MICLONE_SAMPLE_FORMAT  = "/1ZJ0J0J3M3000J7gV3000IP3000V%dOD3000GJ3M15000J0R\r\n";
+    const char *MICLONE_WASTE_FORMAT   = "/1ZJ0J0J3M3000J7gV3000IP3000V%dOD3000GJ3M15000J0R\r\n";
+    
     void MiCloneTask(void *args)
     {
         #ifdef SAFE_CODE
@@ -23,7 +25,7 @@ namespace Driver
         MiCloneData_t micloneData = *reinterpret_cast<MiCloneData_t *>(args);
         free(args);
 
-        miclone_send_start(micloneData.rate);
+        miclone_send_start(micloneData.rate, micloneData.mode);
         TickType_t sleepTime = micloneData.time ? micloneData.time / portTICK_PERIOD_MS : portMAX_DELAY;
         vTaskDelay(sleepTime);
         
@@ -46,7 +48,7 @@ namespace Driver
         return true;
     }
     
-    bool miclone_start(uint16_t rate, uint32_t time)
+    bool miclone_start(uint16_t rate, uint32_t time, MiCloneRunType_e runMode)
     {
         xSemaphoreTake(MiCloneHandlerSemaphore, portMAX_DELAY);
         
@@ -59,6 +61,7 @@ namespace Driver
         MiCloneData_t *micloneData = reinterpret_cast<MiCloneData_t *>(malloc(sizeof(MiCloneData_t)));
         micloneData->rate = rate;
         micloneData->time = time;
+        micloneData->mode = runMode;
         
         _MiCloneTaskHandler = xTaskCreateStatic(MiCloneTask,
                           "miclone-tsk",
@@ -91,12 +94,15 @@ namespace Driver
         xSemaphoreGive(MiCloneHandlerSemaphore);
     }
     
-    void miclone_send_start(uint16_t rate)
+    void miclone_send_start(uint16_t rate, MiCloneRunType_e runMode)
     {
-        _micloneStream->printf(MICLONE_FORMAT, rate / 5);
+        _micloneStream->printf(MICLONE_SAMPLE_FORMAT, rate / 5);
         #ifdef DEV_DEBUG
         Serial.printf("Starting milone with rate %d and val %d", rate, rate/5);
-        Serial.printf(MICLONE_FORMAT, rate / 5);
+
+        const char *format = runMode == MICLONE_MODE_SAMPLE ? MICLONE_SAMPLE_FORMAT : MICLONE_WASTE_FORMAT;
+        
+        Serial.printf(format, rate / 5);
         #endif
     }
     

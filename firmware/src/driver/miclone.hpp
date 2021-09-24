@@ -9,7 +9,7 @@
 
 namespace Driver
 {
-    extern const char *MICLONE_FORMAT;
+    extern const char *MICLONE_SAMPLE_FORMAT;
 
     extern SemaphoreHandle_t MiCloneHandlerSemaphore;
     extern Stream *_micloneStream;
@@ -18,11 +18,16 @@ namespace Driver
     extern TaskHandle_t _MiCloneTaskHandler;
     extern StaticTask_t _MiCloneTaskBuffer;
     extern StackType_t _MiCloneStack[ MICLONE_STACK_SIZE ];
-    
+
+    enum MiCloneRunType_e {
+        MICLONE_MODE_SAMPLE,
+        MICLONE_MODE_WASTE
+    };
     typedef struct {
 
         uint16_t rate;
         uint32_t time;
+        MiCloneRunType_e mode;
     } MiCloneData_t;
 
     void MiCloneTask(void *args);
@@ -37,7 +42,7 @@ namespace Driver
      * @return true 
      * @return false 
      */
-    bool miclone_start(uint16_t rate=300, uint32_t time=0);
+    bool miclone_start(uint16_t rate=300, uint32_t time=0, MiCloneRunType_e runMode=MICLONE_MODE_SAMPLE);
 
     /**
      * @brief High level function to stop bioaersol collector. Use this function tas
@@ -54,7 +59,7 @@ namespace Driver
      */
     void miclone_initialize();
 
-    void miclone_send_start(uint16_t rate);
+    void miclone_send_start(uint16_t rate, MiCloneRunType_e runMode=MICLONE_MODE_SAMPLE);
 
     /**
      * @brief Sends stop command to RS232. This should not normally called
