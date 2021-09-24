@@ -143,7 +143,7 @@ void _NumberFieldPage::onLoad(void *, void *args)
         };                                                                                      
         NumberFieldPage.buttons[11]->onRelease = [](uint16_t x, uint16_t y, uint8_t z) {        
             
-            PageSystem_findSwitch(&devicePageManager, NumberFieldPage.props->returnPageName, NumberFieldPage.props->returnPageArgs);
+            PageSystem_findSwitch(&devicePageManager, NumberFieldPage.props->returnPageName.c_str(), NumberFieldPage.props->returnPageArgs);
             // todo this might be problamatic because props is private
             // Driver::postDigitizerArgs = new void*[3];
             // Driver::postDigitizerArgs[0] = &devicePageManager;

@@ -8,16 +8,18 @@
 #include "DrawingWrapper.hpp"
 #include "../pagesystem/page.h"
 #include <stdint.h>
+#include <string>
 #include <string.h>
 
 class NumberFieldComponent : public BoundedArea
 {
 private:
-    DrawingWrapper &drw;
+    DrawingWrapper *drw;
     void *value;
     char label[GRAPHICS_NUMBERFIELDCOMPONENT_LABEL_SIZE]  = { 0 };
     char postfix[GRAPHICS_NUMBERFIELDCOMPONENT_POSTFIX_SIZE]  = { 0 };
-    char returnPageName[PAGE_NAME_SIZE] = { 0 };
+    // char returnPageName[PAGE_NAME_SIZE] = { 0 };
+    std::string returnPageName = "";
     
     NumberFieldDefs::ChangeValue_f changeValue;
 
@@ -28,6 +30,8 @@ private:
 public:
     static Page_t page;
 
+    NumberFieldComponent();
+
     NumberFieldComponent(DrawingWrapper &drw,
                          void *value, 
                          uint16_t x=0, 
@@ -37,6 +41,8 @@ public:
                          const char *label="",
                          const char *postfix=""
                          );
+    
+    NumberFieldComponent(NumberFieldComponent &&component);
     
     void setProperty(NumberFieldDefs::ChangeValue_f changeValue, NumberFieldDefs::GetValue_f getValue, NumberFieldDefs::ClearValue_f clearValue=nullptr);
     
@@ -53,6 +59,8 @@ public:
     // void (*onHoverExit)(uint16_t x, uint16_t y, uint8_t z);
     
     void onRelease(uint16_t x, uint16_t y, uint8_t z);
+
+    NumberFieldComponent& operator=(NumberFieldComponent &&component);
 
 private:
     void setPropsFromCurrent(NumberFieldDefs::Props_t &props);

@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "../pagesystem/page.h"
+#include <string>
+#include <string.h>
 
 #define PAGES_NUMBERFIELDPAGE_LABEL_SIZE 10
 #define PAGES_NUMBERFIELDPAGE_POSTFIX_SIZE 10
@@ -17,7 +19,7 @@ namespace NumberFieldDefs
         void *value;
         char label[PAGES_NUMBERFIELDPAGE_LABEL_SIZE];
         char postfix[PAGES_NUMBERFIELDPAGE_LABEL_SIZE];
-        char returnPageName[PAGE_NAME_SIZE];
+        std::string returnPageName;
         void *returnPageArgs;
 
         ChangeValue_f changeValue;

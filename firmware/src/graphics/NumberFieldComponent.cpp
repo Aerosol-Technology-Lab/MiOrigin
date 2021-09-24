@@ -10,6 +10,9 @@
 #include <HardwareSerial.h>
 #endif
 
+NumberFieldComponent::NumberFieldComponent()
+{ }
+
 NumberFieldComponent::NumberFieldComponent(DrawingWrapper &drw,
                                            void *value, 
                                            uint16_t x, 
@@ -20,11 +23,35 @@ NumberFieldComponent::NumberFieldComponent(DrawingWrapper &drw,
                                            const char *postfix
                                            )
     : BoundedArea(x, y, width, height)
-    , drw(drw)
+    , drw(&drw)
     , value(value)
 {
     strncpy(this->postfix, postfix, GRAPHICS_NUMBERFIELDCOMPONENT_POSTFIX_SIZE - 1);
     strncpy(this->label, label, GRAPHICS_NUMBERFIELDCOMPONENT_LABEL_SIZE - 1);
+}
+
+NumberFieldComponent::NumberFieldComponent(NumberFieldComponent &&component)
+    : BoundedArea(component.x, component.y, component.width, component.height)
+{
+    drw = component.drw;
+    component.drw = nullptr;
+
+    value = component.value;
+    component.value = nullptr;
+    
+    strcpy(label, component.label);
+    strcpy(postfix, component.postfix);
+    
+    returnPageName = std::move(component.returnPageName);
+    
+    changeValue = component.changeValue;
+    component.changeValue = nullptr;
+    
+    getValue = component.getValue;
+    component.getValue = nullptr;
+
+    clearValue = component.clearValue;
+    component.clearValue = nullptr;
 }
 
 void NumberFieldComponent::setProperty(NumberFieldDefs::ChangeValue_f changeValue, NumberFieldDefs::GetValue_f getValue, NumberFieldDefs::ClearValue_f clearValue)
@@ -37,7 +64,8 @@ void NumberFieldComponent::setProperty(NumberFieldDefs::ChangeValue_f changeValu
 void NumberFieldComponent::setReturnPageName(const char *name, size_t size)
 {
     // error: fix this
-    strncpy(returnPageName, name, std::min(size, sizeof(returnPageName) - 1));
+    // strncpy(returnPageName, name, std::min(size, sizeof(returnPageName) - 1));
+    returnPageName = name;
     delay(80);
     Serial.printf("Page name is: %s and the returnPageName is: %s\n", name, returnPageName);
     delay(80);
@@ -46,8 +74,8 @@ void NumberFieldComponent::setReturnPageName(const char *name, size_t size)
 void NumberFieldComponent::draw()
 {
     const int offset = 3;
-    drw.drawRect(x, y, width, height, 0, CMXG_WHITE);
-    drw.drawRect(x + offset, y + offset, width - 2 * offset, height - 2 * offset, 0, CMXG_BLACK);
+    drw->drawRect(x, y, width, height, 0, CMXG_WHITE);
+    drw->drawRect(x + offset, y + offset, width - 2 * offset, height - 2 * offset, 0, CMXG_BLACK);
     
     #ifdef SAFE_CODE
     assert(getValue && "Get Value is not initialized for this Nuberfield Component");
@@ -57,17 +85,17 @@ void NumberFieldComponent::draw()
     NumberFieldDefs::Props_t props;
     setPropsFromCurrent(props);
     getValue(&props, buffer, sizeof(buffer));
-    drw.setTextColor(CMXG_WHITE, CMXG_WHITE);
-    drw.setTextFont(CMXG_FONT_PRIMARY);
-    drw.setTextSize(2);
-    drw.setTextDatum(CMXG_CL_DATUM);
-    drw.drawString(buffer, x + offset + 4, y + height / 2);
+    drw->setTextColor(CMXG_WHITE, CMXG_WHITE);
+    drw->setTextFont(CMXG_FONT_PRIMARY);
+    drw->setTextSize(2);
+    drw->setTextDatum(CMXG_CL_DATUM);
+    drw->drawString(buffer, x + offset + 4, y + height / 2);
 
     if (strnlen(label, GRAPHICS_NUMBERFIELDCOMPONENT_LABEL_SIZE)) {
-        drw.setTextSize(1);
-        drw.setTextColor(CMXG_WHITE, CMXG_BLACK);
-        drw.setCursor(x + 3, y + height, 2);
-        drw.print(label);
+        drw->setTextSize(1);
+        drw->setTextColor(CMXG_WHITE, CMXG_BLACK);
+        drw->setCursor(x + 3, y + height, 2);
+        drw->print(label);
     }
 }
 
@@ -117,7 +145,7 @@ void NumberFieldComponent::setPropsFromCurrent(NumberFieldDefs::Props_t &props)
 {
     strncpy(props.label, label, GRAPHICS_NUMBERFIELDCOMPONENT_LABEL_SIZE);
     strncpy(props.postfix, postfix, GRAPHICS_NUMBERFIELDCOMPONENT_POSTFIX_SIZE);
-    strncpy(props.returnPageName, returnPageName, PAGE_NAME_SIZE);
+    props.returnPageName = returnPageName;
     props.value = value;
     props.changeValue = changeValue;
     props.getValue = getValue;

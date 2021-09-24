@@ -39,6 +39,12 @@ namespace Driver
 
         TouchscreenFunctionBehavior onRelease;
         
+        struct {
+
+            TouchscreenFunctionBehavior onPress;
+            TouchscreenFunctionBehavior onRelease;
+        } staged;
+        
         TaskHandle_t busyInterruptHandler;
         
     } Touchscreen_cfg;
@@ -136,6 +142,11 @@ namespace Driver
      * @param func Function called when touchscreen is released
      */
     void touchscreen_register_on_release(TouchscreenFunctionBehavior func);
+
+    /**
+     * @brief Apply touch screen handler if staged
+     */
+    void touchscreen_apply_staged(); 
 
     /**
      * @brief RTOS task software based interrupt loop.

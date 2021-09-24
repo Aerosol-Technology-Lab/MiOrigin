@@ -216,6 +216,11 @@ void _Debug::onLoad(void *, void *args) {
     // Driver::tft.setTextSize(2);
     // Driver::tft.setTextColor(TFT_WHITE);
 
+    drawingWrapper.setTextColor(CMXG_ORANGE, CMXG_ORANGE);
+    drawingWrapper.setTextFont(2);
+    drawingWrapper.setTextSize(2);
+    drawingWrapper.setTextDatum(CMXG_TL_DATUM);
+    drawingWrapper.drawString("DEBUG: Bioaerosol Collector", 10, 10);
     
     drawingWrapper.setTextSize(1);
     for (size_t i = 0; i < DEBUG_NUM_BUTTONS; ++i) DebugPage.buttons[i]->draw();

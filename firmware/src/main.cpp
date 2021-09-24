@@ -53,6 +53,7 @@ extern void loop();
 #include "pagesystem/pageoptions.h"
 #include "pages/Calibration.h"
 #include "pages/Debug.hpp"
+#include "pages/Home.hpp"
 
 // tests
 #include "test/post_setup.hpp"
@@ -897,12 +898,15 @@ void setup()
     DebugPage.generatePage(tmpPage);
     PageSystem_add_page(&devicePageManager, &tmpPage);
     
+    Home.generatePage(tmpPage);
+    PageSystem_add_page(&devicePageManager, &tmpPage);
+    
     PageSystem_start(&devicePageManager);
     // PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)0);
     Serial.println("Done!");
 
     
-    PageSystem_findSwitch(&devicePageManager, DEBUG_PAGE_NAME, (void *)0);
+    PageSystem_findSwitch(&devicePageManager, HOME_PAGE_NAME, (void *)0);
     PageSystem_execute_switch(&devicePageManager);
 
     #endif

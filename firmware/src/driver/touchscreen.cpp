@@ -13,6 +13,8 @@ void Driver::touchscreen_init()
     Touchscreen_cfg.point.x = 0;
     Touchscreen_cfg.point.y = 0;
     Touchscreen_cfg.point.z = 0;
+    Touchscreen_cfg.staged.onPress = nullptr;
+    Touchscreen_cfg.staged.onRelease = nullptr;
 }
 
 void Driver::touchscreen_begin(SPIClass &spi, uint8_t rotation, bool enableInterrupts, uint8_t interruptPin)
@@ -75,12 +77,24 @@ bool Driver::touchscreen_busy_check_interrupt(bool enable)
 
 void Driver::touchscreen_register_on_press(TouchscreenFunctionBehavior func)
 {
-    Touchscreen_cfg.onPress = func;
+    Touchscreen_cfg.staged.onPress = func;
 }
 
 void Driver::touchscreen_register_on_release(TouchscreenFunctionBehavior func)
 {
-    Touchscreen_cfg.onRelease = func;
+    Touchscreen_cfg.staged.onRelease = func;
+}
+
+void Driver::touchscreen_apply_staged()
+{
+    if (Touchscreen_cfg.staged.onPress) {
+        Touchscreen_cfg.onPress = Touchscreen_cfg.staged.onPress;
+        Touchscreen_cfg.staged.onPress = nullptr;
+    }
+    if (Touchscreen_cfg.staged.onRelease) {
+        Touchscreen_cfg.onRelease = Touchscreen_cfg.staged.onRelease;
+        Touchscreen_cfg.staged.onRelease= nullptr;
+    }
 }
 
 void Driver::busyInterruptFunction(void *args)
@@ -127,48 +141,7 @@ void Driver::busyInterruptFunction(void *args)
             delay(100);
         }
 
-        // if (currentState != touched) {
-            
-        //     touched = currentState;
-        //     if (touched) {
-
-        //         // update values
-        //         Driver::ts.readData(&Touchscreen_cfg.point.x,
-        //                             &Touchscreen_cfg.point.y,
-        //                             &Touchscreen_cfg.point.z
-        //                             );
-
-        //         // call event handler
-        //         if (!Touchscreen_cfg.onPress) {
-        //             #ifdef DRIVER_TS_ENABLE_DEBUG_PRINT
-        //             Serial.print("There is no press handler!");
-        //             #endif
-                    
-        //             vTaskDelay(1000 / portTICK_PERIOD_MS);
-        //             continue;
-        //         }
-                
-        //         #ifdef DRIVER_TS_ENABLE_DEBUG_PRINT
-        //         Serial.print("There is a press handler!");
-        //         #endif
-        //         Touchscreen_cfg.onPress();
-        //     }
-        //     else {
-        //         if (!Touchscreen_cfg.onRelease) {
-        //             #ifdef DRIVER_TS_ENABLE_DEBUG_PRINT
-        //             Serial.print("There is no release handler!");
-        //             #endif
-                    
-        //             vTaskDelay(1000 / portTICK_PERIOD_MS);
-        //             continue;
-        //         }
-
-        //         #ifdef DRIVER_TS_ENABLE_DEBUG_PRINT
-        //         Serial.print("There is a release handler!");
-        //         #endif
-        //         Touchscreen_cfg.onRelease();
-        //     }
-        // }
+        touchscreen_apply_staged();
 
         vTaskDelay(DRIVER_TS_CHECK_INTERVAL / portTICK_PERIOD_MS);
     }
