@@ -881,6 +881,10 @@ void setup()
         MutexRAII m(graphicsMutex);
         tft.setTextFont(font);
     };
+    drawingWrapper.drawCircle = [](uint16_t x, uint16_t y, uint16_t r, Color color) {
+        MutexRAII m(graphicsMutex);
+        tft.drawCircle(x, y, r, color);
+    };
 
     Page_t tmpPage;
     

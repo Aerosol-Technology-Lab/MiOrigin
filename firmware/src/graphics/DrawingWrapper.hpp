@@ -47,4 +47,6 @@ struct DrawingWrapper
     void (*setTextFont)(uint8_t font);
 
     void (*fillScreen)(Color color);
+
+    void (*drawCircle)(uint16_t x, uint16_t y, uint16_t r, Color color);
 };
