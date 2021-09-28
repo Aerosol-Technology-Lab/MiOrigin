@@ -893,7 +893,7 @@ void setup()
     
     PageSystem_init(&devicePageManager);
     
-    #ifndef DISABLE_CALIBRATION
+    #if !defined(DISABLE_CALIBRATION) || defined(CALIBRATE_DIGITIZER)
     Calibration.begin(SPIFFS);
     Calibration.generatePage(tmpPage);
     PageSystem_add_page(&devicePageManager, &tmpPage);
@@ -906,14 +906,22 @@ void setup()
     PageSystem_add_page(&devicePageManager, &tmpPage);
     
     PageSystem_start(&devicePageManager);
-    // PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)0);
     Serial.println("Done!");
 
     
+    #ifdef CALIBRATE_DIGITIZER
+    
+    PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)1);
+    
+    #else   // normal operations
+
     PageSystem_findSwitch(&devicePageManager, HOME_PAGE_NAME, (void *)0);
+
+    #endif // CALIBRATE_DIGITIZER
+
     PageSystem_execute_switch(&devicePageManager);
 
-    #endif
+    #endif  //DISABLE_PAGE_SYSTEM
 
 
     // Post setup test
