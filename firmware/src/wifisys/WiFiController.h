@@ -10,6 +10,9 @@
 #define MAX_AP 4
 #endif
 
+#define DEFAULT_AP_SSID "MiOrigin WiFi"
+#define DEFAULT_AP_PSWD "miorigin-atl"
+
 /**
  * @brief Throws when a WiFiController has already been initialized.
  *          there can only be one WiFiController in the whole life
@@ -107,6 +110,10 @@ public:
     void enableWiFi(bool state);
 
     /**
+     * @brief Resets WiFi on and off
+     */
+    void resetWiFi();
+        /**
      * @brief Enable WiFi modem sleep
      * @warning You should not use this. Call WiFi.sleep(state) instead. Refer
      *          to this function's definition.
@@ -114,6 +121,16 @@ public:
      * @param state true to enable or false to disable
      */
     void enableWiFiSleep(bool state);
+
+    /**
+     * @brief Enable station mode
+     * @note If STA mode is enabled, turning this on will disable STA.
+     *          If this is disabled and STA mode was previouslly enabled,
+     *          STA will be re-enabled
+     * 
+     * @param state true to enable or false to disable
+     */
+    void enableAP(bool state);
 
 private:
     /**

@@ -95,7 +95,7 @@ void _WiFiController::enableWiFi(bool state)
 {
     if (state) {
         WiFi.disconnect(false);
-        WiFi.mode(WIFI_STA);
+        WiFi.enableSTA(true);
         delay(100);
         xSemaphoreGive(binSemaphoreWiFiAlive);
     }
@@ -103,6 +103,12 @@ void _WiFiController::enableWiFi(bool state)
         xSemaphoreTake(binSemaphoreWiFiAlive, portMAX_DELAY);
         WiFi.disconnect(true);
     }
+}
+
+void _WiFiController::resetWiFi()
+{
+    enableWiFi(false);
+    enableWiFi(true);
 }
 
 void _WiFiController::enableWiFiSleep(bool state)
@@ -183,6 +189,23 @@ void _WiFiController::keepWiFiAliveTask(void *)
     }
 
     vTaskDelete(nullptr);
+}
+
+void _WiFiController::enableAP(bool state)
+{
+    static bool enabledAP = false;
+
+    if (state == enabledAP) return;     // do nothing
+
+    if (state) {
+        WiFi.enableAP(true);
+        WiFi.softAP(DEFAULT_AP_SSID, DEFAULT_AP_PSWD);
+    }
+    else {
+        WiFi.softAPdisconnect();
+    }
+
+    enabledAP = state;
 }
 
 _WiFiController WiFiController;
