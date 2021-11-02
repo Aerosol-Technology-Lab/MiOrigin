@@ -13,6 +13,10 @@
 #define DEFAULT_AP_SSID "MiOrigin WiFi"
 #define DEFAULT_AP_PSWD "miorigin-atl"
 
+#define DEFAULT_LOCAL_IP IPAddress(192,168,1,1)
+#define DEFAULT_GATEWAY  IPAddress(192,168,1,1)
+#define DEFAULT_SUBNET   IPAddress(255,255,255,1)
+
 /**
  * @brief Throws when a WiFiController has already been initialized.
  *          there can only be one WiFiController in the whole life

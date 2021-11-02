@@ -200,6 +200,7 @@ void _WiFiController::enableAP(bool state)
     if (state) {
         WiFi.enableAP(true);
         WiFi.softAP(DEFAULT_AP_SSID, DEFAULT_AP_PSWD);
+        WiFi.softAPConfig(DEFAULT_LOCAL_IP, DEFAULT_GATEWAY, DEFAULT_SUBNET);
     }
     else {
         WiFi.softAPdisconnect();
