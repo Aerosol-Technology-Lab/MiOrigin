@@ -10,7 +10,7 @@ extern void loop();
 
 #include "config.h"
 #include <Arduino.h>
-#include "credentials.h"
+// #include "credentials.h"
 #include "common.h"
 #include <memory>
 #include <FS.h>
@@ -802,35 +802,35 @@ void setup()
     f.write((const uint8_t *)"\n ------ Session Started -----", 33);
     f.close();
 
-    // encryption
-    const char testString[] = "Hello World! This is the message";
-    uint8_t key[32];
-    uint8_t iv[16] = { 0 };
-    uint8_t _iv[16] = { 0 };
-    utils::hexchar2bin(AES_KEY, key, sizeof(key) / sizeof(key[0]));
-    generateIV(iv, sizeof(iv));
-    memcpy(_iv, iv, 16);
+    // // encryption
+    // const char testString[] = "Hello World! This is the message";
+    // uint8_t key[32];
+    // uint8_t iv[16] = { 0 };
+    // uint8_t _iv[16] = { 0 };
+    // utils::hexchar2bin(AES_KEY, key, sizeof(key) / sizeof(key[0]));
+    // generateIV(iv, sizeof(iv));
+    // memcpy(_iv, iv, 16);
 
-    size_t aesBuffSize = (sizeof(testString) + 15) / 16;
-    aesBuffSize *= 16;
+    // size_t aesBuffSize = (sizeof(testString) + 15) / 16;
+    // aesBuffSize *= 16;
 
-    unsigned char * encrypted = new unsigned char[aesBuffSize];
-    unsigned char * decrypted = new unsigned char[aesBuffSize];
+    // unsigned char * encrypted = new unsigned char[aesBuffSize];
+    // unsigned char * decrypted = new unsigned char[aesBuffSize];
 
-    esp_aes_context ctx;
-    esp_aes_init( &ctx );
-    esp_aes_setkey(&ctx, key, 256);
-    esp_aes_crypt_cbc(&ctx, ESP_AES_ENCRYPT, aesBuffSize, iv, (const unsigned char *)testString, encrypted);
-    // memset(iv, 0, 16);
-    esp_aes_crypt_cbc(&ctx, ESP_AES_DECRYPT, aesBuffSize, _iv, encrypted, decrypted);
-    esp_aes_free(&ctx);
+    // esp_aes_context ctx;
+    // esp_aes_init( &ctx );
+    // esp_aes_setkey(&ctx, key, 256);
+    // esp_aes_crypt_cbc(&ctx, ESP_AES_ENCRYPT, aesBuffSize, iv, (const unsigned char *)testString, encrypted);
+    // // memset(iv, 0, 16);
+    // esp_aes_crypt_cbc(&ctx, ESP_AES_DECRYPT, aesBuffSize, _iv, encrypted, decrypted);
+    // esp_aes_free(&ctx);
 
-    Serial.print("Encrypted string: ");
-    Serial.println((char *)encrypted);
-    Serial.print("Decrypted string: ");
-    Serial.print((const char *)decrypted);
+    // Serial.print("Encrypted string: ");
+    // Serial.println((char *)encrypted);
+    // Serial.print("Decrypted string: ");
+    // Serial.print((const char *)decrypted);
 
-    writeToMiCloneLog("Encryption Algorithms done\n");
+    // writeToMiCloneLog("Encryption Algorithms done\n");
 
     #ifndef DISABLE_PAGE_SYSTEM
 
@@ -893,7 +893,7 @@ void setup()
     
     PageSystem_init(&devicePageManager);
     
-    #ifndef DISABLE_CALIBRATION
+    #if !defined(DISABLE_CALIBRATION) || defined(CALIBRATE_DIGITIZER)
     Calibration.begin(SPIFFS);
     Calibration.generatePage(tmpPage);
     PageSystem_add_page(&devicePageManager, &tmpPage);
@@ -906,14 +906,22 @@ void setup()
     PageSystem_add_page(&devicePageManager, &tmpPage);
     
     PageSystem_start(&devicePageManager);
-    // PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)0);
     Serial.println("Done!");
 
     
+    #ifdef CALIBRATE_DIGITIZER
+    
+    PageSystem_findSwitch(&devicePageManager, CALIBRATION_PAGE_NAME, (void *)1);
+    
+    #else   // normal operations
+
     PageSystem_findSwitch(&devicePageManager, HOME_PAGE_NAME, (void *)0);
+
+    #endif // CALIBRATE_DIGITIZER
+
     PageSystem_execute_switch(&devicePageManager);
 
-    #endif
+    #endif  //DISABLE_PAGE_SYSTEM
 
 
     // Post setup test

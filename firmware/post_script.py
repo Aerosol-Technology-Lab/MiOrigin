@@ -28,7 +28,7 @@ def post_firmware_callback(source, target, env):
     aprint('Performing checks...')
 
     if project_option == 'factory':
-        aprint('Processing factory firmware')
+        aprint('Firmware type detected: [factory]')
         
         target_path = os.path.join(BINARIES_PATH, 'factory.bin')
         if os.path.exists(target_path):
@@ -36,6 +36,7 @@ def post_firmware_callback(source, target, env):
 
         shutil.copyfile(bin_path, target_path)
         aprint('New firmware in binaries directory')
+        aprint('  [ {} ]'.format(target_path))
         
     elif project_option == 'ota0':
         aprint('Processing ota0 firmware')

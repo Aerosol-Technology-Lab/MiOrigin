@@ -37,3 +37,5 @@
 
 #define POST_SETUP_TEST      // Compile and run post setup tests after setup is completed
 // #define FACTORY
+
+// #define CALIBRATE_DIGITIZER // Enabling this will boot the device into calibration mode
