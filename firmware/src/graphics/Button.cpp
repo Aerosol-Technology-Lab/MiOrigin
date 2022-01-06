@@ -1,6 +1,18 @@
 #include "Button.hpp"
 #include <string.h>
 #include "DrawingWrapper.hpp"
+#include <stdexcept>
+
+Button::Button(bool initialize)
+    : BoundedArea(0, 0, 0, 0)
+    , font(0)
+    , drw(*((DrawingWrapper *)(nullptr)))       // this is really hacky and bad!
+{
+    if (initialize) {
+        throw "Button should not be initialized with default constructor!";
+        // std::throw_with_nested( std::runtime_error("run() failed") );
+    }
+}
 
 Button::Button(DrawingWrapper &drw, name_t name ,uint16_t x, uint16_t y, uint16_t width, uint16_t height, Font_t fnt)
     : BoundedArea(x, y, width, height)

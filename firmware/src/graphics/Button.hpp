@@ -39,6 +39,7 @@ protected:
     DrawingWrapper &drw;
 
 public:
+    Button(bool initialize=true);
     Button(DrawingWrapper &drw, name_t name="",uint16_t x=0, uint16_t y=0, uint16_t width=0, uint16_t height=0, Font_t fnt=2);
 
     void setTextColor(Color textColor);

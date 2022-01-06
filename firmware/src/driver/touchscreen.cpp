@@ -138,7 +138,6 @@ void Driver::busyInterruptFunction(void *args)
         // Run post digitizer action once
         if (postDigitizerAction) {
             postDigitizerAction(postDigitizerArgs);
-            delay(100);
         }
 
         touchscreen_apply_staged();
