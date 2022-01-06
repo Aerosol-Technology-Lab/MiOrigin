@@ -12,7 +12,9 @@ namespace Driver
 {
     // const char *MICLONE_FORMAT  = "/1ZJ0J0J3M3000J7gV3000IP3000V%dOD3000GJ3M15000J0R\r\n";
     // const char *MICLONE_FORMAT  = "/1ZJ0J0J6gV3000IP3000OV%dD3000GJ2M30000J0R\r\n";
+    // const char *MICLONE_FORMAT  = "/1ZJ0J0J7gV3000IP3000OV%dD3000GJ3M30000J0R\r\n";
     const char *MICLONE_FORMAT  = "/1ZJ0J0J7gV3000IP3000OV%dD3000GJ3M30000J0R\r\n";
+    
     void MiCloneTask(void *args)
     {
         #ifdef SAFE_CODE
@@ -99,10 +101,10 @@ namespace Driver
             vTaskDelete(_MiCloneTaskHandler);
             _MiCloneTaskHandler = nullptr;
             // miclone_send_stop(0);
-            miclone_send_stop(1);
+            miclone_send_stop(2);
         }
         else {
-            miclone_send_stop(1);
+            miclone_send_stop(2);
         }
         
         xSemaphoreGive(MiCloneHandlerSemaphore);
@@ -121,6 +123,11 @@ namespace Driver
     {
         Serial.println("[MICLONE] Sending stop signal");
         _micloneStream->print("/1TR\r\n/1J0R\r\n");
+
+        if (stopType == 2) {
+            _micloneStream->print("/1J0TR\r\n");
+            return;
+        }
 
         switch (stopType) {
         case 1:
