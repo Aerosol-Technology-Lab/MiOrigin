@@ -17,6 +17,9 @@
 #undef  CONFIG_MBEDTLS_SSL_IN_CONTENT_LEN
 #define CONFIG_MBEDTLS_SSL_IN_CONTENT_LEN CONFIG_MBEDTLS_SSL_MAX_CONTENT_LEN
 
+// disable this flag below
+// #define ENABLE_SAMPLE_WASTE_TOGGLE   disable this flag
+
 // #define DEV_DEBUG
 
 #define SAFE_CODE    // enabling this will compile runtime checking code
@@ -37,7 +40,7 @@
 
 // #define ENABLE_REPORTING_SYSTEM_STATS_IN_DISPLAY
 
-#define POST_SETUP_TEST      // Compile and run post setup tests after setup is completed
+// #define POST_SETUP_TEST      // Compile and run post setup tests after setup is completed
 // #define FACTORY
 
 // #define CALIBRATE_DIGITIZER // Enabling this will boot the device into calibration mode
