@@ -354,15 +354,15 @@ void handleUSBC(void *parameters = nullptr)
                     }
                     
                     const char delim[] = " ";
-                    auto tag = strtok(msgCpy, delim);
+                    auto tag = strtok(msgCpy + 1, delim);
 
                     if (tag) {
 
-                        if (strcmp(tag, "stop")) {
+                        if (strcmp(tag, "stop") == 0) {
                             Driver::miclone_stop();
                             Serial.println("Sending stop signal to miclone driver");
                         }
-                        if (strcmp(tag, "run")) {
+                        if (strcmp(tag, "run") == 0) {
 
                             tag = strtok(NULL, delim);
                             if (!tag || !isdigit(*tag)) continue;   // if tag is empty or first character of tag is not a number, cont.
