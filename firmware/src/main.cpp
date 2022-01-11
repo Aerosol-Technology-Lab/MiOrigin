@@ -319,6 +319,9 @@ void handleUSBC(void *parameters = nullptr)
                             Serial.println("Error: Cannot find device info file. Flash new filesystem image");
                         }
                     }
+                    else if (!strcmp(command, "stop")) {
+                        Driver::miclone_stop();
+                    }
                     else if (!strcmp(command, "help")) {
                         
                         if (!SPIFFS.exists("/help.txt")) {
@@ -335,6 +338,30 @@ void handleUSBC(void *parameters = nullptr)
 
                         Serial.println(f);
                         f.close();
+                    }
+                }
+                else if (message[0] == '$') {
+
+                    char msgCpy[64];
+                    strncpy(msgCpy, message.c_str(), sizeof(msgCpy) - 1);
+
+                    // string cleanup - removes ending terminators
+                    size_t msgSize = strlen(msgCpy);
+                    if (msgSize >= 2 && msgCpy[msgSize - 2] == '\r' && msgCpy[msgSize - 1] == '\n') {
+                        msgCpy[msgSize - 1] = '\0';
+                        msgCpy[msgSize - 2] = '\0';
+                        msgSize -= 2;
+                    }
+                    
+                    const char delim[] = " ";
+                    auto tag = strtok(msgCpy, delim);
+
+                    if (tag) {
+
+                        if (strcmp(tag, "stop")) {
+                            Driver::miclone_stop();
+                            Serial.println("Sending stop signal to miclone driver");
+                        }
                     }
                 }
             }
