@@ -94,6 +94,7 @@ struct {
     char uuid[40] = "";
 } DevinceInfo;
 
+#ifdef ENABLE_BLE
 struct {
 
     BLEServer *pServer;
@@ -132,6 +133,7 @@ struct {
 
     
 } BLE_Props;
+#endif
 
 /**
  * @brief Parses command from a given string that starts with an exclamation mark
@@ -764,6 +766,7 @@ void setup()
     }
 #endif
     
+#ifdef ENABLE_BLE
     /* Start Bluetooth */
     // Initialize and Server Info
     tft.println("-> Initializing Bluetooth (BLE)...");
@@ -794,6 +797,9 @@ void setup()
     pAdvertising->setMinPreferred(0x06);
     pAdvertising->setMinPreferred(0x12);
     BLEDevice::startAdvertising();
+
+#endif
+
 
     tft.println("=== DONE! Everything initialized ===");
 

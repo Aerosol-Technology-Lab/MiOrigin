@@ -26,6 +26,8 @@
 
 // #define WIFI_CONNECTIVITY_ENABLE
 
+// #define ENABLE_BLE
+
 /////////////////////////////////////////////////////////////////////
 /*      DEBUG MACROS - Do not turn these on except for debuggin and testing */
 
