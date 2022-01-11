@@ -15,7 +15,7 @@ void postSetupTest()
     assert(false && "Post Setup tests should not be called in production or when POST_SETUP_TEST flag is disabled");
 }        
 
-#error this should not compile
+// #error this should not compile
 
 #else
 
