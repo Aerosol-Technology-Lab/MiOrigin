@@ -360,7 +360,7 @@ void handleUSBC(void *parameters = nullptr)
 
                         if (strcmp(tag, "stop")) {
                             Driver::miclone_stop();
-                            Serial.println("Sending stop signal to miclone driver");
+                            dev_println("Sending stop signal to miclone driver");
                         }
                     }
                 }
