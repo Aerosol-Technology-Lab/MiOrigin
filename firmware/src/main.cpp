@@ -354,13 +354,40 @@ void handleUSBC(void *parameters = nullptr)
                     }
                     
                     const char delim[] = " ";
-                    auto tag = strtok(msgCpy, delim);
+                    auto tag = strtok(msgCpy + 1, delim);
 
                     if (tag) {
 
-                        if (strcmp(tag, "stop")) {
+                        if (strcmp(tag, "stop") == 0) {
                             Driver::miclone_stop();
                             dev_println("Sending stop signal to miclone driver");
+                        }
+                        if (strcmp(tag, "run") == 0) {
+
+                            tag = strtok(NULL, delim);
+                            if (!tag || !isdigit(*tag)) continue;   // if tag is empty or first character of tag is not a number, cont.
+
+                            unsigned int flowRate = atoi(tag);
+                            if (flowRate < 5) continue;             // check if flow rate is not negative or not too low
+
+                            tag = strtok(NULL, delim);
+                            unsigned int timer = 0;
+                            if (tag) {
+                                if (!isdigit(*tag)) continue;
+
+                                int _timer = atoi(tag);
+                                if (_timer < 0) {
+                                    continue;
+                                }
+                                else {
+                                    timer = _timer;
+                                }
+                            }
+                            else {
+                                timer = 0; // 0 means run forever
+                            }
+
+                            Driver::miclone_start(flowRate, timer);
                         }
                     }
                 }
