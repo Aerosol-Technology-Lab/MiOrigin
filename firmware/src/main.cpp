@@ -174,7 +174,6 @@ void handleUSBC(void *parameters = nullptr)
     while (true) {
         
         if (Serial.available()) {
-            Serial.println("@ Init stage");
             String message = Serial.readString();
             
             #ifdef DEV_DEBUG
@@ -187,13 +186,11 @@ void handleUSBC(void *parameters = nullptr)
             }
             #endif
             
-            Serial.println("Reached");
             size_t messageLen = message.length();
 
             if (messageLen && messageLen < 256) {
                 // can perform string checks
 
-                Serial.println("@Stage 1");
                 
                 if (message[0] == '/') {
                     // this is a command from MiClone
@@ -217,15 +214,14 @@ void handleUSBC(void *parameters = nullptr)
                 else if (message[0] == '!') {
                     // command from my helper program
                     // todo
-                    Serial.println("@Stage2");
                     char command[17] = { 0 };
                     size_t offset = 0;
                     offset = parseCommandFromString(message.c_str(), message.length(), command, sizeof(command));
 
-                    Serial.print("  Result of command: ");
-                    Serial.println(command);
-                    Serial.print("  Result of strcmp(command, \"ping\"): ");
-                    Serial.println(!strcmp(command, "ping"), DEC);
+                    // Serial.print("  Result of command: ");
+                    // Serial.println(command);
+                    // Serial.print("  Result of strcmp(command, \"ping\"): ");
+                    // Serial.println(!strcmp(command, "ping"), DEC);
 
                     if (!strcmp(command, "sd") || !strcmp(command, "spiffs")) {
 
@@ -362,7 +358,7 @@ void handleUSBC(void *parameters = nullptr)
                             Driver::miclone_stop();
                             dev_println("Sending stop signal to miclone driver");
                         }
-                        if (strcmp(tag, "run") == 0) {
+                        else if (strcmp(tag, "run") == 0) {
 
                             tag = strtok(NULL, delim);
                             if (!tag || !isdigit(*tag)) continue;   // if tag is empty or first character of tag is not a number, cont.
