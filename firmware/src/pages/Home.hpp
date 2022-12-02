@@ -24,7 +24,9 @@ private:
     Button *button_initialize;
 
     // toggles
+#ifdef ENABLE_SAMPLE_WASTE_TOGGLE
     Toggle sampleWasteToggle;
+#endif
 
     int32_t flowRateValue;
     int32_t timerMinValue;

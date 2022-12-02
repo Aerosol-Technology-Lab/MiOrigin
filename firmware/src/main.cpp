@@ -94,6 +94,7 @@ struct {
     char uuid[40] = "";
 } DevinceInfo;
 
+#ifdef ENABLE_BLE
 struct {
 
     BLEServer *pServer;
@@ -132,6 +133,7 @@ struct {
 
     
 } BLE_Props;
+#endif
 
 /**
  * @brief Parses command from a given string that starts with an exclamation mark
@@ -172,7 +174,6 @@ void handleUSBC(void *parameters = nullptr)
     while (true) {
         
         if (Serial.available()) {
-            Serial.println("@ Init stage");
             String message = Serial.readString();
             
             #ifdef DEV_DEBUG
@@ -185,13 +186,11 @@ void handleUSBC(void *parameters = nullptr)
             }
             #endif
             
-            Serial.println("Reached");
             size_t messageLen = message.length();
 
             if (messageLen && messageLen < 256) {
                 // can perform string checks
 
-                Serial.println("@Stage 1");
                 
                 if (message[0] == '/') {
                     // this is a command from MiClone
@@ -215,15 +214,14 @@ void handleUSBC(void *parameters = nullptr)
                 else if (message[0] == '!') {
                     // command from my helper program
                     // todo
-                    Serial.println("@Stage2");
                     char command[17] = { 0 };
                     size_t offset = 0;
                     offset = parseCommandFromString(message.c_str(), message.length(), command, sizeof(command));
 
-                    Serial.print("  Result of command: ");
-                    Serial.println(command);
-                    Serial.print("  Result of strcmp(command, \"ping\"): ");
-                    Serial.println(!strcmp(command, "ping"), DEC);
+                    // Serial.print("  Result of command: ");
+                    // Serial.println(command);
+                    // Serial.print("  Result of strcmp(command, \"ping\"): ");
+                    // Serial.println(!strcmp(command, "ping"), DEC);
 
                     if (!strcmp(command, "sd") || !strcmp(command, "spiffs")) {
 
@@ -317,6 +315,9 @@ void handleUSBC(void *parameters = nullptr)
                             Serial.println("Error: Cannot find device info file. Flash new filesystem image");
                         }
                     }
+                    else if (!strcmp(command, "stop")) {
+                        Driver::miclone_stop();
+                    }
                     else if (!strcmp(command, "help")) {
                         
                         if (!SPIFFS.exists("/help.txt")) {
@@ -333,6 +334,57 @@ void handleUSBC(void *parameters = nullptr)
 
                         Serial.println(f);
                         f.close();
+                    }
+                }
+                else if (message[0] == '$') {
+
+                    char msgCpy[64];
+                    strncpy(msgCpy, message.c_str(), sizeof(msgCpy) - 1);
+
+                    // string cleanup - removes ending terminators
+                    size_t msgSize = strlen(msgCpy);
+                    if (msgSize >= 2 && msgCpy[msgSize - 2] == '\r' && msgCpy[msgSize - 1] == '\n') {
+                        msgCpy[msgSize - 1] = '\0';
+                        msgCpy[msgSize - 2] = '\0';
+                        msgSize -= 2;
+                    }
+                    
+                    const char delim[] = " ";
+                    auto tag = strtok(msgCpy + 1, delim);
+
+                    if (tag) {
+
+                        if (strcmp(tag, "stop") == 0) {
+                            Driver::miclone_stop();
+                            dev_println("Sending stop signal to miclone driver");
+                        }
+                        else if (strcmp(tag, "run") == 0) {
+
+                            tag = strtok(NULL, delim);
+                            if (!tag || !isdigit(*tag)) continue;   // if tag is empty or first character of tag is not a number, cont.
+
+                            unsigned int flowRate = atoi(tag);
+                            if (flowRate < 5) continue;             // check if flow rate is not negative or not too low
+
+                            tag = strtok(NULL, delim);
+                            unsigned int timer = 0;
+                            if (tag) {
+                                if (!isdigit(*tag)) continue;
+
+                                int _timer = atoi(tag);
+                                if (_timer < 0) {
+                                    continue;
+                                }
+                                else {
+                                    timer = _timer;
+                                }
+                            }
+                            else {
+                                timer = 0; // 0 means run forever
+                            }
+
+                            Driver::miclone_start(flowRate, timer);
+                        }
                     }
                 }
             }
@@ -764,6 +816,7 @@ void setup()
     }
 #endif
     
+#ifdef ENABLE_BLE
     /* Start Bluetooth */
     // Initialize and Server Info
     tft.println("-> Initializing Bluetooth (BLE)...");
@@ -795,42 +848,10 @@ void setup()
     pAdvertising->setMinPreferred(0x12);
     BLEDevice::startAdvertising();
 
+#endif
+
+
     tft.println("=== DONE! Everything initialized ===");
-
-    File f = SD.open(MICLONE_LOG_FILENAME, "w+");
-    f.seek(f.size());
-    f.write((const uint8_t *)"\n ------ Session Started -----", 33);
-    f.close();
-
-    // // encryption
-    // const char testString[] = "Hello World! This is the message";
-    // uint8_t key[32];
-    // uint8_t iv[16] = { 0 };
-    // uint8_t _iv[16] = { 0 };
-    // utils::hexchar2bin(AES_KEY, key, sizeof(key) / sizeof(key[0]));
-    // generateIV(iv, sizeof(iv));
-    // memcpy(_iv, iv, 16);
-
-    // size_t aesBuffSize = (sizeof(testString) + 15) / 16;
-    // aesBuffSize *= 16;
-
-    // unsigned char * encrypted = new unsigned char[aesBuffSize];
-    // unsigned char * decrypted = new unsigned char[aesBuffSize];
-
-    // esp_aes_context ctx;
-    // esp_aes_init( &ctx );
-    // esp_aes_setkey(&ctx, key, 256);
-    // esp_aes_crypt_cbc(&ctx, ESP_AES_ENCRYPT, aesBuffSize, iv, (const unsigned char *)testString, encrypted);
-    // // memset(iv, 0, 16);
-    // esp_aes_crypt_cbc(&ctx, ESP_AES_DECRYPT, aesBuffSize, _iv, encrypted, decrypted);
-    // esp_aes_free(&ctx);
-
-    // Serial.print("Encrypted string: ");
-    // Serial.println((char *)encrypted);
-    // Serial.print("Decrypted string: ");
-    // Serial.print((const char *)decrypted);
-
-    // writeToMiCloneLog("Encryption Algorithms done\n");
 
     #ifndef DISABLE_PAGE_SYSTEM
 
@@ -888,7 +909,7 @@ void setup()
 
     Page_t tmpPage;
     
-    writeToMiCloneLog("After setting drawing wrapper.", __LINE__);
+    // writeToMiCloneLog("After setting drawing wrapper.", __LINE__);
 
     
     PageSystem_init(&devicePageManager);
@@ -906,7 +927,7 @@ void setup()
     PageSystem_add_page(&devicePageManager, &tmpPage);
     
     PageSystem_start(&devicePageManager);
-    Serial.println("Done!");
+    dev_println("Done!");
 
     
     #ifdef CALIBRATE_DIGITIZER

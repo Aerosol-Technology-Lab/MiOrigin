@@ -34,7 +34,7 @@ extern "C"
                                         f.write(mess, strlen(mess));            \
                                         f.close();                              \
                                     }                                           
-#elif
+#else
     #define dev_print(mess)
     #define dev_println(mess)
     #define dev_printf(mess, ...)
