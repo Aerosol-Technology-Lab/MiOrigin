@@ -1,9 +1,9 @@
 import logo from './logo.svg';
 import './App.css';
-import { useState ,useEffect } from 'react';
+import { useState ,useEffect, useRef } from 'react';
 import './BLE_Handler';
 import { triggerNotification, waitForNotification } from './BLE_Handler';
-import { connectToDevice, disconnectToDevice } from './Device_BLE';
+import { connectToDevice, disconnectToDevice, uploadFile, ping } from './Device_BLE';
 
 
 const BRANCHES = {
@@ -25,6 +25,7 @@ declare global {
     bleNotify: any;
     fileResult: any;
     test: any;
+    globalFile: any;
   }
 }
 
@@ -42,6 +43,7 @@ function App() {
 
   const [number, setnumber] = useState(0)
   
+  const selectedFile = useRef(null);
   
     
     window.device = device;
@@ -67,15 +69,22 @@ function App() {
   const startCounter = async () => {
     var n = number;
     
-    while (true) {
+    while (false) {
       console.log(n);
       n += 1;
       await waitForNotification();
-      setnumber(n);
+      // setnumber(n);
       console.log("Print!");
     }
   }
-  
+    
+  const uploadButtonHandler = async () => {
+
+    if (selectedFile.current !== null) {
+      uploadFile(selectedFile.current!);
+    }    
+  };
+
   useEffect(() => {
     // effect
     window.device = device;
@@ -92,6 +101,7 @@ function App() {
   
   const showFile = async (input: any) => {
     window.test = input;
+    selectedFile.current = input.target.files[0];
     // console.log ("I am here!");
     // const reader = new FileReader();
 
@@ -113,6 +123,7 @@ function App() {
     // alert(`File name: ${file.name}`); // e.g my.png
     // alert(`Last modified: ${file.lastModified}`); // e.g 1552830408824
   }
+
   
   return (
     <div className="App">
@@ -120,7 +131,9 @@ function App() {
       <button onClick={ () => connectToDevice() } >Connect</button>
       <button onClick={ disconnectToDevice }>Disconnect</button>
       {/* <button onClick= { sendMTURequest }>Send MTU Request</button> */}
+      <button onClick={ uploadButtonHandler }>Upload File</button>
       <button onClick= { triggerNotification }>Trigger</button>
+      <button onClick={ ping }>Ping</button>
       <input type="file" onChange={ showFile }></input>
       {/* <input type="file" /> */}
       {/* <input
@@ -128,6 +141,10 @@ function App() {
           // value={selectedFile}
           onChange={(e) => console.log(e)}
         /> */}
+      <label>
+        Name:
+        <input type="text" name="name"/>
+      </label>
     </div>
   );
 }

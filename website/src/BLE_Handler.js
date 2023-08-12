@@ -1,6 +1,4 @@
 
-var awaitingSystem = "piiza";
-
 var BLE_notification = null;
 var resolution;
 var failure;
@@ -16,7 +14,6 @@ async function getPromise() {
 }
 
 function triggerNotification() {
-    console.log(awaitingSystem);
     resolution();
 
     BLE_notification = new Promise((resolve, reject) => {
@@ -26,6 +23,7 @@ function triggerNotification() {
 }
 
 async function waitForNotification() {
+    // console.assert(false);
     await BLE_notification;
     
     return;
