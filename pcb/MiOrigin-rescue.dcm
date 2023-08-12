@@ -1,3 +1,27 @@
 EESchema-DOCLIB  Version 2.0
 #
+$CMP DMG2305UX-13-dk_Transistors-FETs-MOSFETs-Single
+F https://www.diodes.com/assets/Datasheets/DMG2305UX.pdf
+$ENDCMP
+#
+$CMP OS102011MA1QN1-MiOrigin
+F https://www.ckswitches.com/media/1428/os.pdf
+$ENDCMP
+#
+$CMP PTS636-SMG25J-SMTR-LFS-MiOrigin
+F https://www.ckswitches.com/media/2779/pts636.pdf
+$ENDCMP
+#
+$CMP SN74LVC07APWR_(Units)-2021-06-22_18-51-54
+F https://www.ti.com/lit/ds/scas290q/scas290q.pdf
+$ENDCMP
+#
+$CMP SN74LVC125ADBR_(Units)-2021-06-22_18-51-54
+F https://www.ti.com/lit/ds/scas290q/scas290q.pdf
+$ENDCMP
+#
+$CMP SP0503BAHTG-dk_TVS-Diodes
+F https://www.littelfuse.com/~{/media/files/littelfuse/technical%20resources/documents/data%20sheets/sp05xxba.pdf}
+$ENDCMP
+#
 #End Doc Library
