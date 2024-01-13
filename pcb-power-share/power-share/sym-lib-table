@@ -1,0 +1,5 @@
+(sym_lib_table
+  (lib (name power-share)(type Legacy)(uri ${KIPRJMOD}/power-share.lib)(options "")(descr ""))
+  (lib (name MiOrigin)(type Legacy)(uri /home/charliew/Documents/pcb_MiOrigin/pcb/MiOrigin.lib)(options "")(descr ""))
+  (lib (name power-share-rescue)(type Legacy)(uri ${KIPRJMOD}/power-share-rescue.lib)(options "")(descr ""))
+)
