@@ -6,9 +6,9 @@ encoding utf-8
 Sheet 1 3
 Title "MiOrigin Controller"
 Date "2021-06-11"
-Rev "0.0"
-Comp "BAEN - Aerosol Technologies Lab"
-Comment1 ""
+Rev "1.1"
+Comp "Aerosol Technologies Lab - BAEN @ TAMU"
+Comment1 "Author: Charlemagne Wong | CECN 21'"
 Comment2 ""
 Comment3 ""
 Comment4 ""

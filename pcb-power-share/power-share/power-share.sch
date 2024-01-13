@@ -1,0 +1,507 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L power-share:Molex-KK-396-5POS P1
+U 1 1 616600B2
+P 4780 3190
+F 0 "P1" H 4868 3236 50  0000 L CNN
+F 1 "Molex-KK-396-5POS" H 4868 3145 50  0000 L CNN
+F 2 "power-share:Molex-KK-396-5POS" H 4710 3270 50  0001 C CNN
+F 3 "" H 4710 3270 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/molex/0026614050/211050" H 4780 3190 50  0001 C CNN "DGK"
+F 5 "0026614050" H 4780 3190 50  0001 C CNN "Manf#"
+	1    4780 3190
+	-1   0    0    -1  
+$EndComp
+$Comp
+L power:+24V #PWR0101
+U 1 1 616607B7
+P 5070 2970
+F 0 "#PWR0101" H 5070 2820 50  0001 C CNN
+F 1 "+24V" H 5085 3143 50  0000 C CNN
+F 2 "" H 5070 2970 50  0001 C CNN
+F 3 "" H 5070 2970 50  0001 C CNN
+	1    5070 2970
+	1    0    0    -1  
+$EndComp
+$Comp
+L power-share:Molex-KK-396-5POS P2
+U 1 1 616624DC
+P 6510 3190
+F 0 "P2" H 6598 3236 50  0000 L CNN
+F 1 "Molex-KK-396-5POS" H 6598 3145 50  0000 L CNN
+F 2 "power-share:Molex-KK-396-5POS" H 6440 3270 50  0001 C CNN
+F 3 "" H 6440 3270 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/molex/0026614050/211050" H 6510 3190 50  0001 C CNN "DGK"
+F 5 "0026614050" H 6510 3190 50  0001 C CNN "Manf#"
+	1    6510 3190
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+24V #PWR0103
+U 1 1 616624E2
+P 6270 2960
+F 0 "#PWR0103" H 6270 2810 50  0001 C CNN
+F 1 "+24V" H 6285 3133 50  0000 C CNN
+F 2 "" H 6270 2960 50  0001 C CNN
+F 3 "" H 6270 2960 50  0001 C CNN
+	1    6270 2960
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6270 2960 6270 3030
+Wire Wire Line
+	6270 3030 6340 3030
+$Comp
+L power:GND #PWR0104
+U 1 1 616624EA
+P 6270 3430
+F 0 "#PWR0104" H 6270 3180 50  0001 C CNN
+F 1 "GND" H 6275 3257 50  0000 C CNN
+F 2 "" H 6270 3430 50  0001 C CNN
+F 3 "" H 6270 3430 50  0001 C CNN
+	1    6270 3430
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6270 3430 6270 3110
+Wire Wire Line
+	6270 3110 6340 3110
+$Comp
+L power:GND #PWR0102
+U 1 1 6167CF7F
+P 4890 2550
+F 0 "#PWR0102" H 4890 2300 50  0001 C CNN
+F 1 "GND" H 4895 2377 50  0000 C CNN
+F 2 "" H 4890 2550 50  0001 C CNN
+F 3 "" H 4890 2550 50  0001 C CNN
+	1    4890 2550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4890 2330 4890 2420
+Wire Wire Line
+	5020 2330 5020 2420
+Connection ~ 4890 2420
+Wire Wire Line
+	4890 2420 4890 2550
+Wire Wire Line
+	4360 1780 4060 1780
+Wire Wire Line
+	3860 1950 3860 1780
+Connection ~ 3860 1780
+Wire Wire Line
+	3860 1780 3700 1780
+Wire Wire Line
+	3700 2150 3700 2420
+Wire Wire Line
+	3860 2150 3860 2420
+Wire Wire Line
+	3700 2420 3860 2420
+Connection ~ 3860 2420
+Wire Wire Line
+	3860 2420 4300 2420
+$Comp
+L Device:R_Small_US R1
+U 1 1 616864D5
+P 4160 1870
+F 0 "R1" V 4080 1980 50  0000 C CNN
+F 1 "470k" V 4080 1840 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" H 4160 1870 50  0001 C CNN
+F 3 "~" H 4160 1870 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/yageo/RC0603FR-07470KL/727257" H 4160 1870 50  0001 C CNN "DGK"
+F 5 "RC0603FR-07470KL" H 4160 1870 50  0001 C CNN "Manf#"
+	1    4160 1870
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:R_Small_US R2
+U 1 1 6168768B
+P 4300 2250
+F 0 "R2" H 4233 2204 50  0000 R CNN
+F 1 "200k" H 4233 2295 50  0000 R CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" H 4300 2250 50  0001 C CNN
+F 3 "~" H 4300 2250 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/yageo/RC0603FR-07200KL/727044" H 4300 2250 50  0001 C CNN "DGK"
+F 5 "RC0603FR-07200KL" H 4300 2250 50  0001 C CNN "Manf#"
+	1    4300 2250
+	1    0    0    1   
+$EndComp
+NoConn ~ 4360 1980
+Wire Wire Line
+	4060 1870 4060 1780
+Connection ~ 4060 1780
+Wire Wire Line
+	4060 1780 3860 1780
+Wire Wire Line
+	4260 1870 4300 1870
+Connection ~ 4300 1870
+Wire Wire Line
+	4300 1870 4360 1870
+Wire Wire Line
+	4300 1870 4300 2150
+Wire Wire Line
+	4300 2350 4300 2420
+Connection ~ 4300 2420
+Wire Wire Line
+	4300 2420 4890 2420
+$Comp
+L Device:C_Small C2
+U 1 1 6167F82B
+P 3860 2050
+F 0 "C2" H 3950 2030 50  0000 L CNN
+F 1 "6.8uF" H 3880 1950 50  0000 L CNN
+F 2 "Capacitor_SMD:C_1812_4532Metric" H 3860 2050 50  0001 C CNN
+F 3 "~" H 3860 2050 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/tdk-corporation/C4532X7R1H685K250KB/1587498" H 3860 2050 50  0001 C CNN "DGK"
+F 5 "C4532X7R1H685K250KB" H 3860 2050 50  0001 C CNN "Manf#"
+	1    3860 2050
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C_Small C3
+U 1 1 6168A3E7
+P 5430 1870
+F 0 "C3" V 5620 1870 50  0000 C CNN
+F 1 "10nF" V 5540 1870 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0402_1005Metric_Pad0.74x0.62mm_HandSolder" H 5430 1870 50  0001 C CNN
+F 3 "~" H 5430 1870 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/murata-electronics/GCM155R71H103KA55D/1641636" V 5430 1870 50  0001 C CNN "DGK"
+F 5 "GCM155R71H103KA55D" H 5430 1870 50  0001 C CNN "Manf#"
+	1    5430 1870
+	0    1    -1   0   
+$EndComp
+Wire Wire Line
+	5210 1870 5330 1870
+Wire Wire Line
+	5210 1980 5640 1980
+Wire Wire Line
+	5640 1980 5640 1870
+Wire Wire Line
+	5640 1870 5530 1870
+$Comp
+L Device:L_Small L1
+U 1 1 6168D626
+P 5810 1980
+F 0 "L1" V 5995 1980 50  0000 C CNN
+F 1 "12uH" V 5904 1980 50  0000 C CNN
+F 2 "Inductor_SMD:L_Bourns_SRR1260" H 5810 1980 50  0001 C CNN
+F 3 "~" H 5810 1980 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/bourns-inc/SRR1260-120M/1969955" V 5810 1980 50  0001 C CNN "DGK"
+F 5 "SRR1260-120M" H 5810 1980 50  0001 C CNN "Manf#"
+	1    5810 1980
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	5710 1980 5640 1980
+Connection ~ 5640 1980
+$Comp
+L Device:C_Small C4
+U 1 1 6168E5E5
+P 6000 2220
+F 0 "C4" H 5900 2290 50  0000 L CNN
+F 1 "120uF" H 5800 2140 50  0000 L CNN
+F 2 "Capacitor_SMD:C_Elec_4x5.8" H 6000 2220 50  0001 C CNN
+F 3 "https://b2b-api.panasonic.eu/file_stream/pids/fileversion/9127" H 6000 2220 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/rubycon/35SEV220M10X10-5/3568760" H 6000 2220 50  0001 C CNN "DGK"
+F 5 "35SEV220M10X10.5" H 6000 2220 50  0001 C CNN "Manf#"
+	1    6000 2220
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_Small_US R3
+U 1 1 6168F0B5
+P 6000 1790
+F 0 "R3" H 6068 1836 50  0000 L CNN
+F 1 "2.0k" H 6068 1745 50  0000 L CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" H 6000 1790 50  0001 C CNN
+F 3 "~" H 6000 1790 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/yageo/RC0603FR-072KL/727009" H 6000 1790 50  0001 C CNN "DGK"
+F 5 "RC0603FR-072KL" H 6000 1790 50  0001 C CNN "Manf#"
+	1    6000 1790
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5910 1980 6000 1980
+Wire Wire Line
+	6000 1980 6000 1890
+Wire Wire Line
+	6000 2120 6000 1980
+Connection ~ 6000 1980
+$Comp
+L Device:R_Small_US R4
+U 1 1 616901D6
+P 6390 1600
+F 0 "R4" V 6185 1600 50  0000 C CNN
+F 1 "1.0k" V 6276 1600 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" H 6390 1600 50  0001 C CNN
+F 3 "~" H 6390 1600 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/yageo/RC0603FR-071KL/726843" H 6390 1600 50  0001 C CNN "DGK"
+F 5 "RC0603FR-071KL" H 6390 1600 50  0001 C CNN "Manf#"
+	1    6390 1600
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	6290 1600 6000 1600
+Wire Wire Line
+	6000 1600 6000 1690
+Wire Wire Line
+	5210 1780 5210 1600
+Wire Wire Line
+	5210 1600 6000 1600
+Connection ~ 6000 1600
+$Comp
+L power:GND #PWR0106
+U 1 1 61691ECF
+P 6540 1660
+F 0 "#PWR0106" H 6540 1410 50  0001 C CNN
+F 1 "GND" H 6545 1487 50  0000 C CNN
+F 2 "" H 6540 1660 50  0001 C CNN
+F 3 "" H 6540 1660 50  0001 C CNN
+	1    6540 1660
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6540 1660 6540 1600
+Wire Wire Line
+	6540 1600 6490 1600
+Wire Wire Line
+	6000 2420 6000 2320
+Wire Wire Line
+	4890 2420 5020 2420
+Connection ~ 5020 2420
+$Comp
+L Diode:PMEG6030EP D1
+U 1 1 6169C013
+P 5640 2240
+F 0 "D1" V 5560 2080 50  0000 L CNN
+F 1 "PMEG6030EP" V 5660 1710 50  0000 L CNN
+F 2 "Diode_SMD:D_SOD-128" H 5640 2065 50  0001 C CNN
+F 3 "https://assets.nexperia.com/documents/data-sheet/PMEG6030EP.pdf" H 5640 2240 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/nexperia-usa-inc/PMEG6030ETPX/4020985" H 5640 2240 50  0001 C CNN "DGK"
+F 5 "PMEG6030ETPX" H 5640 2240 50  0001 C CNN "Manf#"
+	1    5640 2240
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	5020 2420 5640 2420
+Wire Wire Line
+	5640 2390 5640 2420
+Connection ~ 5640 2420
+Wire Wire Line
+	5640 2420 6000 2420
+Wire Wire Line
+	5640 2090 5640 1980
+$Comp
+L SparkFun-Connectors:CONN_02JST-PTH-2 J1
+U 1 1 616AAE1C
+P 7980 2080
+F 0 "J1" H 7752 2225 45  0000 R CNN
+F 1 "CONN_02JST-PTH-2" H 7752 2141 45  0000 R CNN
+F 2 "Connectors:JST-2-PTH" H 7980 2380 20  0001 C CNN
+F 3 "" H 7980 2080 50  0001 C CNN
+F 4 "CONN-09863" H 7752 2046 60  0000 R CNN "Field4"
+F 5 "-" H 7980 2080 50  0001 C CNN "DGK"
+	1    7980 2080
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	7880 2420 7880 2080
+Connection ~ 6000 2420
+Wire Wire Line
+	4950 3030 5070 3030
+Wire Wire Line
+	5070 3030 5070 2970
+$Comp
+L power:GND #PWR0107
+U 1 1 616B3F9C
+P 5060 3420
+F 0 "#PWR0107" H 5060 3170 50  0001 C CNN
+F 1 "GND" H 5065 3247 50  0000 C CNN
+F 2 "" H 5060 3420 50  0001 C CNN
+F 3 "" H 5060 3420 50  0001 C CNN
+	1    5060 3420
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4950 3110 5060 3110
+Wire Wire Line
+	5060 3110 5060 3420
+Wire Wire Line
+	6340 3190 4950 3190
+Wire Wire Line
+	6340 3270 4950 3270
+Wire Wire Line
+	6340 3350 4950 3350
+$Comp
+L Diode:PMEG6030EP D2
+U 1 1 616BBEE0
+P 7050 1980
+F 0 "D2" H 7050 1800 50  0000 C CNN
+F 1 "PMEG6030EP" H 7050 1880 50  0000 C CNN
+F 2 "Diode_SMD:D_SOD-128" H 7050 1805 50  0001 C CNN
+F 3 "https://assets.nexperia.com/documents/data-sheet/PMEG6030EP.pdf" H 7050 1980 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/nexperia-usa-inc/PMEG6030ETPX/4020985" H 7050 1980 50  0001 C CNN "DGK"
+F 5 "PMEG6030ETPX" H 7050 1980 50  0001 C CNN "Manf#"
+	1    7050 1980
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	3700 1780 3700 1950
+Connection ~ 3700 1780
+Wire Wire Line
+	3700 1710 3700 1780
+$Comp
+L power:+24V #PWR0105
+U 1 1 6167D8E4
+P 3700 1710
+F 0 "#PWR0105" H 3700 1560 50  0001 C CNN
+F 1 "+24V" H 3715 1883 50  0000 C CNN
+F 2 "" H 3700 1710 50  0001 C CNN
+F 3 "" H 3700 1710 50  0001 C CNN
+	1    3700 1710
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:CP1_Small C1
+U 1 1 6169AE45
+P 3700 2050
+F 0 "C1" H 3440 2070 50  0000 L CNN
+F 1 "22uF" H 3430 1990 50  0000 L CNN
+F 2 "Capacitor_SMD:CP_Elec_8x6.5" H 3700 2050 50  0001 C CNN
+F 3 "~" H 3700 2050 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/w%C3%BCrth-elektronik/865080643008/5728048" H 3700 2050 50  0001 C CNN "DGK"
+F 5 "865080643008" H 3700 2050 50  0001 C CNN "Manf#"
+	1    3700 2050
+	1    0    0    -1  
+$EndComp
+Text Label 6050 1980 0    50   ~ 0
+Vout-pre
+Text Label 5480 1980 0    50   ~ 0
+SW
+$Comp
+L power-share:LM22680 U1
+U 1 1 616BCA35
+P 4800 1970
+F 0 "U1" H 4785 2385 50  0000 C CNN
+F 1 "LM22680" H 4785 2294 50  0000 C CNN
+F 2 "power-share:LM22680" H 4800 1520 50  0001 C CNN
+F 3 "" H 4800 1520 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/texas-instruments/LM22680QMRX-ADJ-NOPB/2621500" H 4800 1970 50  0001 C CNN "DGK"
+F 5 "LM22680QMRX-ADJ/NOPB" H 4800 1970 50  0001 C CNN "Manf#"
+	1    4800 1970
+	1    0    0    -1  
+$EndComp
+NoConn ~ 4550 2330
+$Comp
+L Device:C_Small C8
+U 1 1 617206A1
+P 7700 2200
+F 0 "C8" H 7792 2246 50  0000 L CNN
+F 1 "0.1uF" H 7792 2155 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 7700 2200 50  0001 C CNN
+F 3 "~" H 7700 2200 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/C0603C104J4RACTU/399-1097-1-ND/411372?utm_medium=email&utm_source=oce&utm_campaign=4251_OCE21RT&utm_content=productdetail_US&utm_cid=1005765&so=70412517&mkt_tok=MDI4LVNYSy01MDcAAAF944T6oiOoCzADiQ6y1NAflhHL0XtIS5Z0jP2CiGD31vy3uVidNjhrbTjQrwfvq69I8De_kxjiyezjNA5O4XmQCCiGQNm1zRnV7s3r-mnC" H 7700 2200 50  0001 C CNN "DGK"
+F 5 "C0603C104J4RAC7867" H 7700 2200 50  0001 C CNN "Manf#"
+	1    7700 2200
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C_Small C7
+U 1 1 61721E6B
+P 7450 2200
+F 0 "C7" H 7250 2250 50  0000 L CNN
+F 1 "10uF" H 7200 2150 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric" H 7450 2200 50  0001 C CNN
+F 3 "~" H 7450 2200 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/samsung-electro-mechanics/CL21B106KOQNNNG/3894472" H 7450 2200 50  0001 C CNN "DGK"
+F 5 "CL21B106KOQNNNG" H 7450 2200 50  0001 C CNN "Manf#"
+	1    7450 2200
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C_Small C5
+U 1 1 6172302E
+P 6500 2200
+F 0 "C5" H 6300 2250 50  0000 L CNN
+F 1 "10uF" H 6250 2150 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric" H 6500 2200 50  0001 C CNN
+F 3 "~" H 6500 2200 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/samsung-electro-mechanics/CL21B106KOQNNNG/3894472" H 6500 2200 50  0001 C CNN "DGK"
+F 5 "CL21B106KOQNNNG" H 6500 2200 50  0001 C CNN "Manf#"
+	1    6500 2200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6750 2100 6750 1980
+Wire Wire Line
+	6000 1980 6500 1980
+Connection ~ 6750 1980
+Wire Wire Line
+	6750 1980 6900 1980
+Wire Wire Line
+	6500 2300 6500 2420
+Wire Wire Line
+	6000 2420 6500 2420
+Connection ~ 6500 2420
+Wire Wire Line
+	6500 2100 6500 1980
+Connection ~ 6500 1980
+Wire Wire Line
+	6500 1980 6750 1980
+Wire Wire Line
+	6500 2420 6750 2420
+$Comp
+L Device:C_Small C6
+U 1 1 61723028
+P 6750 2200
+F 0 "C6" H 6842 2246 50  0000 L CNN
+F 1 "0.1uF" H 6842 2155 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 6750 2200 50  0001 C CNN
+F 3 "~" H 6750 2200 50  0001 C CNN
+F 4 "https://www.digikey.com/en/products/detail/C0603C104J4RACTU/399-1097-1-ND/411372?utm_medium=email&utm_source=oce&utm_campaign=4251_OCE21RT&utm_content=productdetail_US&utm_cid=1005765&so=70412517&mkt_tok=MDI4LVNYSy01MDcAAAF944T6oiOoCzADiQ6y1NAflhHL0XtIS5Z0jP2CiGD31vy3uVidNjhrbTjQrwfvq69I8De_kxjiyezjNA5O4XmQCCiGQNm1zRnV7s3r-mnC" H 6750 2200 50  0001 C CNN "DGK"
+F 5 "C0603C104J4RAC7867" H 6750 2200 50  0001 C CNN "Manf#"
+	1    6750 2200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6750 2300 6750 2420
+Connection ~ 6750 2420
+Wire Wire Line
+	7450 2100 7450 1980
+Wire Wire Line
+	7200 1980 7450 1980
+Connection ~ 7450 1980
+Wire Wire Line
+	7450 1980 7700 1980
+Wire Wire Line
+	7450 2300 7450 2420
+Wire Wire Line
+	6750 2420 7450 2420
+Connection ~ 7450 2420
+Wire Wire Line
+	7700 2300 7700 2420
+Wire Wire Line
+	7450 2420 7700 2420
+Connection ~ 7700 2420
+Wire Wire Line
+	7700 2420 7880 2420
+Wire Wire Line
+	7700 2100 7700 1980
+Connection ~ 7700 1980
+Wire Wire Line
+	7700 1980 7880 1980
+$EndSCHEMATC
